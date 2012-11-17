@@ -7,7 +7,7 @@
  * Copyright 2012 Nick Jennings <nick@silverbucket.net>
  *
  * Released under the MIT license
- * http://github.com/silverbucket/avatar.js/LICENSE
+ * https://raw.github.com/silverbucket/avatar.js/master/LICENSE
  *
  */
 (function(window, document, undefined) {
