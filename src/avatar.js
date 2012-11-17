@@ -44,7 +44,8 @@
           console.log(xhr.responseText);
           if (isValidJSON(xhr.responseText)) {
             var links = JSON.parse(xhr.responseText).links;
-            for(var i=0; i<links.length; i++) {
+            var linksLen = links.length;
+            for(var i=0; i < linksLen; i++) {
               //console.log(links[i]);
               if(links[i].rel=='http://webfinger.net/rel/avatar') {
                 //console.log('found');
@@ -63,6 +64,7 @@
           }
         }
       }
+      cb('avatar not found');
     };
 
     xhr.setRequestHeader('Accept', 'application/json');
