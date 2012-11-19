@@ -52,10 +52,10 @@
                 cb(null, links[i].href);
               }
             }
+            cb('avatar not found');
           } else {
             cb('invalid json response');
           }
-
         } else {
           if (URIEndPoint === 'host-meta.json') {
             callWebFinger(emailAddress, host, protocol, 'host-meta', cb);
@@ -66,8 +66,6 @@
             cb('webfinger endpoint unreachable', xhr.status);
           }
         }
-      } else {
-        cb('avatar not found');
       }
     };
 
