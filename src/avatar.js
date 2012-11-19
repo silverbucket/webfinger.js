@@ -60,13 +60,15 @@
           if (URIEndPoint === 'host-meta.json') {
             callWebFinger(emailAddress, host, protocol, 'host-meta', cb);
           } else if (protocol === 'https') {
+            // try normal http
             callWebFinger(emailAddress, host, 'http', 'host-meta.json', cb);
           } else {
             cb('webfinger endpoint unreachable', xhr.status);
           }
         }
+      } else {
+        cb('avatar not found');
       }
-      cb('avatar not found');
     };
 
     xhr.setRequestHeader('Accept', 'application/json');
