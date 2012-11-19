@@ -26,7 +26,7 @@
     return pattern.test(domain);
   }
 
-  function callWebFinger(emailAddress, host, URIEndPoint, cb) {
+  function callWebFinger(emailAddress, host, protocol, URIEndPoint, cb) {
     if (!isValidDomain(host)) {
       cb('invalid host name');
       return;
@@ -34,8 +34,8 @@
 
     var xhr = new XMLHttpRequest();
 
-    xhr.open('GET', 'https://'+host+'/.well-known/'+URIEndPoint+'?resource=acct:'+emailAddress, true);
-    console.log('URL: https://'+host+'/.well-known/'+URIEndPoint+'?resource=acct:'+emailAddress);
+    xhr.open('GET', protocol+'://'+host+'/.well-known/'+URIEndPoint+'?resource=acct:'+emailAddress, true);
+    console.log('URL: '+protocol+'://'+host+'/.well-known/'+URIEndPoint+'?resource=acct:'+emailAddress);
 
     xhr.onreadystatechange = function() {
       if(xhr.readyState==4) {
@@ -44,7 +44,8 @@
           console.log(xhr.responseText);
           if (isValidJSON(xhr.responseText)) {
             var links = JSON.parse(xhr.responseText).links;
-            for(var i=0; i<links.length; i++) {
+            var linksLen = links.length;
+            for(var i=0; i < linksLen; i++) {
               //console.log(links[i]);
               if(links[i].rel=='http://webfinger.net/rel/avatar') {
                 //console.log('found');
@@ -57,12 +58,15 @@
 
         } else {
           if (URIEndPoint === 'host-meta.json') {
-            callWebFinger(emailAddress, host, 'host-meta', cb);
+            callWebFinger(emailAddress, host, protocol, 'host-meta', cb);
+          } else if (protocol === 'https') {
+            callWebFinger(emailAddress, host, 'http', 'host-meta.json', cb);
           } else {
             cb('webfinger endpoint unreachable', xhr.status);
           }
         }
       }
+      cb('avatar not found');
     };
 
     xhr.setRequestHeader('Accept', 'application/json');
@@ -72,7 +76,7 @@
   window.avatar = function(emailAddress, cb) {
     var parts = emailAddress.replace(/ /g,'').split('@');
     if (parts.length !== 2) { cb('invalid email address'); return false; }
-    callWebFinger(emailAddress, parts[1], 'host-meta.json', cb);
+    callWebFinger(emailAddress, parts[1], 'https', host-meta.json', cb);
   };
 
 })(this, document);
