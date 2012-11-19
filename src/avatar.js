@@ -76,7 +76,7 @@
   window.avatar = function(emailAddress, cb) {
     var parts = emailAddress.replace(/ /g,'').split('@');
     if (parts.length !== 2) { cb('invalid email address'); return false; }
-    callWebFinger(emailAddress, parts[1], 'https', host-meta.json', cb);
+    callWebFinger(emailAddress, parts[1], 'https', 'host-meta.json', cb);
   };
 
 })(this, document);
