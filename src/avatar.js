@@ -50,6 +50,7 @@
               if(links[i].rel=='http://webfinger.net/rel/avatar') {
                 //console.log('found');
                 cb(null, links[i].href);
+                return;
               }
             }
             cb('avatar not found');
