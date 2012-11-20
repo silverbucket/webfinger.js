@@ -6,8 +6,14 @@
  * Copyright 2012 Michiel de Jong <michiel@michielbdejong.com>
  * Copyright 2012 Nick Jennings <nick@silverbucket.net>
  *
- * Released under the MIT license
- * https://raw.github.com/silverbucket/avatar.js/master/LICENSE
+ * avatar.js is released with dual licensing, using the GPL v3
+ * (LICENSE-AGPL) and the MIT license (LICENSE-MIT).
+ *
+ * You don't have to do anything special to choose one license or the other and you don't 
+ * have to notify anyone which license you are using.
+ * Please see the corresponding license file for details of these licenses.
+ * You are free to use, modify and distribute this software, but all copyright
+ * information must remain.
  *
  */
 (function(window, document, undefined) {
