@@ -9,7 +9,7 @@
  * avatar.js is released with dual licensing, using the GPL v3
  * (LICENSE-AGPL) and the MIT license (LICENSE-MIT).
  *
- * You don't have to do anything special to choose one license or the other and you don't 
+ * You don't have to do anything special to choose one license or the other and you don't
  * have to notify anyone which license you are using.
  * Please see the corresponding license file for details of these licenses.
  * You are free to use, modify and distribute this software, but all copyright
@@ -17,6 +17,19 @@
  *
  */
 (function(window, document, undefined) {
+
+  // list of endpoints to try, fallback from beginning to end.
+  var uris = {
+    '0': 'webfinger',
+    '1': 'host-meta',
+    '2': 'host-meta.json'
+  };
+
+  // list of protocols to try
+  var protocols = {
+    '0': 'https',
+    '1': 'http'
+  };
 
   function isValidJSON(str) {
     try {
@@ -32,16 +45,42 @@
     return pattern.test(domain);
   }
 
-  function callWebFinger(emailAddress, host, protocol, URIEndPoint, cb) {
-    if (!isValidDomain(host)) {
-      cb('invalid host name');
+  function callWebFinger(p, uriIndex, protocol) {
+    //console.log('params:',p);
+    if (!isValidDomain(p.host)) {
+      p.callback('invalid host name');
       return;
     }
 
     var xhr = new XMLHttpRequest();
 
-    xhr.open('GET', protocol+'://'+host+'/.well-known/'+URIEndPoint+'?resource=acct:'+emailAddress, true);
-    console.log('URL: '+protocol+'://'+host+'/.well-known/'+URIEndPoint+'?resource=acct:'+emailAddress);
+    if (uriIndex === undefined) {
+      // try first URI first
+      uriIndex = 0;
+    }
+
+    if (protocol === undefined) {
+      // we use https by default
+      protocol = 'https';
+    }
+
+    var profile = {};
+    //profile.properties = {
+    //  'name': undefined
+    //};
+    //profile.links = {
+    profile = {
+      'avatar': [],
+      'remotestorage': [],
+      'blog': [],
+      'vcard': [],
+      'updates': [],
+      'share': [],
+      'profile': []
+    };
+
+    console.log('URL: '+protocol+'://'+p.host+'/.well-known/'+uris[uriIndex]+'?resource=acct:'+p.userAddress);
+    xhr.open('GET', protocol+'://'+p.host+'/.well-known/'+uris[uriIndex]+'?resource=acct:'+p.userAddress, true);
 
     xhr.onreadystatechange = function() {
       if(xhr.readyState==4) {
@@ -51,26 +90,87 @@
           if (isValidJSON(xhr.responseText)) {
             var links = JSON.parse(xhr.responseText).links;
             var linksLen = links.length;
-            for(var i=0; i < linksLen; i++) {
+            for (var i = 0; i < linksLen; i = i + 1) {
               //console.log(links[i]);
-              if(links[i].rel=='http://webfinger.net/rel/avatar') {
-                //console.log('found');
-                cb(null, links[i].href);
-                return;
+              switch (links[i].rel) {
+                case 'http://webfinger.net/rel/avatar':
+                  profile['avatar'].push(links[i].href);
+                  break;
+                case 'remotestorage':
+                case 'remoteStorage':
+                  profile['remotestorage'].push(links[i].href);
+                  break;
+                case 'http://www.packetizer.com/rel/share':
+                  profile['share'].push(links[i].href);
+                  break;
+                case 'http://webfinger.net/rel/profile-page':
+                  profile['profile'].push(links[i].href);
+                  break;
+                case 'vcard':
+                  profile['vcard'].push(links[i].href);
+                  break;
+                case 'blog':
+                case 'http://packetizer.com/rel/blog':
+                  profile['blog'].push(links[i].href);
+                  break;
+                case 'http://schemas.google.com/g/2010#updates-from':
+                  profile['updates'].push(links[i].href);
+                  break;
               }
             }
-            cb('avatar not found');
+
+            /*var properties = JSON.parse(xhr.responseText).properties;
+            var propertiesLen = properties.length;
+            for(i = 0; i < propertiesLen; i = i + 1) {
+              //console.log(links[i]);
+              switch (links[i].rel) {
+                case 'http://webfinger.net/rel/avatar':
+                  profile['avatar'].push(links[i].href);
+                  break;
+                case 'remotestorage':
+                case 'remoteStorage':
+                  profile['remotestorage'].push(links[i].href);
+                  break;
+                case 'http://www.packetizer.com/rel/share':
+                  profile['share'].push(links[i].href);
+                  break;
+                case 'http://webfinger.net/rel/profile-page':
+                  profile['profile'].push(links[i].href);
+                  break;
+                case 'vcard':
+                  profile['vcard'].push(links[i].href);
+                  break;
+                case 'blog':
+                case 'http://packetizer.com/rel/blog':
+                  profile['blog'].push(links[i].href);
+                  break;
+                case 'http://schemas.google.com/g/2010#updates-from':
+                  profile['updates'].push(links[i].href);
+                  break;
+              }
+            }*/
+
+            p.callback(null, profile);
+            //p.callback('avatar not found');
           } else {
-            cb('invalid json response');
+            //p.callback('invalid json response');
+            if (uriIndex !== uris.length - 1) {
+              callWebFinger(p, uriIndex + 1);
+            } else if ((!p.TLS_ONLY) && (protocol === 'https')) {
+              // try normal http
+              callWebFinger(p, uriIndex = 0, 'http');
+            } else {
+              p.callback('webfinger endpoint unreachable', xhr.status);
+            }
           }
         } else {
-          if (URIEndPoint === 'host-meta.json') {
-            callWebFinger(emailAddress, host, protocol, 'host-meta', cb);
-          } else if (protocol === 'https') {
+          if (uriIndex !== uris.length - 1) {
+            callWebFinger(p, uriIndex + 1);
+          } else if ((!p.TLS_ONLY) && (protocol === 'https')) {
             // try normal http
-            callWebFinger(emailAddress, host, 'http', 'host-meta.json', cb);
+            callWebFinger(p, uriIndex = 0, 'http');
           } else {
-            cb('webfinger endpoint unreachable', xhr.status);
+            p.callback('webfinger endpoint unreachable', xhr.status);
           }
         }
       }
@@ -80,10 +180,15 @@
     xhr.send();
   }
 
-  window.avatar = function(emailAddress, cb) {
-    var parts = emailAddress.replace(/ /g,'').split('@');
+  window.avatar = function(userAddress, cb, TLS_ONLY) {
+    var parts = userAddress.replace(/ /g,'').split('@');
     if (parts.length !== 2) { cb('invalid email address'); return false; }
-    callWebFinger(emailAddress, parts[1], 'https', 'host-meta.json', cb);
+    callWebFinger({
+      userAddress: userAddress,
+      TLS_ONLY: TLS_ONLY || 0,
+      host: parts[1],
+      callback: cb
+    });
   };
 
 })(this, document);
