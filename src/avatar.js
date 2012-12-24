@@ -19,17 +19,7 @@
 (function(window, document, undefined) {
 
   // list of endpoints to try, fallback from beginning to end.
-  var uris = {
-    '0': 'webfinger',
-    '1': 'host-meta',
-    '2': 'host-meta.json'
-  };
-
-  // list of protocols to try
-  var protocols = {
-    '0': 'https',
-    '1': 'http'
-  };
+  var uris = ['webfinger','host-meta', 'host-meta.json'];
 
   function isValidJSON(str) {
     try {
@@ -47,6 +37,8 @@
 
   function callWebFinger(p, uriIndex, protocol) {
     //console.log('params:',p);
+    //console.log('uriIndex:'+uriIndex+' protocol:'+protocol);
+    p.TLS_ONLY = true; // never fallback to http
     if (!isValidDomain(p.host)) {
       p.callback('invalid host name');
       return;
@@ -65,11 +57,11 @@
     }
 
     var profile = {};
-    //profile.properties = {
-    //  'name': undefined
-    //};
-    //profile.links = {
-    profile = {
+    profile.properties = {
+      'name': undefined
+    };
+    profile.links = {
+    //profile = {
       'avatar': [],
       'remotestorage': [],
       'blog': [],
@@ -79,8 +71,11 @@
       'profile': []
     };
 
-    console.log('URL: '+protocol+'://'+p.host+'/.well-known/'+uris[uriIndex]+'?resource=acct:'+p.userAddress);
-    xhr.open('GET', protocol+'://'+p.host+'/.well-known/'+uris[uriIndex]+'?resource=acct:'+p.userAddress, true);
+    console.log('URL: ' + protocol + '://' + p.host + '/.well-known/' +
+                uris[uriIndex] + '?resource=acct:' + p.userAddress);
+
+    xhr.open('GET', protocol + '://' + p.host + '/.well-known/' +
+                    uris[uriIndex] + '?resource=acct:' + p.userAddress, true);
 
     xhr.onreadystatechange = function() {
       if(xhr.readyState==4) {
@@ -88,96 +83,73 @@
         if(xhr.status==200) {
           console.log(xhr.responseText);
           if (isValidJSON(xhr.responseText)) {
+
+            // process links
             var links = JSON.parse(xhr.responseText).links;
-            var linksLen = links.length;
-            for (var i = 0; i < linksLen; i = i + 1) {
+            for (var i = 0, len = links.length; i < len; i = i + 1) {
               //console.log(links[i]);
               switch (links[i].rel) {
                 case 'http://webfinger.net/rel/avatar':
-                  profile['avatar'].push(links[i].href);
+                  profile.links['avatar'].push(links[i].href);
                   break;
                 case 'remotestorage':
                 case 'remoteStorage':
-                  profile['remotestorage'].push(links[i].href);
+                  profile.links['remotestorage'].push(links[i].href);
                   break;
                 case 'http://www.packetizer.com/rel/share':
-                  profile['share'].push(links[i].href);
+                  profile.links['share'].push(links[i].href);
                   break;
                 case 'http://webfinger.net/rel/profile-page':
-                  profile['profile'].push(links[i].href);
+                  profile.links['profile'].push(links[i].href);
                   break;
                 case 'vcard':
-                  profile['vcard'].push(links[i].href);
+                  profile.links['vcard'].push(links[i].href);
                   break;
                 case 'blog':
                 case 'http://packetizer.com/rel/blog':
-                  profile['blog'].push(links[i].href);
+                  profile.links['blog'].push(links[i].href);
                   break;
                 case 'http://schemas.google.com/g/2010#updates-from':
-                  profile['updates'].push(links[i].href);
+                  profile.links['updates'].push(links[i].href);
                   break;
               }
             }
 
-            /*var properties = JSON.parse(xhr.responseText).properties;
-            var propertiesLen = properties.length;
-            for(i = 0; i < propertiesLen; i = i + 1) {
-              //console.log(links[i]);
-              switch (links[i].rel) {
-                case 'http://webfinger.net/rel/avatar':
-                  profile['avatar'].push(links[i].href);
-                  break;
-                case 'remotestorage':
-                case 'remoteStorage':
-                  profile['remotestorage'].push(links[i].href);
-                  break;
-                case 'http://www.packetizer.com/rel/share':
-                  profile['share'].push(links[i].href);
-                  break;
-                case 'http://webfinger.net/rel/profile-page':
-                  profile['profile'].push(links[i].href);
-                  break;
-                case 'vcard':
-                  profile['vcard'].push(links[i].href);
-                  break;
-                case 'blog':
-                case 'http://packetizer.com/rel/blog':
-                  profile['blog'].push(links[i].href);
-                  break;
-                case 'http://schemas.google.com/g/2010#updates-from':
-                  profile['updates'].push(links[i].href);
-                  break;
+            // process properties
+            var props = JSON.parse(xhr.responseText).properties;
+            for (var key in props) {
+              if (props.hasOwnProperty(key)) {
+                if (key === 'http://packetizer.com/ns/name') {
+                  profile.properties['name'] = props[key];
+                }
               }
-            }*/
+            }
 
             p.callback(null, profile);
-            //p.callback('avatar not found');
           } else {
-            //p.callback('invalid json response');
-            if (uriIndex !== uris.length - 1) {
-              callWebFinger(p, uriIndex + 1);
-            } else if ((!p.TLS_ONLY) && (protocol === 'https')) {
-              // try normal http
-              callWebFinger(p, uriIndex = 0, 'http');
-            } else {
-              p.callback('webfinger endpoint unreachable', xhr.status);
-            }
+            // invalid json response
+            fallbackChecks();
           }
         } else {
-          if (uriIndex !== uris.length - 1) {
-            callWebFinger(p, uriIndex + 1);
-          } else if ((!p.TLS_ONLY) && (protocol === 'https')) {
-            // try normal http
-            callWebFinger(p, uriIndex = 0, 'http');
-          } else {
-            p.callback('webfinger endpoint unreachable', xhr.status);
-          }
+          // request failed
+          fallbackChecks();
         }
       }
     };
 
     xhr.setRequestHeader('Accept', 'application/json');
     xhr.send();
+
+    function fallbackChecks() {
+      if (uriIndex !== uris.length - 1) {
+        callWebFinger(p, uriIndex + 1, protocol);
+      } else if ((!p.TLS_ONLY) && (protocol === 'https')) {
+        // try normal http
+        callWebFinger(p, uriIndex = 0, 'http');
+      } else {
+        p.callback('webfinger endpoint unreachable', xhr.status);
+      }
+    }
   }
 
   window.avatar = function(userAddress, cb, TLS_ONLY) {

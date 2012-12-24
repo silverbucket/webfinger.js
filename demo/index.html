@@ -71,33 +71,39 @@
     <script>
       function checkAvatar(emailAddress) {
         avatar(emailAddress, function(err, p) {
-        if(err) {
-          console.log('error getting avatar data for '+emailAddress+': ' + err);
-          console.log(document.getElementById('error'));
-          document.getElementById('error').innerHTML = '<p class="error">'+err+' for '+emailAddress+'</p>';
-        } else if (p) {
-          console.log('avatar.js result: ', p);
+          if(err) {
+            console.log('error getting avatar data for '+emailAddress+': ' + err);
+            console.log(document.getElementById('error'));
+            document.getElementById('error').innerHTML = '<p class="error">'+err+' for '+emailAddress+'</p>';
 
-          // build entry html
-          var entry = '<div class="result"><h2>'+emailAddress+'</h2>';
-          if (p.avatar[0] !== undefined) {
-            entry += '<p><img height="200px" src="'+p.avatar+'"></p>'
-          }
-          p.avatar = [];
+          } else if (p) {
+            console.log('avatar.js result: ', p);
 
-          for (var e in p) {
-            var peLen = p[e].length;
-            for (var i = 0; i < peLen; i = i + 1) {
-              entry += '<p>'+e+': <a target="_blank" href="'+p[e][i]+'">'+p[e][i]+'</a></p>';
+            // build entry html
+            var entry = '<div class="result"><h2>';
+            if (p.properties.name !== undefined) {  // add name if it's found
+              entry = entry + p.properties.name + ' <br />';
             }
-          }
-          entry += '</div>';
+            entry = entry + emailAddress + '</h2>';
 
-          var results = document.getElementById("results");
-          results.insertAdjacentHTML("afterbegin", entry);
-        } else {
-          document.getElementById('error').innerHTML = '<p class="error">unable to get record for '+emailAddress+'</p>';
-        }
+            if (p.links.avatar[0] !== undefined) {
+              entry += '<p><img height="200px" src="'+p.links.avatar+'"></p>'
+            }
+            p.links.avatar = [];
+
+            for (var e in p.links) {
+              var peLen = p.links[e].length;
+              for (var i = 0; i < peLen; i = i + 1) {
+                entry += '<p>'+e+': <a target="_blank" href="'+p.links[e][i]+'">'+p.links[e][i]+'</a></p>';
+              }
+            }
+            entry += '</div>';
+
+            var results = document.getElementById("results");
+            results.insertAdjacentHTML("afterbegin", entry);
+          } else {
+            document.getElementById('error').innerHTML = '<p class="error">unable to get record for '+emailAddress+'</p>';
+          }
         });
       }
 
