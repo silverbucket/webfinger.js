@@ -3,6 +3,10 @@ avatar.js
 
 library for getting a users avatar and profile data
 
+demo
+----
+see a working demo [here](http://silverbucket.github.com/avatar.js/)
+
 license
 -------
 avatar.js is released with dual licensing, using the [AGPL](http://www.gnu.org/licenses/agpl.html) and the [MIT](http://opensource.org/licenses/MIT) license.
