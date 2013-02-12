@@ -1,16 +1,14 @@
 avatar.js
 =========
 
-library for getting a users avatar and profile data
+A browser-based webfinger client.
+
+For a node.js webfinger client library see https://github.com/evanp/webfinger
+
 
 demo
 ----
 see a working demo [here](http://silverbucket.github.com/avatar.js/)
-
-not maintained
---------------
-This library is a proof of concept, and is not actively maintained. Please see the excellent webfinger library written by Evan Prodromou here: https://github.com/evanp/webfinger
-
 
 license
 -------
