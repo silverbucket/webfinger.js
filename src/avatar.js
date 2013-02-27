@@ -1,12 +1,14 @@
 // -*- mode:js; js-indent-level:2 -*-
 /*!
- * avatar.js
- * http://github.com/silverbucket/avatar.js
+ * webfinger.js
+ * http://github.com/silverbucket/webfinger.js
  *
- * Copyright 2012 Michiel de Jong <michiel@michielbdejong.com>
- * Copyright 2012 Nick Jennings <nick@silverbucket.net>
+ * Copyright 2012-201 Nick Jennings <nick@silverbucket.net>
  *
- * avatar.js is released with dual licensing, using the GPL v3
+ * With contributions from:
+ * Michiel de Jong <michiel@michielbdejong.com>
+ *
+ * webfinger.js is released with dual licensing, using the GPL v3
  * (LICENSE-AGPL) and the MIT license (LICENSE-MIT).
  *
  * You don't have to do anything special to choose one license or the other and you don't
@@ -152,7 +154,7 @@
     }
   }
 
-  window.avatar = function(userAddress, cb, TLS_ONLY) {
+  window.webfinger = function(userAddress, cb, TLS_ONLY) {
     var parts = userAddress.replace(/ /g,'').split('@');
     if (parts.length !== 2) { cb('invalid email address'); return false; }
     callWebFinger({
