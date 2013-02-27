@@ -8,7 +8,7 @@ For a node.js webfinger client library see https://github.com/evanp/webfinger
 
 demo
 ----
-see a working demo [here](http://silverbucket.github.com/webfinger.js/)
+see a working demo [here](http://silverbucket.github.com/webfinger.js/demo/)
 
 license
 -------
