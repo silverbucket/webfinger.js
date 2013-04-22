@@ -3,7 +3,8 @@
  * webfinger.js
  * http://github.com/silverbucket/webfinger.js
  *
- * Copyright 2012-201 Nick Jennings <nick@silverbucket.net>
+ * Maintained by:
+ * Copyright 2012-2013 Nick Jennings <nick@silverbucket.net>
  *
  * With contributions from:
  * Michiel de Jong <michiel@michielbdejong.com>
@@ -18,7 +19,7 @@
  * information must remain.
  *
  */
-(function(window, document, undefined) {
+(function (window, document, undefined) {
 
   // list of endpoints to try, fallback from beginning to end.
   var uris = ['webfinger','host-meta', 'host-meta.json'];
@@ -79,15 +80,25 @@
     xhr.open('GET', protocol + '://' + p.host + '/.well-known/' +
                     uris[uriIndex] + '?resource=acct:' + p.userAddress, true);
 
-    xhr.onreadystatechange = function() {
-      if(xhr.readyState==4) {
+    xhr.onreadystatechange = function () {
+      if (xhr.readyState==4) {
         //console.log('xhr.status: '+xhr.status);
-        if(xhr.status==200) {
+        if (xhr.status==200) {
           console.log(xhr.responseText);
           if (isValidJSON(xhr.responseText)) {
 
-            // process links
             var links = JSON.parse(xhr.responseText).links;
+            if (!links) {
+              var serverResp = JSON.parse(xhr.responseText);
+              if (typeof serverResp.error !== 'undefined') {
+                p.callback(serverResp.error);
+              } else {
+                p.callback('received unknown response from server');
+              }
+              return;
+            }
+
+            // process links
             for (var i = 0, len = links.length; i < len; i = i + 1) {
               //console.log(links[i]);
               switch (links[i].rel) {
@@ -155,8 +166,14 @@
   }
 
   window.webfinger = function(userAddress, cb, TLS_ONLY) {
+    if (typeof cb !== 'function') {
+      console.log('webfinger.js: no callback function specified');
+      return {error: "no callback function specified"};
+    }
+
     var parts = userAddress.replace(/ /g,'').split('@');
     if (parts.length !== 2) { cb('invalid email address'); return false; }
+
     callWebFinger({
       userAddress: userAddress,
       TLS_ONLY: TLS_ONLY || 0,
