@@ -22,7 +22,7 @@
 (function (window, document, undefined) {
 
   // list of endpoints to try, fallback from beginning to end.
-  var uris = ['webfinger','host-meta', 'host-meta.json'];
+  var uris = ['webfinger', 'host-meta', 'host-meta.json'];
 
   function isValidJSON(str) {
     try {
@@ -38,25 +38,28 @@
     return pattern.test(domain);
   }
 
-  function callWebFinger(p, uriIndex, protocol) {
+  function callWebFinger(address, p, cb) {
     //console.log('params:',p);
     //console.log('uriIndex:'+uriIndex+' protocol:'+protocol);
     p.TLS_ONLY = true; // never fallback to http
     if (!isValidDomain(p.host)) {
-      p.callback('invalid host name');
+      cb('invalid host name');
       return;
     }
 
     var xhr = new XMLHttpRequest();
 
-    if (uriIndex === undefined) {
+    if (typeof p.uriFallback === "undefined") {
+      p.uriFallback = false;
+    }
+    if (typeof p.uriIndex === "undefined") {
       // try first URI first
-      uriIndex = 0;
+      p.uriIndex = 0;
     }
 
-    if (protocol === undefined) {
+    if (typeof p.protocol === "undefined") {
       // we use https by default
-      protocol = 'https';
+      p.protocol = 'https';
     }
 
     var profile = {};
@@ -64,7 +67,6 @@
       'name': undefined
     };
     profile.links = {
-    //profile = {
       'avatar': [],
       'remotestorage': [],
       'blog': [],
@@ -74,26 +76,25 @@
       'profile': []
     };
 
-    console.log('URL: ' + protocol + '://' + p.host + '/.well-known/' +
-                uris[uriIndex] + '?resource=acct:' + p.userAddress);
+    console.log( 'URL: ' + p.protocol + '://' + p.host + '/.well-known/' +
+                 uris[p.uriIndex] + '?resource=acct:' + address );
 
-    xhr.open('GET', protocol + '://' + p.host + '/.well-known/' +
-                    uris[uriIndex] + '?resource=acct:' + p.userAddress, true);
+    xhr.open('GET', p.protocol + '://' + p.host + '/.well-known/' +
+                    uris[p.uriIndex] + '?resource=acct:' + address, true);
 
     xhr.onreadystatechange = function () {
-      if (xhr.readyState==4) {
+      if (xhr.readyState === 4) {
         //console.log('xhr.status: '+xhr.status);
-        if (xhr.status==200) {
+        if (xhr.status === 200) {
           console.log(xhr.responseText);
           if (isValidJSON(xhr.responseText)) {
-
             var links = JSON.parse(xhr.responseText).links;
             if (!links) {
               var serverResp = JSON.parse(xhr.responseText);
               if (typeof serverResp.error !== 'undefined') {
-                p.callback(serverResp.error);
+                cb(serverResp.error);
               } else {
-                p.callback('received unknown response from server');
+                cb('received unknown response from server');
               }
               return;
             }
@@ -138,7 +139,7 @@
               }
             }
 
-            p.callback(null, profile);
+            cb(null, profile);
           } else {
             // invalid json response
             fallbackChecks();
@@ -154,32 +155,39 @@
     xhr.send();
 
     function fallbackChecks() {
-      if (uriIndex !== uris.length - 1) {
-        callWebFinger(p, uriIndex + 1, protocol);
-      } else if ((!p.TLS_ONLY) && (protocol === 'https')) {
-        // try normal http
-        callWebFinger(p, uriIndex = 0, 'http');
+      if ((p.uriFallback) && (p.uriIndex !== uris.length - 1)) { // we have uris left to try
+        p.uriIndex = p.uriIndex + 1;
+        callWebFinger(address, p, cb);
+      } else if ((!p.TLS_ONLY) && (protocol === 'https')) { // try normal http
+        p.uriIndex = 0;
+        p.protocol = 'http';
+        callWebFinger(address, p, cb);
+      } else if ((p.webfistFallback) && (p.host !== 'webfist.org')) {
+        p.uriIndex = 0;
+        p.protocol = 'http';
+        p.host = 'webfist.org';
+        p.uriFallback = false;
+        callWebFinger(address, p, cb);
       } else {
-        p.callback('webfinger endpoint unreachable', xhr.status);
+        cb('webfinger endpoint unreachable', xhr.status);
       }
     }
   }
 
-  window.webfinger = function(userAddress, cb, TLS_ONLY) {
+  window.webfinger = function(address, o, cb) {
     if (typeof cb !== 'function') {
       console.log('webfinger.js: no callback function specified');
-      return {error: "no callback function specified"};
+      return { error: "no callback function specified" };
     }
 
-    var parts = userAddress.replace(/ /g,'').split('@');
+    var parts = address.replace(/ /g,'').split('@');
     if (parts.length !== 2) { cb('invalid email address'); return false; }
 
-    callWebFinger({
-      userAddress: userAddress,
-      TLS_ONLY: TLS_ONLY || 0,
+    callWebFinger(address, {
       host: parts[1],
-      callback: cb
-    });
+      TLS_ONLY: (typeof o.TLS_ONLY !== 'undefined') ? o.TLS_ONLY : true,
+      webfistFallback: (typeof o.webfistFallback !== 'undefined') ? o.webfistFallback : true
+    }, cb);
   };
 
 })(this, document);
