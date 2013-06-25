@@ -13,7 +13,12 @@
     <style>
       body { text-align: center; }
       header { with: 100%; background-color: #A6A6A6; color: #FDFEDE;
-           padding: 1px; }
+           padding: 1px; display: block; }
+      header .title { display: inline-block; }
+      header .project-details { margin: 0 0 0 80px; display: inline-block; }
+      header a { text-color: white; }
+      header a:visited { color: white; }
+      header a:hover { color: black; }
       form { margin: 15px; }
       #results { margin: 20px auto 0 auto; padding: 0px; }
       .result { margin: 0; margin-bottom: 50px; }
@@ -27,7 +32,7 @@
       <p class="chromeframe">You are using an outdated browser. <a href="http://browsehappy.com/">Upgrade your browser today</a>!</p>
     <![endif]-->
 
-    <header><h1>webfinger.js demo</h1><p>[<a href="https://github.com/silverbucket/webfinger.js">github repository</a>]</header>
+    <header><div class="title"><h1>webfinger.js demo</h1></div><div class="project-details"><a href="https://github.com/silverbucket/webfinger.js">github repository</a></div></header>
 
     <article>
 
@@ -48,6 +53,7 @@
     </article>
 
     <script src="https://raw.github.com/silverbucket/webfinger.js/master/src/webfinger.js"></script>
+    <!--<script src="../src/webfinger.js"></script>-->
 
     <script>
       document.webfinger.email_address.focus();
