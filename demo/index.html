@@ -16,7 +16,7 @@
            padding: 1px; display: block; }
       header .title { display: inline-block; }
       header .project-details { margin: 0 0 0 80px; display: inline-block; }
-      header a { text-color: white; }
+      header a { color: white; }
       header a:visited { color: white; }
       header a:hover { color: black; }
       form { margin: 15px; }
@@ -53,7 +53,9 @@
     </article>
 
     <script src="https://raw.github.com/silverbucket/webfinger.js/master/src/webfinger.js"></script>
-    <!--<script src="../src/webfinger.js"></script>-->
+    <!--
+    <script src="../src/webfinger.js"></script>
+    -->
 
     <script>
       document.webfinger.email_address.focus();
@@ -76,7 +78,7 @@
     </script>
     <script>
       function queryWebfinger(emailAddress) {
-        webfinger(emailAddress, function(err, p) {
+        webfinger(emailAddress, { webfistFallback: true }, function(err, p) {
           if(err) {
             console.log('error getting webfinger data for '+emailAddress+': ' + err);
             console.log(document.getElementById('error'));
@@ -115,6 +117,7 @@
 
       queryWebfinger('nick@silverbucket.net');
       queryWebfinger('paulej@packetizer.com');
+      queryWebfinger('bradfitz@gmail.com');
     </script>
   </body>
 </html>
