@@ -56,7 +56,7 @@
         if (keyCode == 13) {
         // enter.
         var email_address = document.webfinger.email_address.value;
-        checkAvatar(email_address);
+        queryWebfinger(email_address);
         return false;
         } else if (keyCode == 27) {
         // escape.
