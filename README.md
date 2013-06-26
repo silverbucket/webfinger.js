@@ -20,32 +20,32 @@ example usage
 
 When you include the `src/webfinger.js` script, a `webfinger` object will be exposed.
 
-				webfinger('nick@silverbucket.net', {
-					webfist_fallback: true,  // defaults to true
-					tls_only: true,  // defaults to true
-					uri_fallback: false,  // defaults to false
-				}, function (err, p) {
-					if (!err) {
-						console.log(p);
-					}
-				});
+		webfinger('nick@silverbucket.net', {
+			webfist_fallback: true,  // defaults to true
+			tls_only: true,  // defaults to true
+			uri_fallback: false,  // defaults to false
+		}, function (err, p) {
+			if (!err) {
+				console.log(p);
+			}
+		});
 
-				**
-				// example output:
-				// {
-				//   properties: {
-				//     name: "Nick Jennings"
-				//   },
-				//     links: {
-				//       avatar: ['<url>'],
-				//       blog: ['<url>'],
-				//       vcard: ['<url']
-				//       ... etc.
-				//     }
-				//   }
-				// }
-				//
-				**
+		**
+		// example output:
+		// {
+		//   properties: {
+		//     name: "Nick Jennings"
+		//   },
+		//     links: {
+		//       avatar: ['<url>'],
+		//       blog: ['<url>'],
+		//       vcard: ['<url']
+		//       ... etc.
+		//     }
+		//   }
+		// }
+		//
+		**
 
 demo
 ----
