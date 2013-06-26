@@ -78,7 +78,7 @@
     </script>
     <script>
       function queryWebfinger(emailAddress) {
-        webfinger(emailAddress, { webfistFallback: true }, function(err, p) {
+        webfinger(emailAddress, {}, function(err, p) {
           if(err) {
             console.log('error getting webfinger data for '+emailAddress+': ' + err);
             console.log(document.getElementById('error'));
