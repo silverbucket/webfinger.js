@@ -3,7 +3,6 @@
  * webfinger.js
  * http://github.com/silverbucket/webfinger.js
  *
- * Maintained by:
  * Copyright 2012-2013 Nick Jennings <nick@silverbucket.net>
  *
  * With contributions from:
@@ -38,9 +37,8 @@
     return pattern.test(domain);
   }
 
+
   function callWebFinger(address, p, cb) {
-    //console.log('params:',p);
-    //console.log('uriIndex:'+uriIndex+' protocol:'+protocol);
     p.TLS_ONLY = true; // never fallback to http
     if (!isValidDomain(p.host)) {
       cb('invalid host name');
@@ -62,98 +60,118 @@
       p.protocol = 'https';
     }
 
-    var profile = {};
-    profile.properties = {
-      'name': undefined
-    };
-    profile.links = {
-      'avatar': [],
-      'remotestorage': [],
-      'blog': [],
-      'vcard': [],
-      'updates': [],
-      'share': [],
-      'profile': []
-    };
+    // make request
+    getJSON(p.protocol + '://' + p.host + '/.well-known/' +
+        uris[p.uriIndex] + '?resource=acct:' + address,
+    function(err, json) {
+      if (err) {
+        fallbackChecks();
+      } else {
+        processJSON(json, cb);
+      }
+    });
 
-    console.log( 'URL: ' + p.protocol + '://' + p.host + '/.well-known/' +
-                 uris[p.uriIndex] + '?resource=acct:' + address );
 
-    xhr.open('GET', p.protocol + '://' + p.host + '/.well-known/' +
-                    uris[p.uriIndex] + '?resource=acct:' + address, true);
-
-    xhr.onreadystatechange = function () {
-      if (xhr.readyState === 4) {
-        //console.log('xhr.status: '+xhr.status);
-        if (xhr.status === 200) {
-          console.log(xhr.responseText);
-          if (isValidJSON(xhr.responseText)) {
-            var links = JSON.parse(xhr.responseText).links;
-            if (!links) {
-              var serverResp = JSON.parse(xhr.responseText);
-              if (typeof serverResp.error !== 'undefined') {
-                cb(serverResp.error);
-              } else {
-                cb('received unknown response from server');
-              }
-              return;
+    // make an http request and look for json response, fails if request fails
+    // or response not json.
+    function getJSON(url, cb) {
+      console.log('URL: ' + url);
+      xhr.open('GET', url, true);
+      xhr.onreadystatechange = function () {
+        if (xhr.readyState === 4) {
+          if (xhr.status === 200) {
+            console.log(xhr.responseText);
+            if (isValidJSON(xhr.responseText)) {
+              cb(null, xhr.responseText);
+            } else {
+              // invalid json response
+              cb('invalid jsoon');
             }
-
-            // process links
-            for (var i = 0, len = links.length; i < len; i = i + 1) {
-              //console.log(links[i]);
-              switch (links[i].rel) {
-                case 'http://webfinger.net/rel/avatar':
-                  profile.links['avatar'].push(links[i].href);
-                  break;
-                case 'remotestorage':
-                case 'remoteStorage':
-                  profile.links['remotestorage'].push(links[i].href);
-                  break;
-                case 'http://www.packetizer.com/rel/share':
-                  profile.links['share'].push(links[i].href);
-                  break;
-                case 'http://webfinger.net/rel/profile-page':
-                  profile.links['profile'].push(links[i].href);
-                  break;
-                case 'vcard':
-                  profile.links['vcard'].push(links[i].href);
-                  break;
-                case 'blog':
-                case 'http://packetizer.com/rel/blog':
-                  profile.links['blog'].push(links[i].href);
-                  break;
-                case 'http://schemas.google.com/g/2010#updates-from':
-                  profile.links['updates'].push(links[i].href);
-                  break;
-              }
-            }
-
-            // process properties
-            var props = JSON.parse(xhr.responseText).properties;
-            for (var key in props) {
-              if (props.hasOwnProperty(key)) {
-                if (key === 'http://packetizer.com/ns/name') {
-                  profile.properties['name'] = props[key];
-                }
-              }
-            }
-
-            cb(null, profile);
           } else {
-            // invalid json response
-            fallbackChecks();
+            // request failed
+            cb('request failed');
           }
+        }
+      };
+      xhr.setRequestHeader('Accept', 'application/json');
+      xhr.send();
+    }
+
+    // processes json object as if it's a webfinger response object
+    // looks for known properties and adds them to profile datat struct.
+    function processJSON(json, cb) {
+      var links = JSON.parse(json).links;
+      if (!links) {
+        var serverResp = JSON.parse(json);
+        if (typeof serverResp.error !== 'undefined') {
+          cb(serverResp.error);
         } else {
-          // request failed
-          fallbackChecks();
+          cb('received unknown response from server');
+        }
+        return;
+      }
+
+      var profile = {};
+      profile.properties = {
+        'name': undefined
+      };
+      profile.links = {
+        'avatar': [],
+        'remotestorage': [],
+        'blog': [],
+        'vcard': [],
+        'updates': [],
+        'share': [],
+        'profile': [],
+        'webfist': []
+      };
+
+      // process links
+      for (var i = 0, len = links.length; i < len; i = i + 1) {
+        //console.log(links[i]);
+        switch (links[i].rel) {
+          case "http://webfist.org/spec/rel":
+            profile.links['webfist'].push(links[i].href);
+            break;
+          case 'http://webfinger.net/rel/avatar':
+            profile.links['avatar'].push(links[i].href);
+            break;
+          case 'remotestorage':
+          case 'remoteStorage':
+            profile.links['remotestorage'].push(links[i].href);
+            break;
+          case 'http://www.packetizer.com/rel/share':
+            profile.links['share'].push(links[i].href);
+            break;
+          case 'http://webfinger.net/rel/profile-page':
+            profile.links['profile'].push(links[i].href);
+            break;
+          case 'vcard':
+            profile.links['vcard'].push(links[i].href);
+            break;
+          case 'blog':
+          case 'http://packetizer.com/rel/blog':
+            profile.links['blog'].push(links[i].href);
+            break;
+          case 'http://schemas.google.com/g/2010#updates-from':
+            profile.links['updates'].push(links[i].href);
+            break;
         }
       }
-    };
 
-    xhr.setRequestHeader('Accept', 'application/json');
-    xhr.send();
+      // process properties
+      var props = JSON.parse(json).properties;
+      for (var key in props) {
+        if (props.hasOwnProperty(key)) {
+          if (key === 'http://packetizer.com/ns/name') {
+            profile.properties['name'] = props[key];
+          }
+        }
+      }
+      cb(null, profile);
+    }
 
+    // control flow for failures, what to do in various cases, etc.
     function fallbackChecks() {
       if ((p.uriFallback) && (p.uriIndex !== uris.length - 1)) { // we have uris left to try
         p.uriIndex = p.uriIndex + 1;
@@ -162,12 +180,31 @@
         p.uriIndex = 0;
         p.protocol = 'http';
         callWebFinger(address, p, cb);
-      } else if ((p.webfistFallback) && (p.host !== 'webfist.org')) {
+      } else if ((p.webfistFallback) && (p.host !== 'webfist.org')) { // webfirst attempt
         p.uriIndex = 0;
         p.protocol = 'http';
         p.host = 'webfist.org';
         p.uriFallback = false;
-        callWebFinger(address, p, cb);
+        // webfirst will
+        // 1. make a query to the webfirst server for the users account
+        // 2. from the response, get a link to the actual webfinger json data
+        //    (stored somewhere in control of the user)
+        // 3. make a request to that url and get the json
+        // 4. process it like a normal webfinger response
+        callWebFinger(address, p, function(err, profile) { // get link to users json
+          if (err) {
+            cb(err);
+          } else if ((typeof profile.links.webfist === "object") &&
+                     (profile.links.webfist[0])) {
+            getJSON(profile.links.webfist[0], function (err, json) {
+              if (err) {
+                cb(err);
+              } else {
+                processJSON(json, cb);
+              }
+            });
+          }
+        });
       } else {
         cb('webfinger endpoint unreachable', xhr.status);
       }
