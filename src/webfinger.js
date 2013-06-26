@@ -39,7 +39,7 @@
 
 
   function callWebFinger(address, p, cb) {
-    p.TLS_ONLY = true; // never fallback to http
+    p.tls_only = true; // never fallback to http
     if (!isValidDomain(p.host)) {
       cb('invalid host name');
       return;
@@ -47,12 +47,12 @@
 
     var xhr = new XMLHttpRequest();
 
-    if (typeof p.uriFallback === "undefined") {
-      p.uriFallback = false;
+    if (typeof p.uri_fallback === "undefined") {
+      p.uri_fallback = false;
     }
-    if (typeof p.uriIndex === "undefined") {
+    if (typeof p.uri_index === "undefined") {
       // try first URI first
-      p.uriIndex = 0;
+      p.uri_index = 0;
     }
 
     if (typeof p.protocol === "undefined") {
@@ -62,7 +62,7 @@
 
     // make request
     getJSON(p.protocol + '://' + p.host + '/.well-known/' +
-        uris[p.uriIndex] + '?resource=acct:' + address,
+        uris[p.uri_index] + '?resource=acct:' + address,
     function(err, json) {
       if (err) {
         fallbackChecks();
@@ -173,18 +173,18 @@
 
     // control flow for failures, what to do in various cases, etc.
     function fallbackChecks() {
-      if ((p.uriFallback) && (p.uriIndex !== uris.length - 1)) { // we have uris left to try
-        p.uriIndex = p.uriIndex + 1;
+      if ((p.uri_fallback) && (p.uri_index !== uris.length - 1)) { // we have uris left to try
+        p.uri_index = p.uri_index + 1;
         callWebFinger(address, p, cb);
-      } else if ((!p.TLS_ONLY) && (protocol === 'https')) { // try normal http
-        p.uriIndex = 0;
+      } else if ((!p.tls_only) && (protocol === 'https')) { // try normal http
+        p.uri_index = 0;
         p.protocol = 'http';
         callWebFinger(address, p, cb);
-      } else if ((p.webfistFallback) && (p.host !== 'webfist.org')) { // webfirst attempt
-        p.uriIndex = 0;
+      } else if ((p.webfist_fallback) && (p.host !== 'webfist.org')) { // webfirst attempt
+        p.uri_index = 0;
         p.protocol = 'http';
         p.host = 'webfist.org';
-        p.uriFallback = false;
+        p.uri_fallback = false;
         // webfirst will
         // 1. make a query to the webfirst server for the users account
         // 2. from the response, get a link to the actual webfinger json data
@@ -222,8 +222,8 @@
 
     callWebFinger(address, {
       host: parts[1],
-      TLS_ONLY: (typeof o.TLS_ONLY !== 'undefined') ? o.TLS_ONLY : true,
-      webfistFallback: (typeof o.webfistFallback !== 'undefined') ? o.webfistFallback : true
+      tls_only: (typeof o.tls_only !== 'undefined') ? o.tls_only : true,
+      webfist_fallback: (typeof o.webfist_fallback !== 'undefined') ? o.webfist_fallback : true
     }, cb);
   };
 
