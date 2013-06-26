@@ -30,22 +30,22 @@ When you include the `src/webfinger.js` script, a `webfinger` object will be exp
 		}
 	});
 
-**
-// example output:
-// {
-//   properties: {
-//     name: "Nick Jennings"
-//   },
-//     links: {
-//       avatar: ['<url>'],
-//       blog: ['<url>'],
-//       vcard: ['<url']
-//       ... etc.
-//     }
-//   }
-// }
-//
-**
+
+
+	// example output:
+	// {
+	//   properties: {
+	//     name: "Nick Jennings"
+	//   },
+	//     links: {
+	//       avatar: ['<url>'],
+	//       blog: ['<url>'],
+	//       vcard: ['<url']
+	//       ... etc.
+	//     }
+	//   }
+	// }
+	//
 
 demo
 ----
