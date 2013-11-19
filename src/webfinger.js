@@ -78,6 +78,7 @@
       console.log('URL: ' + url);
       xhr.open('GET', url, true);
       xhr.onreadystatechange = function () {
+        //console.log('xhr for '+url, xhr);
         if (xhr.readyState === 4) {
           if (xhr.status === 200) {
             console.log(xhr.responseText);
@@ -89,7 +90,7 @@
             }
           } else {
             // request failed
-            cb('request failed');
+            cb('request failed (ur: '+url+',  status code: '+xhr.status+')');
           }
         }
       };
