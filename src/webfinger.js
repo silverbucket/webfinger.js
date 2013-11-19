@@ -138,7 +138,7 @@
 
       // process links
       for (var i = 0, len = links.length; i < len; i = i + 1) {
-        //log(links[i]);
+        log('finding match for '+links[i].rel);
         switch (links[i].rel) {
           case "http://webfist.org/spec/rel":
             result.links['webfist'].push(links[i].href);
