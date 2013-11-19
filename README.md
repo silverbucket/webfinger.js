@@ -22,8 +22,9 @@ When you include the `src/webfinger.js` script, a `webfinger` object will be exp
 
 	webfinger('nick@silverbucket.net', {
 		webfist_fallback: true,  // defaults to true
-		tls_only: true,  // defaults to true
-		uri_fallback: false,  // defaults to false
+		tls_only: true,          // defaults to true
+		uri_fallback: false,     // defaults to false
+		debug: false             // defaults to false
 	}, function (err, p) {
 		if (!err) {
 			console.log(p);
@@ -37,15 +38,15 @@ When you include the `src/webfinger.js` script, a `webfinger` object will be exp
 	//   properties: {
 	//     name: "Nick Jennings"
 	//   },
-	//     links: {
-	//       avatar: ['<url>'],
-	//       blog: ['<url>'],
-	//       vcard: ['<url']
-	//       ... etc.
-	//     }
-	//   }
+	//   links: {
+	//     avatar: ['<url>'],
+	//     blog: ['<url>'],
+	//     vcard: ['<url']
+	//     ... etc.
+	//   },
+	//   JRD: { ... raw JRD output ... }
 	// }
-	//
+
 
 demo
 ----
