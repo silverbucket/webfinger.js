@@ -75,7 +75,7 @@
     </script>
     <script>
       function queryWebfinger(emailAddress) {
-        webfinger(emailAddress, {}, function(err, p) {
+        webfinger(emailAddress, {debug: true}, function(err, p) {
           if(err) {
             console.log('error getting webfinger data for '+emailAddress+': ' + err);
             console.log(document.getElementById('error'));
