@@ -59,3 +59,7 @@ You don't have to do anything special to choose one license or the other and you
 Please see the corresponding license file for details of these licenses.
 You are free to use, modify and distribute this software, but all copyright information must remain.
 
+
+
+[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/silverbucket/webfinger.js/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
+
