@@ -138,12 +138,13 @@
 
       // process links
       for (var i = 0, len = links.length; i < len; i = i + 1) {
-        log('finding match for '+links[i].rel);
+        log('[' + address + '] finding match for ['+links[i].rel+']');
         switch (links[i].rel) {
           case "http://webfist.org/spec/rel":
             result.links['webfist'].push(links[i].href);
             break;
           case 'http://webfinger.net/rel/avatar':
+            log('[' + address + '] found avatar: ' + links[i].href);
             result.links['avatar'].push(links[i].href);
             break;
           case 'remotestorage':
