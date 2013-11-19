@@ -3,7 +3,12 @@ webfinger.js
 
 A browser-based webfinger client.
 
+[![Code Climate](https://codeclimate.com/github/silverbucket/webfinger.js.png)](https://codeclimate.com/github/silverbucket/webfinger.js)
+[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/silverbucket/webfinger.js/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
+
+
 For a node.js webfinger client library see https://github.com/evanp/webfinger
+
 
 features
 --------
@@ -62,5 +67,4 @@ You are free to use, modify and distribute this software, but all copyright info
 
 
 
-[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/silverbucket/webfinger.js/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
 
