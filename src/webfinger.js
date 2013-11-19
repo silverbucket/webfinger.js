@@ -141,31 +141,31 @@
         log('[' + address + '] finding match for ['+links[i].rel+']');
         switch (links[i].rel) {
           case "http://webfist.org/spec/rel":
-            result.links['webfist'].push(links[i].href);
+            result.links.webfist.push(links[i].href);
             break;
           case 'http://webfinger.net/rel/avatar':
             log('[' + address + '] found avatar: ' + links[i].href);
-            result.links['avatar'].push(links[i].href);
+            result.links.avatar.push(links[i].href);
             break;
           case 'remotestorage':
           case 'remoteStorage':
-            result.links['remotestorage'].push(links[i].href);
+            result.links.remotestorage.push(links[i].href);
             break;
           case 'http://www.packetizer.com/rel/share':
-            result.links['share'].push(links[i].href);
+            result.links.share.push(links[i].href);
             break;
           case 'http://webfinger.net/rel/profile-page':
-            result.links['profile'].push(links[i].href);
+            result.links.profile.push(links[i].href);
             break;
           case 'vcard':
-            result.links['vcard'].push(links[i].href);
+            result.links.vcard.push(links[i].href);
             break;
           case 'blog':
           case 'http://packetizer.com/rel/blog':
-            result.links['blog'].push(links[i].href);
+            result.links.blog.push(links[i].href);
             break;
           case 'http://schemas.google.com/g/2010#updates-from':
-            result.links['updates'].push(links[i].href);
+            result.links.updates.push(links[i].href);
             break;
         }
       }
@@ -175,7 +175,7 @@
       for (var key in props) {
         if (props.hasOwnProperty(key)) {
           if (key === 'http://packetizer.com/ns/name') {
-            result.properties['name'] = props[key];
+            result.properties.name = props[key];
           }
         }
       }
@@ -187,7 +187,7 @@
       if ((p.uri_fallback) && (p.uri_index !== uris.length - 1)) { // we have uris left to try
         p.uri_index = p.uri_index + 1;
         callWebFinger(address, p, cb);
-      } else if ((!p.tls_only) && (protocol === 'https')) { // try normal http
+      } else if ((!p.tls_only) && (p.protocol === 'https')) { // try normal http
         p.uri_index = 0;
         p.protocol = 'http';
         callWebFinger(address, p, cb);
