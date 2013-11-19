@@ -22,6 +22,14 @@
 
   // list of endpoints to try, fallback from beginning to end.
   var uris = ['webfinger', 'host-meta', 'host-meta.json'];
+  var DEBUG = false; // wrapper flag for log
+
+  function log () {
+    var args = Array.prototype.splice.call(arguments, 0);
+    if (DEBUG) {
+      console.log.apply(undefined, args);
+    }
+  }
 
   function isValidJSON(str) {
     try {
@@ -61,26 +69,27 @@
     }
 
     // make request
-    getJSON(p.protocol + '://' + p.host + '/.well-known/' +
+    getJRD(p.protocol + '://' + p.host + '/.well-known/' +
         uris[p.uri_index] + '?resource=acct:' + address,
-    function(err, json) {
+    function(err, JRD) {
       if (err) {
         fallbackChecks();
       } else {
-        processJSON(json, cb);
+        processJRD(JRD, cb);
       }
     });
 
 
-    // make an http request and look for json response, fails if request fails
+    // make an http request and look for JRD response, fails if request fails
     // or response not json.
-    function getJSON(url, cb) {
-      console.log('URL: ' + url);
+    function getJRD(url, cb) {
+      log('URL: ' + url);
       xhr.open('GET', url, true);
       xhr.onreadystatechange = function () {
+        //log('xhr for '+url, xhr);
         if (xhr.readyState === 4) {
           if (xhr.status === 200) {
-            console.log(xhr.responseText);
+            log(xhr.responseText);
             if (isValidJSON(xhr.responseText)) {
               cb(null, xhr.responseText);
             } else {
@@ -89,7 +98,7 @@
             }
           } else {
             // request failed
-            cb('request failed');
+            cb('request failed (ur: '+url+',  status code: '+xhr.status+')');
           }
         }
       };
@@ -97,12 +106,12 @@
       xhr.send();
     }
 
-    // processes json object as if it's a webfinger response object
+    // processes JRD object as if it's a webfinger response object
     // looks for known properties and adds them to profile datat struct.
-    function processJSON(json, cb) {
-      var links = JSON.parse(json).links;
+    function processJRD(JRD, cb) {
+      var links = JSON.parse(JRD).links;
       if (!links) {
-        var serverResp = JSON.parse(json);
+        var serverResp = JSON.parse(JRD);
         if (typeof serverResp.error !== 'undefined') {
           cb(serverResp.error);
         } else {
@@ -111,11 +120,11 @@
         return;
       }
 
-      var profile = {};
-      profile.properties = {
+      var result = {};
+      result.properties = {
         'name': undefined
       };
-      profile.links = {
+      result.links = {
         'avatar': [],
         'remotestorage': [],
         'blog': [],
@@ -125,50 +134,51 @@
         'profile': [],
         'webfist': []
       };
+      result.JRD = JRD; // raw webfinger JRD
 
       // process links
       for (var i = 0, len = links.length; i < len; i = i + 1) {
-        //console.log(links[i]);
+        //log(links[i]);
         switch (links[i].rel) {
           case "http://webfist.org/spec/rel":
-            profile.links['webfist'].push(links[i].href);
+            result.links['webfist'].push(links[i].href);
             break;
           case 'http://webfinger.net/rel/avatar':
-            profile.links['avatar'].push(links[i].href);
+            result.links['avatar'].push(links[i].href);
             break;
           case 'remotestorage':
           case 'remoteStorage':
-            profile.links['remotestorage'].push(links[i].href);
+            result.links['remotestorage'].push(links[i].href);
             break;
           case 'http://www.packetizer.com/rel/share':
-            profile.links['share'].push(links[i].href);
+            result.links['share'].push(links[i].href);
             break;
           case 'http://webfinger.net/rel/profile-page':
-            profile.links['profile'].push(links[i].href);
+            result.links['profile'].push(links[i].href);
             break;
           case 'vcard':
-            profile.links['vcard'].push(links[i].href);
+            result.links['vcard'].push(links[i].href);
             break;
           case 'blog':
           case 'http://packetizer.com/rel/blog':
-            profile.links['blog'].push(links[i].href);
+            result.links['blog'].push(links[i].href);
             break;
           case 'http://schemas.google.com/g/2010#updates-from':
-            profile.links['updates'].push(links[i].href);
+            result.links['updates'].push(links[i].href);
             break;
         }
       }
 
       // process properties
-      var props = JSON.parse(json).properties;
+      var props = JSON.parse(JRD).properties;
       for (var key in props) {
         if (props.hasOwnProperty(key)) {
           if (key === 'http://packetizer.com/ns/name') {
-            profile.properties['name'] = props[key];
+            result.properties['name'] = props[key];
           }
         }
       }
-      cb(null, profile);
+      cb(null, result);
     }
 
     // control flow for failures, what to do in various cases, etc.
@@ -191,16 +201,16 @@
         //    (stored somewhere in control of the user)
         // 3. make a request to that url and get the json
         // 4. process it like a normal webfinger response
-        callWebFinger(address, p, function(err, profile) { // get link to users json
+        callWebFinger(address, p, function(err, result) { // get link to users JRD
           if (err) {
             cb(err);
-          } else if ((typeof profile.links.webfist === "object") &&
-                     (profile.links.webfist[0])) {
-            getJSON(profile.links.webfist[0], function (err, json) {
+          } else if ((typeof result.links.webfist === "object") &&
+                     (result.links.webfist[0])) {
+            getJRD(result.links.webfist[0], function (err, JRD) {
               if (err) {
                 cb(err);
               } else {
-                processJSON(json, cb);
+                processJRD(JRD, cb);
               }
             });
           }
@@ -213,12 +223,14 @@
 
   window.webfinger = function(address, o, cb) {
     if (typeof cb !== 'function') {
-      console.log('webfinger.js: no callback function specified');
+      console.log('webfinger.js: no callback function specified. webfinger(address, options, callback)');
       return { error: "no callback function specified" };
     }
 
     var parts = address.replace(/ /g,'').split('@');
     if (parts.length !== 2) { cb('invalid email address'); return false; }
+
+    DEBUG = (typeof o.debug !== 'undefined') ? o.debug : false;
 
     callWebFinger(address, {
       host: parts[1],
