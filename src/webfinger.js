@@ -119,7 +119,7 @@
           result.links.webfist.push(links[i].href);
           break;
         case 'http://webfinger.net/rel/avatar':
-          log('[' + address + '] found avatar: ' + links[i].href);
+          log('found avatar: ' + links[i].href);
           result.links.avatar.push(links[i].href);
           break;
         case 'remotestorage':
