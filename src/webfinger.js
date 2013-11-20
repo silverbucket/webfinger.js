@@ -132,7 +132,8 @@
         'updates': [],
         'share': [],
         'profile': [],
-        'webfist': []
+        'webfist': [],
+        'camilstore': []
       };
       result.JRD = JRD; // raw webfinger JRD
 
@@ -155,6 +156,7 @@
             result.links.share.push(links[i].href);
             break;
           case 'http://webfinger.net/rel/profile-page':
+          case 'me':
             result.links.profile.push(links[i].href);
             break;
           case 'vcard':
@@ -166,6 +168,12 @@
             break;
           case 'http://schemas.google.com/g/2010#updates-from':
             result.links.updates.push(links[i].href);
+            break;
+          case 'https://camlistore.org/rel/server':
+            result.links.camilstore(links[i].href);
+            break;
+          case 'http://webfist.org/spec/rel':
+            result.links.webfist(links[i].href);
             break;
         }
       }
