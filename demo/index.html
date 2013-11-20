@@ -77,9 +77,9 @@
       function queryWebfinger(emailAddress) {
         webfinger(emailAddress, {debug: true}, function(err, p) {
           if(err) {
-            console.log('error getting webfinger data for '+emailAddress+': ' + err);
+            console.log('error getting webfinger data for ' + emailAddress + ': ' + err.message);
             console.log(document.getElementById('error'));
-            document.getElementById('error').innerHTML = '<p class="error">'+err+' for '+emailAddress+'</p>';
+            document.getElementById('error').innerHTML = '<p class="error">' + err + ' for ' + emailAddress + '</p>';
 
           } else if (p) {
             console.log('webfinger.js result: ', p);
@@ -87,19 +87,19 @@
             // build entry html
             var entry = '<div class="result"><h2>';
             if (p.properties.name !== undefined) {  // add name if it's found
-              entry = entry + p.properties.name + ' <br />';
+              entry = entry + p.properties.name + '<br />';
             }
             entry = entry + emailAddress + '</h2>';
 
             if (p.links.avatar[0] !== undefined) {
-              entry += '<p><img height="200px" src="'+p.links.avatar+'"></p>'
+              entry += '<p><img height="200px" src="' + p.links.avatar + '"></p>'
             }
             p.links.avatar = [];
 
             for (var e in p.links) {
               var peLen = p.links[e].length;
               for (var i = 0; i < peLen; i = i + 1) {
-                entry += '<p>'+e+': <a target="_blank" href="'+p.links[e][i]+'">'+p.links[e][i]+'</a></p>';
+                entry += '<p>' + e + ': <a target="_blank" href="' + p.links[e][i] + '">' + p.links[e][i] + '</a></p>';
               }
             }
             entry += '</div>';
@@ -107,7 +107,7 @@
             var results = document.getElementById("results");
             results.insertAdjacentHTML("afterbegin", entry);
           } else {
-            document.getElementById('error').innerHTML = '<p class="error">unable to get record for '+emailAddress+'</p>';
+            document.getElementById('error').innerHTML = '<p class="error">unable to get record for ' + emailAddress + '</p>';
           }
         });
       }
@@ -115,17 +115,6 @@
       queryWebfinger('nick@silverbucket.net');
       queryWebfinger('paulej@packetizer.com');
       queryWebfinger('bradfitz@gmail.com');
-      queryWebfinger('bslatkin@gmail.com');
     </script>
   </body>
 </html>
-
-
-
-
-
-
-
-
-
-

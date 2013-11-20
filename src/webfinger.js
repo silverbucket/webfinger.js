@@ -24,7 +24,7 @@
   var uris = ['webfinger', 'host-meta', 'host-meta.json'];
   var DEBUG = false; // wrapper flag for log
 
-  function log () {
+  function log() {
     var args = Array.prototype.splice.call(arguments, 0);
     if (DEBUG) {
       console.log.apply(undefined, args);
@@ -45,15 +45,133 @@
     return pattern.test(domain);
   }
 
+  // make an http request and look for JRD response, fails if request fails
+  // or response not json.
+  function getJRD(url, cb) {
+    log('URL: ' + url);
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', url, true);
+    xhr.onreadystatechange = function () {
+      //log('xhr for '+url, xhr);
+      if (xhr.readyState === 4) {
+        if (xhr.status === 200) {
+          log(xhr.responseText);
+          if (isValidJSON(xhr.responseText)) {
+            cb(null, xhr.responseText);
+          } else {
+            // invalid json response
+            cb({
+              message: 'invalid json',
+              url: url,
+              status: xhr.status
+            });
+          }
+        } else {
+          // request failed
+          cb({
+            message: 'webfinger endpoint unreachable',
+            url: url,
+            status: xhr.status
+          });
+        }
+      }
+    };
+    xhr.setRequestHeader('Accept', 'application/json');
+    xhr.send();
+  }
+
+  // processes JRD object as if it's a webfinger response object
+  // looks for known properties and adds them to profile datat struct.
+  function processJRD(JRD, cb) {
+    var links = JSON.parse(JRD).links;
+    if (!links) {
+      var serverResp = JSON.parse(JRD);
+      if (typeof serverResp.error !== 'undefined') {
+        cb(serverResp.error);
+      } else {
+        cb('received unknown response from server');
+      }
+      return;
+    }
+
+    var result = {};
+    result.properties = {
+      'name': undefined
+    };
+    result.links = {
+      'avatar': [],
+      'remotestorage': [],
+      'blog': [],
+      'vcard': [],
+      'updates': [],
+      'share': [],
+      'profile': [],
+      'webfist': [],
+      'camilstore': []
+    };
+    result.JRD = JRD; // raw webfinger JRD
+
+    // process links
+    for (var i = 0, len = links.length; i < len; i = i + 1) {
+      log('[' + address + '] finding match for ['+links[i].rel+']');
+      switch (links[i].rel) {
+        case "http://webfist.org/spec/rel":
+          result.links.webfist.push(links[i].href);
+          break;
+        case 'http://webfinger.net/rel/avatar':
+          log('[' + address + '] found avatar: ' + links[i].href);
+          result.links.avatar.push(links[i].href);
+          break;
+        case 'remotestorage':
+        case 'remoteStorage':
+          result.links.remotestorage.push(links[i].href);
+          break;
+        case 'http://www.packetizer.com/rel/share':
+          result.links.share.push(links[i].href);
+          break;
+        case 'http://webfinger.net/rel/profile-page':
+        case 'me':
+          result.links.profile.push(links[i].href);
+          break;
+        case 'vcard':
+          result.links.vcard.push(links[i].href);
+          break;
+        case 'blog':
+        case 'http://packetizer.com/rel/blog':
+          result.links.blog.push(links[i].href);
+          break;
+        case 'http://schemas.google.com/g/2010#updates-from':
+          result.links.updates.push(links[i].href);
+          break;
+        case 'https://camlistore.org/rel/server':
+          result.links.camilstore(links[i].href);
+          break;
+        case 'http://webfist.org/spec/rel':
+          result.links.webfist(links[i].href);
+          break;
+      }
+    }
+
+    // process properties
+    var props = JSON.parse(JRD).properties;
+    for (var key in props) {
+      if (props.hasOwnProperty(key)) {
+        if (key === 'http://packetizer.com/ns/name') {
+          result.properties.name = props[key];
+        }
+      }
+    }
+    cb(null, result);
+  }
+
 
   function callWebFinger(address, p, cb) {
     p.tls_only = true; // never fallback to http
+
     if (!isValidDomain(p.host)) {
       cb('invalid host name');
       return;
     }
-
-    var xhr = new XMLHttpRequest();
 
     if (typeof p.uri_fallback === "undefined") {
       p.uri_fallback = false;
@@ -73,117 +191,15 @@
         uris[p.uri_index] + '?resource=acct:' + address,
     function(err, JRD) {
       if (err) {
-        fallbackChecks();
+        fallbackChecks(err);
       } else {
         processJRD(JRD, cb);
       }
     });
 
 
-    // make an http request and look for JRD response, fails if request fails
-    // or response not json.
-    function getJRD(url, cb) {
-      log('URL: ' + url);
-      xhr.open('GET', url, true);
-      xhr.onreadystatechange = function () {
-        //log('xhr for '+url, xhr);
-        if (xhr.readyState === 4) {
-          if (xhr.status === 200) {
-            log(xhr.responseText);
-            if (isValidJSON(xhr.responseText)) {
-              cb(null, xhr.responseText);
-            } else {
-              // invalid json response
-              cb('invalid jsoon');
-            }
-          } else {
-            // request failed
-            cb('request failed (ur: '+url+',  status code: '+xhr.status+')');
-          }
-        }
-      };
-      xhr.setRequestHeader('Accept', 'application/json');
-      xhr.send();
-    }
-
-    // processes JRD object as if it's a webfinger response object
-    // looks for known properties and adds them to profile datat struct.
-    function processJRD(JRD, cb) {
-      var links = JSON.parse(JRD).links;
-      if (!links) {
-        var serverResp = JSON.parse(JRD);
-        if (typeof serverResp.error !== 'undefined') {
-          cb(serverResp.error);
-        } else {
-          cb('received unknown response from server');
-        }
-        return;
-      }
-
-      var result = {};
-      result.properties = {
-        'name': undefined
-      };
-      result.links = {
-        'avatar': [],
-        'remotestorage': [],
-        'blog': [],
-        'vcard': [],
-        'updates': [],
-        'share': [],
-        'profile': [],
-        'webfist': []
-      };
-      result.JRD = JRD; // raw webfinger JRD
-
-      // process links
-      for (var i = 0, len = links.length; i < len; i = i + 1) {
-        log('[' + address + '] finding match for ['+links[i].rel+']');
-        switch (links[i].rel) {
-          case "http://webfist.org/spec/rel":
-            result.links.webfist.push(links[i].href);
-            break;
-          case 'http://webfinger.net/rel/avatar':
-            log('[' + address + '] found avatar: ' + links[i].href);
-            result.links.avatar.push(links[i].href);
-            break;
-          case 'remotestorage':
-          case 'remoteStorage':
-            result.links.remotestorage.push(links[i].href);
-            break;
-          case 'http://www.packetizer.com/rel/share':
-            result.links.share.push(links[i].href);
-            break;
-          case 'http://webfinger.net/rel/profile-page':
-            result.links.profile.push(links[i].href);
-            break;
-          case 'vcard':
-            result.links.vcard.push(links[i].href);
-            break;
-          case 'blog':
-          case 'http://packetizer.com/rel/blog':
-            result.links.blog.push(links[i].href);
-            break;
-          case 'http://schemas.google.com/g/2010#updates-from':
-            result.links.updates.push(links[i].href);
-            break;
-        }
-      }
-
-      // process properties
-      var props = JSON.parse(JRD).properties;
-      for (var key in props) {
-        if (props.hasOwnProperty(key)) {
-          if (key === 'http://packetizer.com/ns/name') {
-            result.properties.name = props[key];
-          }
-        }
-      }
-      cb(null, result);
-    }
-
     // control flow for failures, what to do in various cases, etc.
-    function fallbackChecks() {
+    function fallbackChecks(err) {
       if ((p.uri_fallback) && (p.uri_index !== uris.length - 1)) { // we have uris left to try
         p.uri_index = p.uri_index + 1;
         callWebFinger(address, p, cb);
@@ -217,7 +233,7 @@
           }
         });
       } else {
-        cb('webfinger endpoint unreachable', xhr.status);
+        cb(err);
       }
     }
   }
@@ -229,7 +245,10 @@
     }
 
     var parts = address.replace(/ /g,'').split('@');
-    if (parts.length !== 2) { cb('invalid email address'); return false; }
+    if (parts.length !== 2) {
+      cb({message: 'invalid user address ( user@host )'});
+      return false;
+    }
 
     DEBUG = (typeof o.debug !== 'undefined') ? o.debug : false;
 
