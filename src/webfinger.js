@@ -144,7 +144,7 @@
           result.links.updates.push(links[i].href);
           break;
         case 'https://camlistore.org/rel/server':
-          result.links.camilstore(links[i].href);
+          result.links.camilstore.push(links[i].href);
           break;
         case 'http://webfist.org/spec/rel':
           result.links.webfist(links[i].href);
