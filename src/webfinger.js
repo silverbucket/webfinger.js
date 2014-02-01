@@ -216,13 +216,13 @@ if (typeof window === 'undefined') {
         p.uri_index = 0;
         p.protocol = 'http';
         callWebFinger(address, p, cb);
-      } else if ((p.webfist_fallback) && (p.host !== 'webfist.org')) { // webfirst attempt
+      } else if ((p.webfist_fallback) && (p.host !== 'webfist.org')) { // webfist attempt
         p.uri_index = 0;
         p.protocol = 'http';
         p.host = 'webfist.org';
         p.uri_fallback = false;
-        // webfirst will
-        // 1. make a query to the webfirst server for the users account
+        // webfist will
+        // 1. make a query to the webfist server for the users account
         // 2. from the response, get a link to the actual webfinger json data
         //    (stored somewhere in control of the user)
         // 3. make a request to that url and get the json
