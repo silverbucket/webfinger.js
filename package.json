@@ -1,6 +1,18 @@
 {
   "name": "webfinger.js",
   "version": "0.1.0",
+  "description": "a simple webfinger record lookup library",
+  "license": "AGPL",
+  "private": false,
+  "keywords": [
+    "webfinger",
+    "webfist"
+  ],
+  "main": "./src/webfinger.js",
+  "author": {
+    "name": "Nick Jennings",
+    "email": "nick@silverbucket.net"
+  },
   "dependencies": {
     "xmlhttprequest": "1.5.x"
   },
@@ -9,5 +21,14 @@
   },
   "scripts": {
     "test": "node_modules/.bin/teste"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/silverbucket/webfinger.js.git"
+  },
+  "readmeFilename": "README.md",
+  "bugs": {
+    "url": "https://github.com/silverbucekt/webfinger.js/issues"
+  },
+  "homepage": "https://github.com/silverbucekt/webfinger.js"
 }

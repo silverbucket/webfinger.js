@@ -17,6 +17,23 @@ define(['require'], function (require) {
           var obj = env.webfinger();
           test.assertType(obj.error, 'string');
         }
+      },
+      {
+        desc: 'calling with invalid useraddress',
+        run: function (env, test) {
+          var obj = env.webfinger('asdfg');
+          test.assertType(obj.error, 'string');
+        }
+      },
+      {
+        desc: 'calling with correct useraddress (needs internet connectivity)',
+        run: function (env, test) {
+          env.webfinger('nick@silverbucket.net', function (err, data) {
+            test.assertTypeAnd(data, 'object');
+            test.assertAnd(data.properties.name , 'Nick Jennings');
+            test.assertType(data.JRD , 'string');
+          });
+        }
       }
 
     ]

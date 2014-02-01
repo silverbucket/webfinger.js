@@ -8,8 +8,7 @@
  * With contributions from:
  * Michiel de Jong <michiel@michielbdejong.com>
  *
- * webfinger.js is released with dual licensing, using the GPL v3
- * (LICENSE-AGPL) and the MIT license (LICENSE-MIT).
+ * webfinger.js is released under the AGPL (see LICENSE).
  *
  * You don't have to do anything special to choose one license or the other and you don't
  * have to notify anyone which license you are using.
@@ -248,7 +247,10 @@ if (typeof window === 'undefined') {
   }
 
   window.webfinger = function(address, o, cb) {
-    if (typeof cb !== 'function') {
+    if (typeof o === 'function') {
+      cb = o;
+      o = {};
+    } else if (typeof cb !== 'function') {
       console.log('webfinger.js: no callback function specified. webfinger(address, options, callback)');
       return { error: "no callback function specified" };
     }
