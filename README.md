@@ -16,15 +16,15 @@ features
 
 * optional uri fallback (for older services which use host-meta or host-meta.json URI endpoints)
 
-example
--------
 
 ## initialize
 
+### node.js
 In node.js you should first require the module:
 
 	var webfinger = require('webfinger.js');
 
+### browser
 When you include the `src/webfinger.js` script, a `webfinger` object will be exposed.
 
 ## use
