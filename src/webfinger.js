@@ -1,6 +1,7 @@
 // -*- mode:js; js-indent-level:2 -*-
 /*!
  * webfinger.js
+ * version 0.1.0
  * http://github.com/silverbucket/webfinger.js
  *
  * Copyright 2012-2014 Nick Jennings <nick@silverbucket.net>
