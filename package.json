@@ -1,0 +1,13 @@
+{
+  "name": "webfinger.js",
+  "version": "0.1.0",
+  "dependencies": {
+    "xmlhttprequest": "1.5.x"
+  },
+  "devDependencies": {
+    "teste": "*"
+  },
+  "scripts": {
+    "test": "node_modules/.bin/teste"
+  }
+}
