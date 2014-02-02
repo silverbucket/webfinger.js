@@ -14,7 +14,7 @@ features
 
 * supports fallback to [WebFist](http://webfist.org)
 
-* optional uri fallback (for older services which use host-meta or host-meta.json URI endpoints)
+* optional URI fallback (for older services which use host-meta or host-meta.json URI endpoints)
 
 
 ## initialize
