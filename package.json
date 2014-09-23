@@ -17,10 +17,10 @@
     "xmlhttprequest": "1.5.x"
   },
   "devDependencies": {
-    "teste": "*"
+    "jaribu": "*"
   },
   "scripts": {
-    "test": "node_modules/.bin/teste"
+    "test": "node_modules/.bin/jaribu"
   },
   "repository": {
     "type": "git",
