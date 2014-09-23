@@ -1,6 +1,6 @@
 {
   "name": "webfinger.js",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "a simple webfinger record lookup library",
   "license": "AGPL",
   "private": false,

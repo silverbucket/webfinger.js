@@ -1,7 +1,7 @@
 // -*- mode:js; js-indent-level:2 -*-
 /*!
  * webfinger.js
- *   version 0.1.3
+ *   version 0.1.4
  *   http://github.com/silverbucket/webfinger.js
  *
  * Developed and Maintained by:
