@@ -1,12 +1,14 @@
 // -*- mode:js; js-indent-level:2 -*-
 /*!
  * webfinger.js
- * http://github.com/silverbucket/webfinger.js
+ *   version 0.1.1
+ *   http://github.com/silverbucket/webfinger.js
  *
- * Copyright 2012-2014 Nick Jennings <nick@silverbucket.net>
+ * Developed and Maintained by:
+ *   Nick Jennings <nick@silverbucket.net>
  *
  * With contributions from:
- * Michiel de Jong <michiel@michielbdejong.com>
+ *   Michiel de Jong <michiel@michielbdejong.com>
  *
  * webfinger.js is released under the AGPL (see LICENSE).
  *
@@ -27,6 +29,10 @@ if (typeof window === 'undefined') {
   var window = {};
 }
 (function (window, document, undefined) {
+  var LOGABLE = false;
+  if ((typeof console === 'object') && (typeof console.log === 'function')) {
+    LOGABLE = true;
+  }
 
   // list of endpoints to try, fallback from beginning to end.
   var uris = ['webfinger', 'host-meta', 'host-meta.json'];
@@ -34,8 +40,8 @@ if (typeof window === 'undefined') {
 
   function log() {
     var args = Array.prototype.splice.call(arguments, 0);
-    if (DEBUG) {
-      console.log.apply(undefined, args);
+    if ((DEBUG) && (LOGABLE)) {
+      console.log.apply(window.console, args);
     }
   }
 
@@ -215,13 +221,13 @@ if (typeof window === 'undefined') {
         p.uri_index = 0;
         p.protocol = 'http';
         callWebFinger(address, p, cb);
-      } else if ((p.webfist_fallback) && (p.host !== 'webfist.org')) { // webfirst attempt
+      } else if ((p.webfist_fallback) && (p.host !== 'webfist.org')) { // webfist attempt
         p.uri_index = 0;
         p.protocol = 'http';
         p.host = 'webfist.org';
         p.uri_fallback = false;
-        // webfirst will
-        // 1. make a query to the webfirst server for the users account
+        // webfist will
+        // 1. make a query to the webfist server for the users account
         // 2. from the response, get a link to the actual webfinger json data
         //    (stored somewhere in control of the user)
         // 3. make a request to that url and get the json
