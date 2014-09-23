@@ -29,14 +29,19 @@ if (typeof window === 'undefined') {
 }
 (function (window, document, undefined) {
 
+  var LOGABLE = false;
+  if ((typeof console === 'object') && (typeof console.log === 'function')) {
+    LOGABLE = true;
+  }
+
   // list of endpoints to try, fallback from beginning to end.
   var uris = ['webfinger', 'host-meta', 'host-meta.json'];
   var DEBUG = false; // wrapper flag for log
 
   function log() {
     var args = Array.prototype.splice.call(arguments, 0);
-    if (DEBUG) {
-      console.log.apply(undefined, args);
+    if ((DEBUG) && (LOGABLE)) {
+      console.log.apply(window.console, args);
     }
   }
 
