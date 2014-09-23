@@ -138,7 +138,7 @@ if (typeof window === 'undefined') {
     result.properties = {
       'name': undefined
     };
-    result.links = link_properties;
+    result.links = JSON.parse(JSON.stringify(link_properties));
 
     result.JRD = JRD; // raw webfinger JRD
 
