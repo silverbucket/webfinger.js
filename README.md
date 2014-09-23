@@ -4,7 +4,7 @@ webfinger.js
 A webfinger client that runs both in the browser and in node.js.
 
 [![Build Status](https://secure.travis-ci.org/silverbucket/webfinger.js.png)](http://travis-ci.org/silverbucket/webfinger.js)
-[![Code Climate](https://codeclimate.com/github/silverbucket/webfinger.js.png)](https://codeclimate.com/github/silverbucket/webfinger.js)
+[![Code Climate](https://codeclimate.com/github/silverbucket/webfinger.js/badges/gpa.svg)](https://codeclimate.com/github/silverbucket/webfinger.js)
 [![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/silverbucket/webfinger.js/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
 
 features
