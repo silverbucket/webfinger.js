@@ -29,14 +29,40 @@ if (typeof window === 'undefined') {
   var window = {};
 }
 (function (window, document, undefined) {
-  var LOGABLE = false;
-  if ((typeof console === 'object') && (typeof console.log === 'function')) {
-    LOGABLE = true;
-  }
+  // URI to property name map
+  var link_uri_maps = {
+    'http://webfist.org/spec/rel': 'webfist',
+    'http://webfinger.net/rel/avatar': 'avatar',
+    'remotestorage': 'remotestorage',
+    'remoteStorage': 'remotestorage',
+    'http://www.packetizer.com/rel/share': 'share',
+    'http://webfinger.net/rel/profile-page': 'profile',
+    'me': 'profile',
+    'vcard': 'vcard',
+    'blog': 'blog',
+    'http://packetizer.com/rel/blog': 'blog',
+    'http://schemas.google.com/g/2010#updates-from': 'updates',
+    'https://camlistore.org/rel/server': 'camilstore'
+  };
+  var link_properties = {
+    'avatar': [],
+    'remotestorage': [],
+    'blog': [],
+    'vcard': [],
+    'updates': [],
+    'share': [],
+    'profile': [],
+    'webfist': [],
+    'camilstore': []
+  };
 
   // list of endpoints to try, fallback from beginning to end.
   var uris = ['webfinger', 'host-meta', 'host-meta.json'];
   var DEBUG = false; // wrapper flag for log
+  var LOGABLE = false;
+  if ((typeof console === 'object') && (typeof console.log === 'function')) {
+    LOGABLE = true;
+  }
 
   function log() {
     var args = Array.prototype.splice.call(arguments, 0);
@@ -66,7 +92,7 @@ if (typeof window === 'undefined') {
     var xhr = new XMLHttpRequest();
     xhr.open('GET', url, true);
     xhr.onreadystatechange = function () {
-      //log('xhr for '+url, xhr);
+      //log('xhr for ' + url, xhr);
       if (xhr.readyState === 4) {
         if (xhr.status === 200) {
           log(xhr.responseText);
@@ -112,57 +138,19 @@ if (typeof window === 'undefined') {
     result.properties = {
       'name': undefined
     };
-    result.links = {
-      'avatar': [],
-      'remotestorage': [],
-      'blog': [],
-      'vcard': [],
-      'updates': [],
-      'share': [],
-      'profile': [],
-      'webfist': [],
-      'camilstore': []
-    };
+    result.links = link_properties;
+
     result.JRD = JRD; // raw webfinger JRD
 
     // process links
     for (var i = 0, len = links.length; i < len; i = i + 1) {
-      log('finding match for ['+links[i].rel+']');
-      switch (links[i].rel) {
-        case "http://webfist.org/spec/rel":
-          result.links.webfist.push(links[i].href);
-          break;
-        case 'http://webfinger.net/rel/avatar':
-          log('found avatar: ' + links[i].href);
-          result.links.avatar.push(links[i].href);
-          break;
-        case 'remotestorage':
-        case 'remoteStorage':
-          result.links.remotestorage.push(links[i].href);
-          break;
-        case 'http://www.packetizer.com/rel/share':
-          result.links.share.push(links[i].href);
-          break;
-        case 'http://webfinger.net/rel/profile-page':
-        case 'me':
-          result.links.profile.push(links[i].href);
-          break;
-        case 'vcard':
-          result.links.vcard.push(links[i].href);
-          break;
-        case 'blog':
-        case 'http://packetizer.com/rel/blog':
-          result.links.blog.push(links[i].href);
-          break;
-        case 'http://schemas.google.com/g/2010#updates-from':
-          result.links.updates.push(links[i].href);
-          break;
-        case 'https://camlistore.org/rel/server':
-          result.links.camilstore.push(links[i].href);
-          break;
-        case 'http://webfist.org/spec/rel':
-          result.links.webfist(links[i].href);
-          break;
+      log('finding match for [' + links[i].rel + ']');
+      if (link_uri_maps.hasOwnProperty(links[i].rel)) {
+        if (result.links[link_uri_maps[links[i].rel]]) {
+          result.links[link_uri_maps[links[i].rel]].push(links[i].href);
+        } else {
+          log('URI ' + links[i].rel + ' has no corresponding link property ' + link_uri_maps[links[i].rel]);
+        }
       }
     }
 
@@ -200,18 +188,6 @@ if (typeof window === 'undefined') {
       p.protocol = 'https';
     }
 
-    // make request
-    getJRD(p.protocol + '://' + p.host + '/.well-known/' +
-        uris[p.uri_index] + '?resource=acct:' + address,
-    function(err, JRD) {
-      if (err) {
-        fallbackChecks(err);
-      } else {
-        processJRD(JRD, cb);
-      }
-    });
-
-
     // control flow for failures, what to do in various cases, etc.
     function fallbackChecks(err) {
       if ((p.uri_fallback) && (p.uri_index !== uris.length - 1)) { // we have uris left to try
@@ -232,10 +208,10 @@ if (typeof window === 'undefined') {
         //    (stored somewhere in control of the user)
         // 3. make a request to that url and get the json
         // 4. process it like a normal webfinger response
-        callWebFinger(address, p, function(err, result) { // get link to users JRD
+        callWebFinger(address, p, function (err, result) { // get link to users JRD
           if (err) {
             cb(err);
-          } else if ((typeof result.links.webfist === "object") &&
+          } else if ((typeof result.links.webfist === 'object') &&
                      (result.links.webfist[0])) {
             getJRD(result.links.webfist[0], function (err, JRD) {
               if (err) {
@@ -250,15 +226,26 @@ if (typeof window === 'undefined') {
         cb(err);
       }
     }
+
+    // make request
+    getJRD(p.protocol + '://' + p.host + '/.well-known/' +
+        uris[p.uri_index] + '?resource=acct:' + address,
+    function (err, JRD) {
+      if (err) {
+        fallbackChecks(err);
+      } else {
+        processJRD(JRD, cb);
+      }
+    });
   }
 
-  window.webfinger = function(address, o, cb) {
+  window.webfinger = function (address, o, cb) {
     if (typeof o === 'function') {
       cb = o;
       o = {};
     } else if (typeof cb !== 'function') {
       console.log('webfinger.js: no callback function specified. webfinger(address, options, callback)');
-      return { error: "no callback function specified" };
+      return { error: 'no callback function specified' };
     }
 
     var parts = address.replace(/ /g,'').split('@');
@@ -279,7 +266,7 @@ if (typeof window === 'undefined') {
 })(window, document);
 
 if (typeof (define) === 'function' && define.amd) {
-  define([], function() { return window.webfinger; });
+  define([], function () { return window.webfinger; });
 } else {
   try {
     module.exports = window.webfiner;
