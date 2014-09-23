@@ -1,13 +1,14 @@
 // -*- mode:js; js-indent-level:2 -*-
 /*!
  * webfinger.js
- * version 0.1.0
- * http://github.com/silverbucket/webfinger.js
+ *   version 0.1.1
+ *   http://github.com/silverbucket/webfinger.js
  *
- * Copyright 2012-2014 Nick Jennings <nick@silverbucket.net>
+ * Developed and Maintained by:
+ *   Nick Jennings <nick@silverbucket.net>
  *
  * With contributions from:
- * Michiel de Jong <michiel@michielbdejong.com>
+ *   Michiel de Jong <michiel@michielbdejong.com>
  *
  * webfinger.js is released under the AGPL (see LICENSE).
  *
