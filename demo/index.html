@@ -59,27 +59,27 @@
       document.webfinger.onkeydown = function (evt) {
         var keyCode = evt ? (evt.which ? evt.which : evt.keyCode) : event.keyCode;
         if (keyCode == 13) {
-        // enter.
-        var email_address = document.webfinger.email_address.value;
-        queryWebfinger(email_address);
-        return false;
+          // enter.
+          var email_address = document.webfinger.email_address.value;
+          queryWebfinger(email_address);
+          return false;
         } else if (keyCode == 27) {
-        // escape.
-        document.webfinger.email_address.value = '';
+          // escape.
+          document.webfinger.email_address.value = '';
         } else {
-        document.getElementById('error').innerHTML = '';
-        return true;
+          document.getElementById('error').innerHTML = '';
+          return true;
         }
       };
 
     </script>
     <script>
       function queryWebfinger(emailAddress) {
-        webfinger(emailAddress, {debug: true}, function(err, p) {
+        webfinger(emailAddress, { debug: true }, function (err, p) {
           if(err) {
             console.log('error getting webfinger data for ' + emailAddress + ': ' + err.message);
             console.log(document.getElementById('error'));
-            document.getElementById('error').innerHTML = '<p class="error">' + err + ' for ' + emailAddress + '</p>';
+            document.getElementById('error').innerHTML = '<p class="error">' + err.message + ' for ' + emailAddress + '</p>';
 
           } else if (p) {
             console.log('webfinger.js result: ', p);
