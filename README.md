@@ -35,7 +35,9 @@ When you include the `src/webfinger.js` script, a `webfinger` object will be exp
 		uri_fallback: false,     // defaults to false
 		debug: false             // defaults to false
 	}, function (err, p) {
-		if (!err) {
+		if (err) {
+            console.log('error: ', err.message);
+        } else {
 			console.log(p);
 		}
 	});
@@ -43,16 +45,19 @@ When you include the `src/webfinger.js` script, a `webfinger` object will be exp
 
 	// example output:
 	// {
-	//   properties: {
-	//     name: "Nick Jennings"
-	//   },
-	//   links: {
-	//     avatar: ['<url>'],
-	//     blog: ['<url>'],
-	//     vcard: ['<url']
-	//     ... etc.
-	//   },
-	//   JRD: { ... raw JRD output ... }
+	//   idx: {
+    //     properties: {
+	//       name: "Nick Jennings"
+	//     },
+	//     links: {
+	//       avatar: [{ href: '<url>' }],
+	//       blog: [{ href: '<url>' }],
+	//       vcard: [href: '<url' }]
+	//       ... etc.
+	//     },
+	//   }
+    //   json: { ... raw json output ... }
+    //   object: { ... unformatted but parsed into native javascript object ... }
 	// }
 
 

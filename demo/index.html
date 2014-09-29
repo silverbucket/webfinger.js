@@ -86,22 +86,25 @@
 
             // build entry html
             var entry = '<div class="result"><h2>';
-            if (p.properties.name !== undefined) {  // add name if it's found
-              entry = entry + p.properties.name + '<br />';
+            if (typeof p.idx.properties.name !== 'undefined') {  // add name if it's found
+              entry = entry + p.idx.properties.name + '<br />';
             }
             entry = entry + emailAddress + '</h2>';
 
-            if (p.links.avatar[0] !== undefined) {
-              entry += '<p><img height="200px" src="' + p.links.avatar + '"></p>'
+            if (typeof p.idx.links.avatar[0] === 'object') {
+              entry += '<p><img height="200px" src="' + p.idx.links.avatar[0].href + '"></p>';
             }
-            p.links.avatar = [];
+            p.idx.links.avatar = [];
 
-            for (var e in p.links) {
-              var peLen = p.links[e].length;
-              for (var i = 0; i < peLen; i = i + 1) {
-                entry += '<p>' + e + ': <a target="_blank" href="' + p.links[e][i] + '">' + p.links[e][i] + '</a></p>';
+            Object.keys(p.idx.links).map(function (key, i) {
+              if ((typeof p.idx.links[key] !== 'object') || (typeof p.idx.links[key].length !== 'number')) {
+                return;
               }
-            }
+
+              p.idx.links[key].map(function (record, j) {
+                entry += '<p>' + key + ': <a target="_blank" href="' + record.href + '">' + record.href + '</a></p>';
+              });
+            });
             entry += '</div>';
 
             var results = document.getElementById("results");

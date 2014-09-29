@@ -29,9 +29,13 @@ define(['require'], function (require) {
         desc: 'calling with correct useraddress (needs internet connectivity)',
         run: function (env, test) {
           env.webfinger('nick@silverbucket.net', function (err, data) {
+            test.assertAnd(err, null);
             test.assertTypeAnd(data, 'object');
-            test.assertAnd(data.properties.name , 'Nick Jennings');
-            test.assertType(data.JRD , 'string');
+            test.assertTypeAnd(data.idx, 'object');
+            test.assertTypeAnd(data.object, 'object');
+            test.assertTypeAnd(data.json, 'string');
+            test.assertAnd(data.idx.properties.name , 'Nick Jennings');
+            test.assertType(data.idx.links.remotestorage , 'object');
           });
         }
       }
