@@ -1,7 +1,7 @@
 if (typeof define !== 'function') {
   var define = require('amdefine')(module);
 }
-define(['require'], function (require) {
+define(['require', './../src/webfinger.js'], function (require, amdwf) {
   var suites = [];
 
   suites.push({
@@ -11,6 +11,12 @@ define(['require'], function (require) {
       test.assertType(env.webfinger, 'function');
     },
     tests: [
+      {
+        desc: 'ensure amd module is loaded correctly',
+        run: function (env, test) {
+          test.assertType(amdwf, 'function');
+        }
+      },
       {
         desc: 'calling function with no params fails',
         run: function (env, test) {

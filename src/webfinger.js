@@ -1,7 +1,7 @@
 // -*- mode:js; js-indent-level:2 -*-
 /*!
  * webfinger.js
- *   version 1.0.1
+ *   version 1.0.2
  *   http://github.com/silverbucket/webfinger.js
  *
  * Developed and Maintained by:
@@ -278,6 +278,6 @@ if (typeof (define) === 'function' && define.amd) {
   define([], function () { return window.webfinger; });
 } else {
   try {
-    module.exports = window.webfiner;
+    module.exports = window.webfinger;
   } catch (e) {}
 }
