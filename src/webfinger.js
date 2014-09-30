@@ -1,7 +1,7 @@
 // -*- mode:js; js-indent-level:2 -*-
 /*!
  * webfinger.js
- *   version 1.0.2
+ *   version 1.1.0
  *   http://github.com/silverbucket/webfinger.js
  *
  * Developed and Maintained by:
@@ -84,37 +84,52 @@ if (typeof window === 'undefined') {
 
   // make an http request and look for JRD response, fails if request fails
   // or response not json.
-  function getJRD(url, cb) {
-    log('URL: ' + url);
+  function getJRD(url, timeout, cb) {
+    log('Request URL: ' + url);
     var xhr = new XMLHttpRequest();
-    xhr.open('GET', url, true);
-    xhr.onreadystatechange = function () {
-      //log('xhr for ' + url, xhr);
-      if (xhr.readyState === 4) {
-        if (xhr.status === 200) {
-          //log(xhr.responseText);
-          if (isValidJSON(xhr.responseText)) {
-            cb(null, xhr.responseText);
-          } else {
-            // invalid json response
-            cb({
-              message: 'invalid json',
-              url: url,
-              status: xhr.status
-            });
-          }
+
+    xhr.onabort = xhr.onerror = function (e) {
+      log('xhr error ' + url, e);
+      cb({
+        message: 'webfinger endpoint unreachable',
+        url: url,
+        status: xhr.status
+      });
+    };
+
+    xhr.onload = function (o) {
+      //log('xhr load ' + url, xhr);
+      if (xhr.status === 200) {
+        //log(xhr.responseText);
+        if (isValidJSON(xhr.responseText)) {
+          cb(null, xhr.responseText);
         } else {
-          // request failed
+          // invalid json response
           cb({
-            message: 'webfinger endpoint unreachable',
+            message: 'invalid json',
             url: url,
             status: xhr.status
           });
         }
+      } else {
+        // request failed
+        cb({
+          message: 'webfinger endpoint unreachable',
+          url: url,
+          status: xhr.status
+        });
       }
     };
+
+    xhr.open('GET', url, true);
     xhr.setRequestHeader('Accept', 'application/json');
     xhr.send();
+
+    setTimeout(function () {
+      if (xhr.readyState !== 4) {
+        xhr.abort();
+      }
+    }, timeout);
   }
 
   // processes JRD object as if it's a webfinger response object
@@ -127,7 +142,6 @@ if (typeof window === 'undefined') {
       if (typeof parsedJRD.error !== 'undefined') {
         cb({ message: parsedJRD.error });
       } else {
-        console.log('parsedJRD: ', parsedJRD);
         cb({ message: 'received unknown response from server' });
       }
       return;
@@ -147,7 +161,6 @@ if (typeof window === 'undefined') {
 
     // process links
     links.map(function (link, i) {
-      log('finding match for [' + link.rel + ']');
       if (link_uri_maps.hasOwnProperty(link.rel)) {
         if (result.idx.links[link_uri_maps[link.rel]]) {
           var entry = {};
@@ -175,77 +188,79 @@ if (typeof window === 'undefined') {
 
 
   function callWebFinger(address, p, cb) {
-    setTimeout(function () {
-      p.tls_only = true; // never fallback to http
+    if (!isValidDomain(p.host)) {
+      cb({ message: 'invalid host name' });
+      return;
+    }
+    if (typeof p.tls_only === "undefined") {
+      p.tls_only = true;
+    }
+    if (typeof p.uri_fallback === "undefined") {
+      p.uri_fallback = false;
+    }
+    if (typeof p.uri_index === "undefined") {
+      // try first URI first
+      p.uri_index = 0;
+    }
+    if (typeof p.request_timeout === "undefined") {
+      p.request_timeout = 5000;
+    }
 
-      if (!isValidDomain(p.host)) {
-        cb({ message: 'invalid host name' });
-        return;
-      }
+    if (typeof p.protocol === "undefined") {
+      // we use https by default
+      p.protocol = 'https';
+    }
 
-      if (typeof p.uri_fallback === "undefined") {
-        p.uri_fallback = false;
-      }
-      if (typeof p.uri_index === "undefined") {
-        // try first URI first
+    // control flow for failures, what to do in various cases, etc.
+    function fallbackChecks(err) {
+      if ((p.uri_fallback) && (p.uri_index !== uris.length - 1)) { // we have uris left to try
+        p.uri_index = p.uri_index + 1;
+        callWebFinger(address, p, cb);
+      } else if ((!p.tls_only) && (p.protocol === 'https')) { // try normal http
         p.uri_index = 0;
+        p.protocol = 'http';
+        callWebFinger(address, p, cb);
+      } else if ((p.webfist_fallback) && (p.host !== 'webfist.org')) { // webfist attempt
+        p.uri_index = 0;
+        p.protocol = 'http';
+        p.host = 'webfist.org';
+        p.uri_fallback = false;
+        // webfist will
+        // 1. make a query to the webfist server for the users account
+        // 2. from the response, get a link to the actual webfinger json data
+        //    (stored somewhere in control of the user)
+        // 3. make a request to that url and get the json
+        // 4. process it like a normal webfinger response
+        callWebFinger(address, p, function (err, result) { // get link to users JRD
+          if (err) {
+            cb(err);
+          } else if ((typeof result.idx.links.webfist === 'object') &&
+                     (typeof result.idx.links.webfist[0].href === 'string')) {
+            getJRD(result.idx.links.webfist[0].href, p.request_timeout, function (err, JRD) {
+              if (err) {
+                cb(err);
+              } else {
+                processJRD(JRD, cb);
+              }
+            });
+          }
+        });
+      } else {
+        cb(err);
       }
+    }
 
-      if (typeof p.protocol === "undefined") {
-        // we use https by default
-        p.protocol = 'https';
+    var url = p.protocol + '://' + p.host + '/.well-known/' +
+              uris[p.uri_index] + '?resource=acct:' + address;
+
+    // make request
+    getJRD(url, p.request_timeout, function (err, JRD) {
+      if (err) {
+        fallbackChecks(err);
+      } else {
+        processJRD(JRD, cb);
       }
-
-      // control flow for failures, what to do in various cases, etc.
-      function fallbackChecks(err) {
-        if ((p.uri_fallback) && (p.uri_index !== uris.length - 1)) { // we have uris left to try
-          p.uri_index = p.uri_index + 1;
-          callWebFinger(address, p, cb);
-        } else if ((!p.tls_only) && (p.protocol === 'https')) { // try normal http
-          p.uri_index = 0;
-          p.protocol = 'http';
-          callWebFinger(address, p, cb);
-        } else if ((p.webfist_fallback) && (p.host !== 'webfist.org')) { // webfist attempt
-          p.uri_index = 0;
-          p.protocol = 'http';
-          p.host = 'webfist.org';
-          p.uri_fallback = false;
-          // webfist will
-          // 1. make a query to the webfist server for the users account
-          // 2. from the response, get a link to the actual webfinger json data
-          //    (stored somewhere in control of the user)
-          // 3. make a request to that url and get the json
-          // 4. process it like a normal webfinger response
-          callWebFinger(address, p, function (err, result) { // get link to users JRD
-            if (err) {
-              cb(err);
-            } else if ((typeof result.idx.links.webfist === 'object') &&
-                       (typeof result.idx.links.webfist[0].href === 'string')) {
-              getJRD(result.idx.links.webfist[0].href, function (err, JRD) {
-                if (err) {
-                  cb(err);
-                } else {
-                  processJRD(JRD, cb);
-                }
-              });
-            }
-          });
-        } else {
-          cb(err);
-        }
-      }
-
-      // make request
-      getJRD(p.protocol + '://' + p.host + '/.well-known/' +
-          uris[p.uri_index] + '?resource=acct:' + address,
-      function (err, JRD) {
-        if (err) {
-          fallbackChecks(err);
-        } else {
-          processJRD(JRD, cb);
-        }
-      });
-    }, 0);
+    });
   }
 
   window.webfinger = function (address, o, cb) {
@@ -265,11 +280,25 @@ if (typeof window === 'undefined') {
 
     DEBUG = (typeof o.debug !== 'undefined') ? o.debug : false;
 
-    callWebFinger(address, {
-      host: parts[1],
-      tls_only: (typeof o.tls_only !== 'undefined') ? o.tls_only : true,
-      webfist_fallback: (typeof o.webfist_fallback !== 'undefined') ? o.webfist_fallback : true
-    }, cb);
+    setTimeout(function () {
+      var called_back = false;
+
+      callWebFinger(address, {
+        host: parts[1],
+        tls_only: (typeof o.tls_only !== 'undefined') ? o.tls_only : true,
+        webfist_fallback: (typeof o.webfist_fallback !== 'undefined') ? o.webfist_fallback : true,
+        uri_fallback: (typeof o.uri_fallback !== 'undefined') ? o.uri_fallback : true,
+        request_timeout: (typeof o.request_timeout !== 'undefined') ? o.request_timeout : 5000,
+      }, function (err, resp) {
+        if (called_back) {
+          throw new Error(address + ' callback already called!');
+        } else {
+          called_back = true;
+        }
+        cb(err, resp);
+      });
+    });
+
   };
 
 })(window, document);

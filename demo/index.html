@@ -76,13 +76,14 @@
     <script>
       function queryWebfinger(emailAddress) {
         webfinger(emailAddress, { debug: true }, function (err, p) {
-          if(err) {
+          console.log('webfinger.js result: ', err, p);
+
+          if (err) {
             console.log('error getting webfinger data for ' + emailAddress + ': ' + err.message);
             console.log(document.getElementById('error'));
             document.getElementById('error').innerHTML = '<p class="error">' + err.message + ' for ' + emailAddress + '</p>';
 
           } else if (p) {
-            console.log('webfinger.js result: ', p);
 
             // build entry html
             var entry = '<div class="result"><h2>';

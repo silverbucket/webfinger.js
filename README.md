@@ -33,6 +33,7 @@ When you include the `src/webfinger.js` script, a `webfinger` object will be exp
 		webfist_fallback: true,  // defaults to true
 		tls_only: true,          // defaults to true
 		uri_fallback: false,     // defaults to false
+		request_timeout: 10000,  // defaults to 5000
 		debug: false             // defaults to false
 	}, function (err, p) {
 		if (err) {
