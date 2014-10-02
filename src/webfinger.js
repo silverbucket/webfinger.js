@@ -122,7 +122,7 @@ if (typeof window === 'undefined') {
     };
 
     xhr.open('GET', url, true);
-    xhr.setRequestHeader('Accept', 'application/json');
+    xhr.setRequestHeader('Accept', 'application/jrd+json, application/json');
     xhr.send();
 
     setTimeout(function () {
