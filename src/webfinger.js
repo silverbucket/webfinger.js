@@ -1,7 +1,7 @@
 // -*- mode:js; js-indent-level:2 -*-
 /*!
  * webfinger.js
- *   version 1.1.0
+ *   version 1.1.1
  *   http://github.com/silverbucket/webfinger.js
  *
  * Developed and Maintained by:
@@ -16,8 +16,8 @@
  * information must remain.
  *
  */
-if (typeof XMLHttpRequest !== 'function') {
-  var XMLHttpRequest = require('xmlhttprequest').XMLHttpRequest;
+if (typeof XMLHttpRequest === 'undefined') {
+  XMLHttpRequest = require('xmlhttprequest').XMLHttpRequest;
 }
 if (typeof document === 'undefined') {
   var document = {};
