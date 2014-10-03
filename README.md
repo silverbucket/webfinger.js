@@ -22,7 +22,7 @@ In node.js you should first require the module:
 	var WebFinger = require('webfinger.js');
 
 ### Browser
-When you include the `src/webfinger.js` script, a `WebFinger` object will be exposed.
+When you include the `src/webfinger.js` scirpt, a `WebFinger` object will be exposed.
 
 ## Use
 
@@ -68,5 +68,5 @@ See a working demo [here](http://silverbucket.github.com/webfinger.js/demo/)
 
 The [pump.io](https://github.com/e14n/pump.io) project uses a node.js webfinger client library. See https://github.com/evanp/webfinger
 
-## license
+## License
 `webfinger.js` is released under the [AGPL](http://www.gnu.org/licenses/agpl.html). See [LICENSE](LICENSE)
