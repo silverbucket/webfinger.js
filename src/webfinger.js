@@ -5,7 +5,7 @@
  *   http://github.com/silverbucket/webfinger.js
  *
  * Developed and Maintained by:
- *   Nick Jennings <nick@silverbucket.net>
+ *   Nick Jennings <nick@silverbucket.net> 2012 - 2014
  *
  * webfinger.js is released under the AGPL (see LICENSE).
  *
