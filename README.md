@@ -22,20 +22,22 @@ features
 ### node.js
 In node.js you should first require the module:
 
-	var webfinger = require('webfinger.js');
+	var WebFinger = require('webfinger.js');
 
 ### browser
-When you include the `src/webfinger.js` script, a `webfinger` object will be exposed.
+When you include the `src/webfinger.js` script, a `WebFinger` object will be exposed.
 
 ## use
 
-	webfinger('nick@silverbucket.net', {
-		webfist_fallback: true,  // defaults to true
+	var webfinger = new WebFinger({
+		webfist_fallback: true,  // defaults to false
 		tls_only: true,          // defaults to true
 		uri_fallback: false,     // defaults to false
-		request_timeout: 10000,  // defaults to 5000
+		request_timeout: 10000,  // defaults to 10000
 		debug: false             // defaults to false
-	}, function (err, p) {
+	});
+
+	webfinger.lookup('nick@silverbucket.net', function (err, p) {
 		if (err) {
             console.log('error: ', err.message);
         } else {

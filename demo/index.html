@@ -74,9 +74,15 @@
 
     </script>
     <script>
+      var wf = new WebFinger({
+        debug: true,
+        webfist_fallback: true,
+        uri_fallback: true
+      });
+
       function queryWebfinger(emailAddress) {
-        webfinger(emailAddress, { debug: true }, function (err, p) {
-          console.log('webfinger.js result: ', err, p);
+        wf.lookup(emailAddress, function (err, p) {
+          console.log('webfinger.js result for ' + emailAddress + ': ', err, p);
 
           if (err) {
             console.log('error getting webfinger data for ' + emailAddress + ': ' + err.message);
