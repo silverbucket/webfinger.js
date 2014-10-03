@@ -122,7 +122,7 @@ if (typeof window === 'undefined') {
     };
 
     xhr.open('GET', url, true);
-    xhr.setRequestHeader('Accept', 'application/json');
+    xhr.setRequestHeader('Accept', 'application/jrd+json, application/json');
     xhr.send();
 
     setTimeout(function () {
@@ -286,8 +286,8 @@ if (typeof window === 'undefined') {
       callWebFinger(address, {
         host: parts[1],
         tls_only: (typeof o.tls_only !== 'undefined') ? o.tls_only : true,
-        webfist_fallback: (typeof o.webfist_fallback !== 'undefined') ? o.webfist_fallback : true,
-        uri_fallback: (typeof o.uri_fallback !== 'undefined') ? o.uri_fallback : true,
+        webfist_fallback: (typeof o.webfist_fallback !== 'undefined') ? o.webfist_fallback : false,
+        uri_fallback: (typeof o.uri_fallback !== 'undefined') ? o.uri_fallback : false,
         request_timeout: (typeof o.request_timeout !== 'undefined') ? o.request_timeout : 5000,
       }, function (err, resp) {
         if (called_back) {
