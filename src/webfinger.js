@@ -1,7 +1,7 @@
 // -*- mode:js; js-indent-level:2 -*-
 /*!
  * webfinger.js
- *   version 2.0.0
+ *   version 2.0.1
  *   http://github.com/silverbucket/webfinger.js
  *
  * Developed and Maintained by:
@@ -122,7 +122,7 @@ if (typeof window === 'undefined') {
     };
 
     xhr.open('GET', url, true);
-    xhr.setRequestHeader('Accept', 'application/jrd+json');
+    xhr.setRequestHeader('Accept', 'application/jrd+json, application/json');
     xhr.send();
   };
 
