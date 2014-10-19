@@ -2,7 +2,7 @@
 
 A webfinger client that runs both in the browser and in node.js.
 
-[![Build Status](http://img.shields.io/travis/joyent/webfinger.js.svg?style=flat)](http://travis-ci.org/silverbucket/webfinger.js)
+[![Build Status](http://img.shields.io/travis/silverbucket/webfinger.js.svg?style=flat)](http://travis-ci.org/silverbucket/webfinger.js)
 [![Code Climate](http://img.shields.io/codeclimate/github/silverbucket/webfinger.js.svg?style=flat)](https://codeclimate.com/github/silverbucket/webfinger.js)
 [![license](https://img.shields.io/npm/l/webfinger.js.svg?style=flat)](https://npmjs.org/package/webfinger.js)
 [![downloads](http://img.shields.io/npm/dm/webfinger.js.svg?style=flat)](https://npmjs.org/package/webfinger.js)
