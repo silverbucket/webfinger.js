@@ -2,9 +2,11 @@
 
 A webfinger client that runs both in the browser and in node.js.
 
-[![Build Status](https://secure.travis-ci.org/silverbucket/webfinger.js.png)](http://travis-ci.org/silverbucket/webfinger.js)
-[![Code Climate](https://codeclimate.com/github/silverbucket/webfinger.js/badges/gpa.svg)](https://codeclimate.com/github/silverbucket/webfinger.js)
-[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/silverbucket/webfinger.js/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
+[![Build Status](https://secure.travis-ci.org/silverbucket/webfinger.js.png?style=flat)](http://travis-ci.org/silverbucket/webfinger.js)
+[![Code Climate](https://codeclimate.com/github/silverbucket/webfinger.js/badges/gpa.svg?style=flat)](https://codeclimate.com/github/silverbucket/webfinger.js)
+[![license](https://img.shields.io/npm/l/webfinger.js.svg?style=flat)](https://npmjs.org/package/webfinger.js)
+[![downloads](http://img.shields.io/npm/dm/webfinger.js.svg?style=flat)](https://npmjs.org/package/webfinger.js)
+[![release]( 	http://img.shields.io/github/release/qubyte/webfinger.js.svg?style=flat)]
 
 ## Features
 
