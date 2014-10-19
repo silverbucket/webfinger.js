@@ -1,7 +1,7 @@
 // -*- mode:js; js-indent-level:2 -*-
 /*!
  * webfinger.js
- *   version 2.0.3
+ *   version 2.0.4
  *   http://github.com/silverbucket/webfinger.js
  *
  * Developed and Maintained by:
@@ -16,17 +16,16 @@
  * information must remain.
  *
  */
+
 if (typeof XMLHttpRequest === 'undefined') {
   XMLHttpRequest = require('xmlhttprequest').XMLHttpRequest;
 }
-if (typeof document === 'undefined') {
-  var document = {};
-}
+
 if (typeof window === 'undefined') {
   var window = {};
 }
 
-(function (window, document, undefined) {
+(function (window, undefined) {
 
   // URI to property name map
   var LINK_URI_MAPS = {
@@ -135,7 +134,6 @@ if (typeof window === 'undefined') {
     return true;
   };
 
-
   WebFinger.prototype._log = function () {
     var args = Array.prototype.splice.call(arguments, 0);
     if ((this.config.debug) && (LOGABLE)) {
@@ -196,7 +194,6 @@ if (typeof window === 'undefined') {
     }
     cb(null, result);
   };
-
 
   WebFinger.prototype.lookup = function (address, cb) {
     if (typeof address !== 'string') {
@@ -280,7 +277,7 @@ if (typeof window === 'undefined') {
 
   window.WebFinger = WebFinger;
 
-})(window, document);
+})(window);
 
 if (typeof (define) === 'function' && define.amd) {
   define([], function () { return window.WebFinger; });
