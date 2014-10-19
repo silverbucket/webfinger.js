@@ -135,9 +135,14 @@ if (typeof window === 'undefined') {
     return true;
   };
 
+  WebFinger.prototype._isLocalhost = function (domain) {
+    var local = /^localhost(\:[0-9]{1,6})$/;
+    return local.test(domain);
+  };
+
   WebFinger.prototype._isValidDomain = function (domain) {
-    var pattern = /^[A-Za-z0-9.-]+\.[A-Za-z]{2,6}$/;
-    return pattern.test(domain);
+    var standard = /^[A-Za-z0-9.-]+\.[A-Za-z]{2,6}$/;
+    return standard.test(domain);
   };
 
   WebFinger.prototype._log = function () {
@@ -209,19 +214,23 @@ if (typeof window === 'undefined') {
       throw new Error('second parameter must be a callback function');
     }
 
+    var self = this;
     var parts = address.replace(/ /g,'').split('@');
+    var host = parts[1];    // host name for this useraddress
+    var uri_index = 0;      // track which URIS we've tried already
+    var protocol = 'https'; // we use https by default
+
     if (parts.length !== 2) {
       cb({ message: 'invalid user address ( should be in the format of: user@host.com )' });
       return false;
     } else if (!this._isValidDomain(parts[1])) {
-      cb({ message: 'invalid host name' });
-      return false;
+      if (this._isLocalhost(parts[1])) {
+        protocol = 'http';
+      } else {
+        cb({ message: 'invalid host name' });
+        return false;
+      }
     }
-
-    var self = this;
-    var host = parts[1];    // host name for this useraddress
-    var uri_index = 0;      // track which URIS we've tried already
-    var protocol = 'https'; // we use https by default
 
     function _buildURL() {
       return protocol + '://' + host + '/.well-known/' +
