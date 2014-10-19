@@ -1,7 +1,7 @@
 // -*- mode:js; js-indent-level:2 -*-
 /*!
  * webfinger.js
- *   version 2.0.1
+ *   version 2.0.3
  *   http://github.com/silverbucket/webfinger.js
  *
  * Developed and Maintained by:
@@ -135,15 +135,6 @@ if (typeof window === 'undefined') {
     return true;
   };
 
-  WebFinger.prototype._isLocalhost = function (domain) {
-    var local = /^localhost(\:[0-9]{1,6})$/;
-    return local.test(domain);
-  };
-
-  WebFinger.prototype._isValidDomain = function (domain) {
-    var standard = /^[A-Za-z0-9.-]+\.[A-Za-z]{2,6}$/;
-    return standard.test(domain);
-  };
 
   WebFinger.prototype._log = function () {
     var args = Array.prototype.splice.call(arguments, 0);
@@ -223,13 +214,6 @@ if (typeof window === 'undefined') {
     if (parts.length !== 2) {
       cb({ message: 'invalid user address ( should be in the format of: user@host.com )' });
       return false;
-    } else if (!this._isValidDomain(parts[1])) {
-      if (this._isLocalhost(parts[1])) {
-        protocol = 'http';
-      } else {
-        cb({ message: 'invalid host name' });
-        return false;
-      }
     }
 
     function _buildURL() {

@@ -22,7 +22,7 @@ In node.js you should first require the module:
 	var WebFinger = require('webfinger.js');
 
 ### Browser
-When you include the `src/webfinger.js` scirpt, a `WebFinger` object will be exposed.
+When you include the `src/webfinger.js` script, a `WebFinger` object will be exposed.
 
 ## Use
 
