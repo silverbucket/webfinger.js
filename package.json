@@ -1,6 +1,6 @@
 {
   "name": "webfinger.js",
-  "version": "2.0.5",
+  "version": "2.0.6",
   "description": "a simple webfinger record lookup library",
   "license": "AGPL",
   "private": false,
@@ -17,7 +17,9 @@
     "xmlhttprequest": "^1.6.0"
   },
   "devDependencies": {
-    "jaribu": "*"
+    "gulp": "^3.8.8",
+    "jaribu": "^0.2.2",
+    "minify": "^1.0.4"
   },
   "scripts": {
     "test": "node_modules/.bin/jaribu"
