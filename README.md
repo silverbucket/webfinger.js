@@ -36,7 +36,6 @@ When you include the `src/webfinger.js` script, a `WebFinger` object will be exp
     tls_only: true,          // defaults to true
     uri_fallback: false,     // defaults to false
     request_timeout: 10000,  // defaults to 10000
-    debug: false             // defaults to false
   });
 
   webfinger.lookup('nick@silverbucket.net', function (err, p) {
