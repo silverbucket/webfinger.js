@@ -14,13 +14,11 @@
   ],
   "keywords": [
     "webfinger",
+    "webfist",
+    "discovery",
+    "hostmeta",
+    "jrd",
     "finger",
-    "user",
-    "address",
-    "useraddress",
-    "user",
-    "address",
-    "loopup",
     "useraddress",
     "lookup"
   ],

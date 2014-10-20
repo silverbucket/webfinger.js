@@ -6,7 +6,13 @@
   "private": false,
   "keywords": [
     "webfinger",
-    "webfist"
+    "webfist",
+    "discovery",
+    "hostmeta",
+    "jrd",
+    "finger",
+    "useraddress",
+    "lookup"
   ],
   "main": "./src/webfinger.js",
   "author": {
