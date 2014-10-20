@@ -21,47 +21,50 @@ A webfinger client that runs both in the browser and in node.js.
 ### node.js
 In node.js you should first require the module:
 
-	var WebFinger = require('webfinger.js');
+```javascript
+  var WebFinger = require('webfinger.js');
+```
 
 ### Browser
 When you include the `src/webfinger.js` script, a `WebFinger` object will be exposed.
 
 ## Use
 
-	var webfinger = new WebFinger({
-		webfist_fallback: true,  // defaults to false
-		tls_only: true,          // defaults to true
-		uri_fallback: false,     // defaults to false
-		request_timeout: 10000,  // defaults to 10000
-		debug: false             // defaults to false
-	});
+```javascript
+  var webfinger = new WebFinger({
+    webfist_fallback: true,  // defaults to false
+    tls_only: true,          // defaults to true
+    uri_fallback: false,     // defaults to false
+    request_timeout: 10000,  // defaults to 10000
+    debug: false             // defaults to false
+  });
 
-	webfinger.lookup('nick@silverbucket.net', function (err, p) {
-		if (err) {
-            console.log('error: ', err.message);
-        } else {
-			console.log(p);
-		}
-	});
+  webfinger.lookup('nick@silverbucket.net', function (err, p) {
+    if (err) {
+      console.log('error: ', err.message);
+    } else {
+      console.log(p);
+    }
+  });
 
 
-	// example output:
-	// {
-	//   idx: {
-    //     properties: {
-	//       name: "Nick Jennings"
-	//     },
-	//     links: {
-	//       avatar: [{ href: '<url>' }],
-	//       blog: [{ href: '<url>' }],
-	//       vcard: [href: '<url' }]
-	//       ... etc.
-	//     },
-	//   }
-    //   json: { ... raw json output ... }
-    //   object: { ... unformatted but parsed into native javascript object ... }
-	// }
-
+// example output:
+// {
+//   idx: {
+//     properties: {
+//       name: "Nick Jennings"
+//     },
+//     links: {
+//       avatar: [{ href: '<url>' }],
+//       blog: [{ href: '<url>' }],
+//       vcard: [href: '<url' }]
+//       ... etc.
+//     },
+//   }
+//   json: { ... raw json output ... }
+//   object: { ... unformatted but parsed into native javascript object ... }
+// }
+```
 
 ## Demo
 See a working demo [here](http://silverbucket.github.com/webfinger.js/demo/)
