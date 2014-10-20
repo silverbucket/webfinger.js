@@ -34,12 +34,28 @@ define(['require', './../src/webfinger.js'], function (require, amdwf) {
           test.throws(env.wf.lookup, Error, 'caught thrown exception');
         }
       },
+
       {
         desc: 'calling with invalid useraddress',
         run: function (env, test) {
           test.throws(function () { env.wf.lookup('asdfg'); }, Error, 'caught thrown exception');
         }
       },
+
+      {
+        desc: 'allow for port localhost without ssl',
+        run: function (env, test) {
+          env.wf.lookup('me@localhost:8001', function (err, data) {
+            if (err) {
+              test.assertAnd(err.url.indexOf('http://'), 0);
+              test.assert(err.message, 'error during request');
+            } else {
+              test.done();
+            }
+          });
+        }
+      },
+
       {
         desc: 'calling with correct useraddress (needs internet connectivity)',
         run: function (env, test) {

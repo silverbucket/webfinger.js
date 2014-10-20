@@ -1,7 +1,7 @@
 // -*- mode:js; js-indent-level:2 -*-
 /*!
  * webfinger.js
- *   version 2.0.4
+ *   version 2.0.5
  *   http://github.com/silverbucket/webfinger.js
  *
  * Developed and Maintained by:
@@ -61,6 +61,13 @@ if (typeof window === 'undefined') {
     LOGABLE = true;
   }
 
+  function _err(obj) {
+    obj.toString = function () {
+      return this.message;
+    };
+    return obj;
+  }
+
   /**
    * Function: WebFinger
    *
@@ -98,24 +105,24 @@ if (typeof window === 'undefined') {
           if (self._isValidJSON(xhr.responseText)) {
             cb(null, xhr.responseText);
           } else {
-            cb({
+            cb(_err({
               message: 'invalid json',
               url: url,
               status: xhr.status
-            });
+            }));
           }
         } else if (xhr.status === 404) {
-          cb({
+          cb(_err({
             message: 'webfinger endpoint unreachable',
             url: url,
             status: xhr.status
-          });
+          }));
         } else {
-          cb({
+          cb(_err({
             message: 'error during request',
             url: url,
             status: xhr.status
-          });
+          }));
         }
       }
     };
@@ -134,6 +141,12 @@ if (typeof window === 'undefined') {
     return true;
   };
 
+  WebFinger.prototype._isLocalhost = function (host) {
+    console.log('checking: ', host);
+    var local = /^localhost(\.localdomain)?(\:[0-9]+)?$/;
+    return local.test(host);
+  };
+
   WebFinger.prototype._log = function () {
     var args = Array.prototype.splice.call(arguments, 0);
     if ((this.config.debug) && (LOGABLE)) {
@@ -149,9 +162,9 @@ if (typeof window === 'undefined') {
     if ((typeof parsedJRD !== 'object') ||
         (typeof parsedJRD.links !== 'object')) {
       if (typeof parsedJRD.error !== 'undefined') {
-        cb({ message: parsedJRD.error });
+        cb(_err({ message: parsedJRD.error }));
       } else {
-        cb({ message: 'received unknown response from server' });
+        cb(_err({ message: 'received unknown response from server' }));
       }
       return false;
     }
@@ -209,8 +222,10 @@ if (typeof window === 'undefined') {
     var protocol = 'https'; // we use https by default
 
     if (parts.length !== 2) {
-      cb({ message: 'invalid user address ( should be in the format of: user@host.com )' });
+      cb(_err({ message: 'invalid user address ( should be in the format of: user@host.com )' }));
       return false;
+    } else if (self._isLocalhost(host)) {
+      protocol = 'http';
     }
 
     function _buildURL() {
