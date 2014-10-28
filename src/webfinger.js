@@ -131,7 +131,6 @@ if (typeof XMLHttpRequest === 'undefined') {
   };
 
   WebFinger.prototype._isLocalhost = function (host) {
-    console.log('checking: ', host);
     var local = /^localhost(\.localdomain)?(\:[0-9]+)?$/;
     return local.test(host);
   };
