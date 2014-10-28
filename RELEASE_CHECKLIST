@@ -8,5 +8,4 @@
 * tag release
 * push code & tags
 * go to github page and make release from tag
-* publish to npm
-* publish to bower
+* publish to npm ... (bower uses repo tag)
