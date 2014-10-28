@@ -1,0 +1,12 @@
+* version bumps
+  - src/webfinger.js
+  - package.json
+  - bower.json
+* build minified code
+  - gulp
+* commit changes
+* tag release
+* push code & tags
+* go to github page and make release from tag
+* publish to npm
+* publish to bower
