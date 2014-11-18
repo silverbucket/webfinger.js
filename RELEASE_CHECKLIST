@@ -1,9 +1,10 @@
+* run tests!
+* build minified code
+  - gulp
 * version bumps
   - src/webfinger.js
   - package.json
   - bower.json
-* build minified code
-  - gulp
 * commit changes
 * tag release
 * push code & tags
