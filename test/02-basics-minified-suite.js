@@ -5,7 +5,7 @@ define(['require', './../src/webfinger.min.js'], function (require, amdwf) {
   var suites = [];
 
   suites.push({
-    desc: "basic webfinger.js tests",
+    desc: "basic webfinger.min.js tests",
     setup: function (env, test) {
       env.WebFinger = require('./../src/webfinger.min.js');
       env.wf = new env.WebFinger();

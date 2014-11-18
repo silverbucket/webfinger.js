@@ -1,6 +1,6 @@
 /*!
  * webfinger.js
- *   version 2.1.3
+ *   version 2.1.4
  *   http://github.com/silverbucket/webfinger.js
  *
  * Developed and Maintained by:

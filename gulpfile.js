@@ -9,19 +9,13 @@ gulp.task('default', function() {
   minify('src/webfinger.js', {
     returnName  : true,
     log         : true
-  }, function (error, name) {
+  }, function (error, data) {
     if (error) {
       throw new Error(error);
     }
 
-    fs.readFile(name, function (err, data) {
-      if (error) {
-        throw new Error(error);
-      }
-
-      data = credits + data;
-      fs.writeFile('src/webfinger.min.js', data);
-    });
+    data = credits + data;
+    fs.writeFile('src/webfinger.min.js', data);
   });
 
 });
