@@ -73,4 +73,4 @@ See a working demo [here](http://silverbucket.github.com/webfinger.js/demo/)
 The [pump.io](https://github.com/e14n/pump.io) project uses a node.js webfinger client library. See https://github.com/evanp/webfinger
 
 ## License
-`webfinger.js` is released under the [AGPL](http://www.gnu.org/licenses/agpl.html). See [LICENSE](LICENSE)
+`webfinger.js` is released under the [LGPL](http://www.gnu.org/licenses/lgpl.html). See [LICENSE](LICENSE)
