@@ -269,30 +269,21 @@ if (typeof XMLHttpRequest === 'undefined') {
     setTimeout(_call, 0);
   };
 
-  WebFinger.prototype.lookupLinks = function (address, rel, cb) {
+  WebFinger.prototype.lookupLink = function (address, rel, cb) {
     if (LINK_PROPERTIES.hasOwnProperty(rel)) {
       this.lookup(address, function (err, p) {
+        var links  = p.idx.links[rel];
         if (err) {
           cb (err);
+        } else if (links.length === 0) {
+          cb ('no links found with rel="' + rel + '"');
         } else {
-          cb (err, p.idx.links[rel]);
+          cb (null, links[0]);
         }
       });
     } else {
       cb ('unsupported rel ' + rel);
     }
-  };
-
-  WebFinger.prototype.lookupLink = function (address, rel, cb) {
-    this.lookupLinks(address, rel, function (err, links) {
-      if (err) {
-        cb (err);
-      } else if (links.length === 0) {
-        cb ('no links found with rel="' + rel + '"');
-      } else {
-        cb (null, links[0]);
-      }
-    });
   };
 
   if (typeof window === 'object') {
