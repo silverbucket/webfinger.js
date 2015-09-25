@@ -69,6 +69,36 @@ define(['require', './../src/webfinger.min.js'], function (require, amdwf) {
             test.assertType(data.idx.links.remotestorage , 'object');
           });
         }
+      },
+
+      {
+        desc: 'calling bogus lookupLink',
+        run: function (env, test) {
+          env.wf.lookupLink('nick@silverbucket.net', 'bogus', function (err, data) {
+            test.assert(err, 'unsupported rel bogus');
+          });
+        }
+      },
+
+      {
+        desc: 'calling absent lookupLink',
+        run: function (env, test) {
+          env.wf.lookupLink('nick@silverbucket.net', 'camlistore', function (err, data) {
+            test.assert(err, 'no links found with rel="camlistore"');
+          });
+        }
+      },
+
+      {
+        desc: 'calling existing lookupLink',
+        run: function (env, test) {
+          env.wf.lookupLink('nick@silverbucket.net', 'remotestorage', function (err, data) {
+            test.assertAnd(err, null);
+            test.assertTypeAnd(data, 'object');
+            test.assertTypeAnd(data.href, 'string');
+            test.assertType(data.properties, 'object');
+          });
+        }
       }
 
     ]

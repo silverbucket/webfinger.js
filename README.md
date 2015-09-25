@@ -63,6 +63,26 @@ When you include the `src/webfinger.js` script, a `WebFinger` object will be exp
 //   json: { ... raw json output ... }
 //   object: { ... unformatted but parsed into native javascript object ... }
 // }
+
+  webfinger.lookupLink('nick@silverbucket.net', 'remotestorage' function (err, p) {
+    if (err) {
+      console.log('error: ', err.message);
+    } else {
+      console.log(p);
+    }
+  });
+
+// example output (if at least one link with rel="remotestorage" exists):
+// {
+//   href: 'https://storage.5apps.com/nick',
+//   rel : 'remotestorage',
+//   properties: {
+//     'http://remotestorage.io/spec/version': 'draft-dejong-remotestorage-02',
+//     'http://tools.ietf.org/html/rfc6749#section-4.2': 'https://5apps.com/rs/oauth/nick',
+//     'http://tools.ietf.org/html/rfc6750#section-2.3': false,
+//     'http://tools.ietf.org/html/rfc2616#section-14.16': false
+//   }
+// }
 ```
 
 ## Demo
