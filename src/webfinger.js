@@ -27,6 +27,7 @@ if (typeof XMLHttpRequest === 'undefined') {
     'http://webfist.org/spec/rel': 'webfist',
     'http://webfinger.net/rel/avatar': 'avatar',
     'remotestorage': 'remotestorage',
+    'http://tools.ietf.org/id/draft-dejong-remotestorage': 'remotestorage',
     'remoteStorage': 'remotestorage',
     'http://www.packetizer.com/rel/share': 'share',
     'http://webfinger.net/rel/profile-page': 'profile',
