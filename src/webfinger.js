@@ -54,7 +54,7 @@ if (typeof XMLHttpRequest === 'undefined') {
   // list of endpoints to try, fallback from beginning to end.
   var URIS = ['webfinger', 'host-meta', 'host-meta.json'];
 
-  function _err(obj) {
+  function generateErrorObject(obj) {
     obj.toString = function () {
       return this.message;
     };
@@ -95,20 +95,20 @@ if (typeof XMLHttpRequest === 'undefined') {
           if (self._isValidJSON(xhr.responseText)) {
             cb(null, xhr.responseText);
           } else {
-            cb(_err({
+            cb(generateErrorObject({
               message: 'invalid json',
               url: url,
               status: xhr.status
             }));
           }
         } else if (xhr.status === 404) {
-          cb(_err({
+          cb(generateErrorObject({
             message: 'endpoint unreachable',
             url: url,
             status: xhr.status
           }));
         } else {
-          cb(_err({
+          cb(generateErrorObject({
             message: 'error during request',
             url: url,
             status: xhr.status
@@ -144,9 +144,9 @@ if (typeof XMLHttpRequest === 'undefined') {
     if ((typeof parsedJRD !== 'object') ||
         (typeof parsedJRD.links !== 'object')) {
       if (typeof parsedJRD.error !== 'undefined') {
-        cb(_err({ message: parsedJRD.error }));
+        cb(generateErrorObject({ message: parsedJRD.error }));
       } else {
-        cb(_err({ message: 'unknown response from server' }));
+        cb(generateErrorObject({ message: 'unknown response from server' }));
       }
       return false;
     }
@@ -202,7 +202,7 @@ if (typeof XMLHttpRequest === 'undefined') {
     var protocol = 'https'; // we use https by default
 
     if (parts.length !== 2) {
-      cb(_err({ message: 'invalid user address ' + address + ' ( expected format: user@host.com )' }));
+      cb(generateErrorObject({ message: 'invalid user address ' + address + ' ( expected format: user@host.com )' }));
       return false;
     } else if (self._isLocalhost(host)) {
       protocol = 'http';
