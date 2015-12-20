@@ -85,41 +85,56 @@ if (typeof XMLHttpRequest === 'undefined') {
 
   // make an http request and look for JRD response, fails if request fails
   // or response not json.
-  WebFinger.prototype._fetchJRD = function (url, errorHandler, sucessHandler) {
+  WebFinger.prototype._fetchJRD = function (_url, errorHandler, sucessHandler) {
     var self = this;
-    var xhr = new XMLHttpRequest();
-
-    xhr.onreadystatechange = function () {
-      if (xhr.readyState === 4) {
-        if (xhr.status === 200) {
-          if (self._isValidJSON(xhr.responseText)) {
-            sucessHandler(xhr.responseText);
+    function _makeRequest(url) {
+      var xhr = new XMLHttpRequest();
+  
+      xhr.onreadystatechange = function () {
+        if (xhr.readyState === 4) {
+          if (xhr.status === 200) {
+            if (self._isValidJSON(xhr.responseText)) {
+              sucessHandler(xhr.responseText);
+            } else {
+              errorHandler(generateErrorObject({
+                message: 'invalid json',
+                url: url,
+                status: xhr.status
+              }));
+            }
+          } else if (xhr.status === 404) {
+            errorHandler(generateErrorObject({
+              message: 'endpoint unreachable',
+              url: url,
+              status: xhr.status
+            }));
+          } else if ((xhr.status >= 301) && (xhr.status <= 302)) {
+            var location = xhr.getResponseHeader('Location');
+            if (location) {
+              return _makeRequest(location); // follow redirect
+            } else {
+              errorHandler(generateErrorObject({
+                message: 'no redirect URL found',
+                url: url,
+                status: xhr.status
+              }));
+            }
           } else {
             errorHandler(generateErrorObject({
-              message: 'invalid json',
+              message: 'error during request',
               url: url,
               status: xhr.status
             }));
           }
-        } else if (xhr.status === 404) {
-          errorHandler(generateErrorObject({
-            message: 'endpoint unreachable',
-            url: url,
-            status: xhr.status
-          }));
-        } else {
-          errorHandler(generateErrorObject({
-            message: 'error during request',
-            url: url,
-            status: xhr.status
-          }));
         }
-      }
-    };
-
-    xhr.open('GET', url, true);
-    xhr.setRequestHeader('Accept', 'application/jrd+json, application/json');
-    xhr.send();
+      };
+  
+      xhr.open('GET', url, true);
+      xhr.setRequestHeader('Accept', 'application/jrd+json, application/json');
+      xhr.send();
+    }
+    
+    return _makeRequest(_url);
   };
 
   WebFinger.prototype._isValidJSON = function (str) {
