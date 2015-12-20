@@ -94,16 +94,16 @@ if (typeof XMLHttpRequest === 'undefined') {
         if (xhr.readyState === 4) {
           if (xhr.status === 200) {
             if (self._isValidJSON(xhr.responseText)) {
-              sucessHandler(xhr.responseText);
+              return sucessHandler(xhr.responseText);
             } else {
-              errorHandler(generateErrorObject({
+              return errorHandler(generateErrorObject({
                 message: 'invalid json',
                 url: url,
                 status: xhr.status
               }));
             }
           } else if (xhr.status === 404) {
-            errorHandler(generateErrorObject({
+            return errorHandler(generateErrorObject({
               message: 'endpoint unreachable',
               url: url,
               status: xhr.status
@@ -113,14 +113,14 @@ if (typeof XMLHttpRequest === 'undefined') {
             if (location) {
               return _makeRequest(location); // follow redirect
             } else {
-              errorHandler(generateErrorObject({
+              return errorHandler(generateErrorObject({
                 message: 'no redirect URL found',
                 url: url,
                 status: xhr.status
               }));
             }
           } else {
-            errorHandler(generateErrorObject({
+            return errorHandler(generateErrorObject({
               message: 'error during request',
               url: url,
               status: xhr.status
@@ -158,9 +158,9 @@ if (typeof XMLHttpRequest === 'undefined') {
     if ((typeof parsedJRD !== 'object') ||
         (typeof parsedJRD.links !== 'object')) {
       if (typeof parsedJRD.error !== 'undefined') {
-        errorHandler(generateErrorObject({ message: parsedJRD.error }));
+        return errorHandler(generateErrorObject({ message: parsedJRD.error }));
       } else {
-        errorHandler(generateErrorObject({ message: 'unknown response from server' }));
+        return errorHandler(generateErrorObject({ message: 'unknown response from server' }));
       }
       return false;
     }
@@ -199,7 +199,7 @@ if (typeof XMLHttpRequest === 'undefined') {
         }
       }
     }
-    successHandler(result);
+    return successHandler(result);
   };
 
   WebFinger.prototype.lookup = function (address, cb) {
@@ -216,8 +216,7 @@ if (typeof XMLHttpRequest === 'undefined') {
     var protocol = 'https'; // we use https by default
 
     if (parts.length !== 2) {
-      cb(generateErrorObject({ message: 'invalid user address ' + address + ' ( expected format: user@host.com )' }));
-      return false;
+      return cb(generateErrorObject({ message: 'invalid user address ' + address + ' ( expected format: user@host.com )' }));
     } else if (self._isLocalhost(host)) {
       protocol = 'http';
     }
@@ -231,11 +230,11 @@ if (typeof XMLHttpRequest === 'undefined') {
     function _fallbackChecks(err) {
       if ((self.config.uri_fallback) && (host !== 'webfist.org') && (uri_index !== URIS.length - 1)) { // we have uris left to try
         uri_index = uri_index + 1;
-        _call();
+        return _call();
       } else if ((!self.config.tls_only) && (protocol === 'https')) { // try normal http
         uri_index = 0;
         protocol = 'http';
-        _call();
+        return _call();
       } else if ((self.config.webfist_fallback) && (host !== 'webfist.org')) { // webfist attempt
         uri_index = 0;
         protocol = 'http';
@@ -252,15 +251,14 @@ if (typeof XMLHttpRequest === 'undefined') {
                 (typeof result.idx.links.webfist[0].href === 'string')) {
               self._fetchJRD(result.idx.links.webfist[0].href, cb, function (JRD) {
                 self._processJRD(JRD, cb, function (result) {
-                  cb(null, cb);
+                  return cb(null, cb);
                 });
               });
             }
           });
         });
       } else {
-        cb(err);
-        return false;
+        return cb(err);
       }
     }
 
@@ -271,7 +269,7 @@ if (typeof XMLHttpRequest === 'undefined') {
       });
     }
 
-    setTimeout(_call, 0);
+    return setTimeout(_call, 0);
   };
 
   WebFinger.prototype.lookupLink = function (address, rel, cb) {
@@ -279,15 +277,15 @@ if (typeof XMLHttpRequest === 'undefined') {
       this.lookup(address, function (err, p) {
         var links  = p.idx.links[rel];
         if (err) {
-          cb (err);
+          return cb(err);
         } else if (links.length === 0) {
-          cb ('no links found with rel="' + rel + '"');
+          return cb('no links found with rel="' + rel + '"');
         } else {
-          cb (null, links[0]);
+          return cb(null, links[0]);
         }
       });
     } else {
-      cb ('unsupported rel ' + rel);
+      return cb('unsupported rel ' + rel);
     }
   };
 
