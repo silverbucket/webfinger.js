@@ -85,7 +85,7 @@ if (typeof XMLHttpRequest === 'undefined') {
 
   // make an http request and look for JRD response, fails if request fails
   // or response not json.
-  WebFinger.prototype._fetchJRD = function (url, cb) {
+  WebFinger.prototype._fetchJRD = function (url, errorHandler, sucessHandler) {
     var self = this;
     var xhr = new XMLHttpRequest();
 
@@ -93,22 +93,22 @@ if (typeof XMLHttpRequest === 'undefined') {
       if (xhr.readyState === 4) {
         if (xhr.status === 200) {
           if (self._isValidJSON(xhr.responseText)) {
-            cb(null, xhr.responseText);
+            sucessHandler(xhr.responseText);
           } else {
-            cb(generateErrorObject({
+            errorHandler(generateErrorObject({
               message: 'invalid json',
               url: url,
               status: xhr.status
             }));
           }
         } else if (xhr.status === 404) {
-          cb(generateErrorObject({
+          errorHandler(generateErrorObject({
             message: 'endpoint unreachable',
             url: url,
             status: xhr.status
           }));
         } else {
-          cb(generateErrorObject({
+          errorHandler(generateErrorObject({
             message: 'error during request',
             url: url,
             status: xhr.status
@@ -138,15 +138,14 @@ if (typeof XMLHttpRequest === 'undefined') {
 
   // processes JRD object as if it's a webfinger response object
   // looks for known properties and adds them to profile datat struct.
-  WebFinger.prototype._processJRD = function (JRD, cb) {
-    var self = this;
+  WebFinger.prototype._processJRD = function (JRD, errorHandler, successHandler) {
     var parsedJRD = JSON.parse(JRD);
     if ((typeof parsedJRD !== 'object') ||
         (typeof parsedJRD.links !== 'object')) {
       if (typeof parsedJRD.error !== 'undefined') {
-        cb(generateErrorObject({ message: parsedJRD.error }));
+        errorHandler(generateErrorObject({ message: parsedJRD.error }));
       } else {
-        cb(generateErrorObject({ message: 'unknown response from server' }));
+        errorHandler(generateErrorObject({ message: 'unknown response from server' }));
       }
       return false;
     }
@@ -185,7 +184,7 @@ if (typeof XMLHttpRequest === 'undefined') {
         }
       }
     }
-    cb(null, result);
+    successHandler(result);
   };
 
   WebFinger.prototype.lookup = function (address, cb) {
@@ -232,20 +231,14 @@ if (typeof XMLHttpRequest === 'undefined') {
         //    (stored somewhere in control of the user)
         // 3. make a request to that url and get the json
         // 4. process it like a normal webfinger response
-        self._fetchJRD(_buildURL(), function (err, data) { // get link to users JRD
-          if (err) {
-            cb(err);
-            return false;
-          }
-          self._processJRD(data, function (err, result) {
+        self._fetchJRD(_buildURL(), cb, function (data) { // get link to users JRD
+          self._processJRD(data, cb, function (result) {
             if ((typeof result.idx.links.webfist === 'object') &&
                 (typeof result.idx.links.webfist[0].href === 'string')) {
-              self._fetchJRD(result.idx.links.webfist[0].href, function (err, JRD) {
-                if (err) {
-                  cb(err);
-                } else {
-                  self._processJRD(JRD, cb);
-                }
+              self._fetchJRD(result.idx.links.webfist[0].href, cb, function (JRD) {
+                self._processJRD(JRD, cb, function (result) {
+                  cb(null, cb);
+                });
               });
             }
           });
@@ -258,12 +251,8 @@ if (typeof XMLHttpRequest === 'undefined') {
 
     function _call() {
       // make request
-      self._fetchJRD(_buildURL(), function (err, JRD) {
-        if (err) {
-          _fallbackChecks(err);
-        } else {
-          self._processJRD(JRD, cb);
-        }
+      self._fetchJRD(_buildURL(), _fallbackChecks, function (JRD) {
+        self._processJRD(JRD, cb, function (result) { cb(null, result); });
       });
     }
 
