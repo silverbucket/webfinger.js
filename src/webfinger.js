@@ -62,6 +62,19 @@ if (typeof XMLHttpRequest === 'undefined') {
     return obj;
   }
 
+  // given a URL ensures it's HTTPS. 
+  // returns false for null string or non-HTTPS URL.
+  function isSecure(url) {
+    if (typeof url !== 'string') {
+      return false;
+    }
+    var parts = url.split('://');
+    if (parts[0] === 'https') {
+      return true;
+    }
+    return false;
+  }
+
   /**
    * Function: WebFinger
    *
@@ -111,7 +124,7 @@ if (typeof XMLHttpRequest === 'undefined') {
             }));
           } else if ((xhr.status >= 301) && (xhr.status <= 302)) {
             var location = xhr.getResponseHeader('Location');
-            if (location) {
+            if (isSecure(location)) {
               return __makeRequest(location); // follow redirect
             } else {
               return errorHandler(generateErrorObject({
