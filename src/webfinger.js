@@ -1,7 +1,7 @@
 /* global define */
 /*!
  * webfinger.js
- *   version 2.3.0
+ *   version 2.3.1
  *   http://github.com/silverbucket/webfinger.js
  *
  * Developed and Maintained by:
