@@ -1,3 +1,4 @@
+/* global define */
 /*!
  * webfinger.js
  *   version 2.3.0
@@ -85,15 +86,15 @@ if (typeof XMLHttpRequest === 'undefined') {
 
   // make an http request and look for JRD response, fails if request fails
   // or response not json.
-  WebFinger.prototype._fetchJRD = function (_url, errorHandler, sucessHandler) {
+  WebFinger.prototype.__fetchJRD = function (_url, errorHandler, sucessHandler) {
     var self = this;
-    function _makeRequest(url) {
+    function __makeRequest(url) {
       var xhr = new XMLHttpRequest();
   
       xhr.onreadystatechange = function () {
         if (xhr.readyState === 4) {
           if (xhr.status === 200) {
-            if (self._isValidJSON(xhr.responseText)) {
+            if (self.__isValidJSON(xhr.responseText)) {
               return sucessHandler(xhr.responseText);
             } else {
               return errorHandler(generateErrorObject({
@@ -111,7 +112,7 @@ if (typeof XMLHttpRequest === 'undefined') {
           } else if ((xhr.status >= 301) && (xhr.status <= 302)) {
             var location = xhr.getResponseHeader('Location');
             if (location) {
-              return _makeRequest(location); // follow redirect
+              return __makeRequest(location); // follow redirect
             } else {
               return errorHandler(generateErrorObject({
                 message: 'no redirect URL found',
@@ -134,10 +135,10 @@ if (typeof XMLHttpRequest === 'undefined') {
       xhr.send();
     }
     
-    return _makeRequest(_url);
+    return __makeRequest(_url);
   };
 
-  WebFinger.prototype._isValidJSON = function (str) {
+  WebFinger.prototype.__isValidJSON = function (str) {
     try {
       JSON.parse(str);
     } catch (e) {
@@ -146,14 +147,14 @@ if (typeof XMLHttpRequest === 'undefined') {
     return true;
   };
 
-  WebFinger.prototype._isLocalhost = function (host) {
+  WebFinger.prototype.__isLocalhost = function (host) {
     var local = /^localhost(\.localdomain)?(\:[0-9]+)?$/;
     return local.test(host);
   };
 
   // processes JRD object as if it's a webfinger response object
   // looks for known properties and adds them to profile datat struct.
-  WebFinger.prototype._processJRD = function (JRD, errorHandler, successHandler) {
+  WebFinger.prototype.__processJRD = function (JRD, errorHandler, successHandler) {
     var parsedJRD = JSON.parse(JRD);
     if ((typeof parsedJRD !== 'object') ||
         (typeof parsedJRD.links !== 'object')) {
@@ -217,24 +218,24 @@ if (typeof XMLHttpRequest === 'undefined') {
 
     if (parts.length !== 2) {
       return cb(generateErrorObject({ message: 'invalid user address ' + address + ' ( expected format: user@host.com )' }));
-    } else if (self._isLocalhost(host)) {
+    } else if (self.__isLocalhost(host)) {
       protocol = 'http';
     }
 
-    function _buildURL() {
+    function __buildURL() {
       return protocol + '://' + host + '/.well-known/' +
              URIS[uri_index] + '?resource=acct:' + address;
     }
 
     // control flow for failures, what to do in various cases, etc.
-    function _fallbackChecks(err) {
+    function __fallbackChecks(err) {
       if ((self.config.uri_fallback) && (host !== 'webfist.org') && (uri_index !== URIS.length - 1)) { // we have uris left to try
         uri_index = uri_index + 1;
-        return _call();
+        return __call();
       } else if ((!self.config.tls_only) && (protocol === 'https')) { // try normal http
         uri_index = 0;
         protocol = 'http';
-        return _call();
+        return __call();
       } else if ((self.config.webfist_fallback) && (host !== 'webfist.org')) { // webfist attempt
         uri_index = 0;
         protocol = 'http';
@@ -245,12 +246,12 @@ if (typeof XMLHttpRequest === 'undefined') {
         //    (stored somewhere in control of the user)
         // 3. make a request to that url and get the json
         // 4. process it like a normal webfinger response
-        self._fetchJRD(_buildURL(), cb, function (data) { // get link to users JRD
-          self._processJRD(data, cb, function (result) {
+        self.__fetchJRD(__buildURL(), cb, function (data) { // get link to users JRD
+          self.__processJRD(data, cb, function (result) {
             if ((typeof result.idx.links.webfist === 'object') &&
                 (typeof result.idx.links.webfist[0].href === 'string')) {
-              self._fetchJRD(result.idx.links.webfist[0].href, cb, function (JRD) {
-                self._processJRD(JRD, cb, function (result) {
+              self.__fetchJRD(result.idx.links.webfist[0].href, cb, function (JRD) {
+                self.__processJRD(JRD, cb, function (result) {
                   return cb(null, cb);
                 });
               });
@@ -262,14 +263,14 @@ if (typeof XMLHttpRequest === 'undefined') {
       }
     }
 
-    function _call() {
+    function __call() {
       // make request
-      self._fetchJRD(_buildURL(), _fallbackChecks, function (JRD) {
-        self._processJRD(JRD, cb, function (result) { cb(null, result); });
+      self.__fetchJRD(__buildURL(), __fallbackChecks, function (JRD) {
+        self.__processJRD(JRD, cb, function (result) { cb(null, result); });
       });
     }
 
-    return setTimeout(_call, 0);
+    return setTimeout(__call, 0);
   };
 
   WebFinger.prototype.lookupLink = function (address, rel, cb) {
