@@ -1,11 +1,11 @@
 /* global define */
 /*!
  * webfinger.js
- *   version 2.3.2
+ *   version 2.4.0
  *   http://github.com/silverbucket/webfinger.js
  *
  * Developed and Maintained by:
- *   Nick Jennings <nick@silverbucket.net> 2012 - 2014
+ *   Nick Jennings <nick@silverbucket.net> 2012 - 2016
  *
  * webfinger.js is released under the AGPL (see LICENSE).
  *
