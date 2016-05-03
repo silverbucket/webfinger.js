@@ -167,16 +167,15 @@ if (typeof XMLHttpRequest === 'undefined') {
 
   // processes JRD object as if it's a webfinger response object
   // looks for known properties and adds them to profile datat struct.
-  WebFinger.prototype.__processJRD = function (JRD, errorHandler, successHandler) {
+  WebFinger.prototype.__processJRD = function (URL, JRD, errorHandler, successHandler) {
     var parsedJRD = JSON.parse(JRD);
     if ((typeof parsedJRD !== 'object') ||
         (typeof parsedJRD.links !== 'object')) {
       if (typeof parsedJRD.error !== 'undefined') {
-        return errorHandler(generateErrorObject({ message: parsedJRD.error }));
+        return errorHandler(generateErrorObject({ message: parsedJRD.error, request: URL }));
       } else {
-        return errorHandler(generateErrorObject({ message: 'unknown response from server' }));
+        return errorHandler(generateErrorObject({ message: 'unknown response from server', request: URL }));
       }
-      return false;
     }
 
     var links = parsedJRD.links;
@@ -224,20 +223,29 @@ if (typeof XMLHttpRequest === 'undefined') {
     }
 
     var self = this;
-    var parts = address.replace(/ /g,'').split('@');
-    var host = parts[1];    // host name for this useraddress
+    var host = '';
+    if (address.indexOf('://') > -1) {
+      // other uri format
+      host = address.replace(/ /g,'').split('://')[1];
+    } else {
+      // useraddress
+      host = address.replace(/ /g,'').split('@')[1];
+    }
     var uri_index = 0;      // track which URIS we've tried already
     var protocol = 'https'; // we use https by default
 
-    if (parts.length !== 2) {
-      return cb(generateErrorObject({ message: 'invalid user address ' + address + ' ( expected format: user@host.com )' }));
-    } else if (self.__isLocalhost(host)) {
+    if (self.__isLocalhost(host)) {
       protocol = 'http';
     }
 
     function __buildURL() {
+      var uri = '';        
+      if (! address.split('://')[1]) {
+        // the URI has not been defined, default to acct
+        uri = 'acct:';
+      }
       return protocol + '://' + host + '/.well-known/' +
-             URIS[uri_index] + '?resource=acct:' + address;
+             URIS[uri_index] + '?resource=' + uri + address;
     }
 
     // control flow for failures, what to do in various cases, etc.
@@ -259,12 +267,13 @@ if (typeof XMLHttpRequest === 'undefined') {
         //    (stored somewhere in control of the user)
         // 3. make a request to that url and get the json
         // 4. process it like a normal webfinger response
-        self.__fetchJRD(__buildURL(), cb, function (data) { // get link to users JRD
-          self.__processJRD(data, cb, function (result) {
+        var URL = __buildURL();
+        self.__fetchJRD(URL, cb, function (data) { // get link to users JRD
+          self.__processJRD(URL, data, cb, function (result) {
             if ((typeof result.idx.links.webfist === 'object') &&
                 (typeof result.idx.links.webfist[0].href === 'string')) {
               self.__fetchJRD(result.idx.links.webfist[0].href, cb, function (JRD) {
-                self.__processJRD(JRD, cb, function (result) {
+                self.__processJRD(URL, JRD, cb, function (result) {
                   return cb(null, cb);
                 });
               });
@@ -278,8 +287,9 @@ if (typeof XMLHttpRequest === 'undefined') {
 
     function __call() {
       // make request
-      self.__fetchJRD(__buildURL(), __fallbackChecks, function (JRD) {
-        self.__processJRD(JRD, cb, function (result) { cb(null, result); });
+      var URL = __buildURL();
+      self.__fetchJRD(URL, __fallbackChecks, function (JRD) {
+        self.__processJRD(URL, JRD, cb, function (result) { cb(null, result); });
       });
     }
 

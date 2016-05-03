@@ -99,6 +99,16 @@ define(['require', './../src/webfinger.js'], function (require, amdwf) {
             test.assertType(data.properties, 'object');
           });
         }
+      },
+      
+      {
+        desc: 'calling with non-acct URI address',
+        run: function (env, test) {
+          env.wf.lookup('http://silverbucket.net', function (err, data) {
+            test.assertTypeAnd(err, 'object');
+            test.assert(err.request, 'https://silverbucket.net/.well-known/webfinger?resource=http://silverbucket.net');
+          });
+        }
       }
 
     ]
