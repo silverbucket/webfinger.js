@@ -6,6 +6,7 @@ define(['require', './../src/webfinger.js'], function (require, amdwf) {
 
   suites.push({
     desc: "basic webfinger.js tests",
+    abortOnFail: true,
     setup: function (env, test) {
       env.WebFinger = require('./../src/webfinger.js');
       env.wf = new env.WebFinger();
@@ -61,6 +62,38 @@ define(['require', './../src/webfinger.js'], function (require, amdwf) {
         run: function (env, test) {
           env.wf.lookup('bobby@gmail.com', function (err, data) {
             test.assertTypeAnd(err, 'object');
+            test.assert(err.status, 404);
+          });
+        }
+      },
+
+      {
+        desc: 'calling with incorrect useraddress (fallbacks enabled) v1',
+        run: function (env, test) {
+          var rswf = new env.WebFinger({
+            tls_only: false,
+            uri_fallback: true,
+            request_timeout: 5000
+          });
+
+          rswf.lookup('bobby@gmail.com', function (err, data) {
+            test.assertType(err, 'object');
+            // test.assert(err.status, 404);
+          });
+        }
+      },
+
+      {
+        desc: 'calling with incorrect useraddress (fallbacks enabled) v2',
+        run: function (env, test) {
+          var rswf = new env.WebFinger({
+            tls_only: false,
+            uri_fallback: true,
+            request_timeout: 5000
+          });
+
+          rswf.lookup('foo@bar', function (err, data) {
+            test.assertType(err, 'object');
             test.assert(err.status, 404);
           });
         }

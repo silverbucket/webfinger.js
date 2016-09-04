@@ -62,7 +62,7 @@ if (typeof XMLHttpRequest === 'undefined') {
     return obj;
   }
 
-  // given a URL ensures it's HTTPS. 
+  // given a URL ensures it's HTTPS.
   // returns false for null string or non-HTTPS URL.
   function isSecure(url) {
     if (typeof url !== 'string') {
@@ -99,56 +99,64 @@ if (typeof XMLHttpRequest === 'undefined') {
 
   // make an http request and look for JRD response, fails if request fails
   // or response not json.
-  WebFinger.prototype.__fetchJRD = function (_url, errorHandler, sucessHandler) {
+  WebFinger.prototype.__fetchJRD = function (url, errorHandler, sucessHandler) {
     var self = this;
-    function __makeRequest(url) {
-      var xhr = new XMLHttpRequest();
-  
+
+    var xhr = new XMLHttpRequest();
+
+    function __processState() {
+      if (xhr.status === 200) {
+        if (self.__isValidJSON(xhr.responseText)) {
+          return sucessHandler(xhr.responseText);
+        } else {
+          return errorHandler(generateErrorObject({
+            message: 'invalid json',
+            url: url,
+            status: xhr.status
+          }));
+        }
+      } else if (xhr.status === 404) {
+        return errorHandler(generateErrorObject({
+          message: 'endpoint unreachable',
+          url: url,
+          status: xhr.status
+        }));
+      } else if ((xhr.status >= 301) && (xhr.status <= 302)) {
+        var location = xhr.getResponseHeader('Location');
+        if (isSecure(location)) {
+          return __makeRequest(location); // follow redirect
+        } else {
+          return errorHandler(generateErrorObject({
+            message: 'no redirect URL found',
+            url: url,
+            status: xhr.status
+          }));
+        }
+      } else {
+        return errorHandler(generateErrorObject({
+          message: 'error during request',
+          url: url,
+          status: xhr.status
+        }));
+      }
+    }
+
+    function __makeRequest() {
       xhr.onreadystatechange = function () {
         if (xhr.readyState === 4) {
-          if (xhr.status === 200) {
-            if (self.__isValidJSON(xhr.responseText)) {
-              return sucessHandler(xhr.responseText);
-            } else {
-              return errorHandler(generateErrorObject({
-                message: 'invalid json',
-                url: url,
-                status: xhr.status
-              }));
-            }
-          } else if (xhr.status === 404) {
-            return errorHandler(generateErrorObject({
-              message: 'endpoint unreachable',
-              url: url,
-              status: xhr.status
-            }));
-          } else if ((xhr.status >= 301) && (xhr.status <= 302)) {
-            var location = xhr.getResponseHeader('Location');
-            if (isSecure(location)) {
-              return __makeRequest(location); // follow redirect
-            } else {
-              return errorHandler(generateErrorObject({
-                message: 'no redirect URL found',
-                url: url,
-                status: xhr.status
-              }));
-            }
-          } else {
-            return errorHandler(generateErrorObject({
-              message: 'error during request',
-              url: url,
-              status: xhr.status
-            }));
-          }
+          __processState();
         }
       };
-  
+
+      xhr.onload = function (a, b) {
+        __processState();
+      }
       xhr.open('GET', url, true);
       xhr.setRequestHeader('Accept', 'application/jrd+json, application/json');
       xhr.send();
     }
-    
-    return __makeRequest(_url);
+
+    return __makeRequest();
   };
 
   WebFinger.prototype.__isValidJSON = function (str) {
@@ -239,7 +247,7 @@ if (typeof XMLHttpRequest === 'undefined') {
     }
 
     function __buildURL() {
-      var uri = '';        
+      var uri = '';
       if (! address.split('://')[1]) {
         // the URI has not been defined, default to acct
         uri = 'acct:';
