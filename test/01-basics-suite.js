@@ -57,6 +57,16 @@ define(['require', './../src/webfinger.js'], function (require, amdwf) {
       },
 
       {
+        desc: 'calling with incorrect useraddress',
+        run: function (env, test) {
+          env.wf.lookup('bobby@gmail.com', function (err, data) {
+            test.assertTypeAnd(err, 'object');
+            test.assert(err.status, 404);
+          });
+        }
+      },
+
+      {
         desc: 'calling with correct useraddress (needs internet connectivity)',
         run: function (env, test) {
           env.wf.lookup('nick@silverbucket.net', function (err, data) {
@@ -100,7 +110,7 @@ define(['require', './../src/webfinger.js'], function (require, amdwf) {
           });
         }
       },
-      
+
       {
         desc: 'calling with non-acct URI address',
         run: function (env, test) {
