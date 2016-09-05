@@ -1,7 +1,7 @@
 /* global define */
 /*!
  * webfinger.js
- *   version 2.4.1
+ *   version 2.4.2
  *   http://github.com/silverbucket/webfinger.js
  *
  * Developed and Maintained by:
@@ -117,7 +117,7 @@ if (typeof XMLHttpRequest === 'undefined') {
         }
       } else if (xhr.status === 404) {
         return errorHandler(generateErrorObject({
-          message: 'endpoint unreachable',
+          message: 'resource not found',
           url: url,
           status: xhr.status
         }));
