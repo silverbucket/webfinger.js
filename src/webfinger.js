@@ -1,7 +1,7 @@
 /* global define */
 /*!
  * webfinger.js
- *   version 2.4.2
+ *   version 2.5.0
  *   http://github.com/silverbucket/webfinger.js
  *
  * Developed and Maintained by:
@@ -103,6 +103,7 @@ if (typeof XMLHttpRequest === 'undefined') {
     var self = this;
 
     var xhr = new XMLHttpRequest();
+    xhr.timeout = this.config.request_timeout;
 
     function __processState() {
       if (xhr.status === 200) {
@@ -148,9 +149,18 @@ if (typeof XMLHttpRequest === 'undefined') {
         }
       };
 
-      xhr.onload = function (a, b) {
+      xhr.onload = function () {
         __processState();
-      }
+      };
+
+      xhr.ontimeout = function () {
+        return errorHandler(generateErrorObject({
+          message: 'request timed out',
+          url: url,
+          status: xhr.status
+        }));
+      };
+
       xhr.open('GET', url, true);
       xhr.setRequestHeader('Accept', 'application/jrd+json, application/json');
       xhr.send();
