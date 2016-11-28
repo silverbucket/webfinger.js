@@ -21,7 +21,7 @@ if (typeof XMLHttpRequest === 'undefined') {
   XMLHttpRequest = require('xmlhttprequest').XMLHttpRequest;
 }
 
-(function (undefined) {
+(function (global) {
 
   // URI to property name map
   var LINK_URI_MAPS = {
@@ -331,14 +331,21 @@ if (typeof XMLHttpRequest === 'undefined') {
     }
   };
 
-  if (typeof window === 'object') {
-    window.WebFinger = WebFinger;
-  } else if (typeof (define) === 'function' && define.amd) {
-    define([], function () { return WebFinger; });
-  } else {
-    try {
-      module.exports = WebFinger;
-    } catch (e) {}
-  }
-})();
 
+
+  // AMD support
+  if (typeof define === 'function' && define.amd) {
+      define([], function () { return WebFinger; });
+  // CommonJS and Node.js module support.
+  } else if (typeof exports !== 'undefined') {
+    // Support Node.js specific `module.exports` (which can be a function)
+    if (typeof module !== 'undefined' && module.exports) {
+        exports = module.exports = WebFinger;
+    }
+    // But always support CommonJS module 1.1.1 spec (`exports` cannot be a function)
+    exports.WebFinger = WebFinger;
+  } else {
+    // browser <script> support
+    global.WebFinger = WebFinger;
+  }
+})(this);
