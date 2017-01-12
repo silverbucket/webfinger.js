@@ -88,9 +88,5 @@ When you include the `src/webfinger.js` script, a `WebFinger` object will be exp
 ## Demo
 See a working demo [here](https://silverbucket.github.com/webfinger.js/demo/)
 
-## Other Clients
-
-The [pump.io](https://github.com/e14n/pump.io) project uses a node.js webfinger client library. See https://github.com/evanp/webfinger
-
 ## License
 `webfinger.js` is released under the [LGPL](http://www.gnu.org/licenses/lgpl.html). See [LICENSE](LICENSE)
