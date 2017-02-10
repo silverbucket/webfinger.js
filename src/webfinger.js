@@ -197,6 +197,9 @@ if (typeof XMLHttpRequest === 'undefined') {
     }
 
     var links = parsedJRD.links;
+    if (!Array.isArray(links)) {
+      links = [];
+    }
     var result = {  // webfinger JRD - object, json, and our own indexing
       object: parsedJRD,
       json: JRD,
