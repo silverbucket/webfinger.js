@@ -100,6 +100,28 @@ define(['require', './../src/webfinger.js'], function (require, amdwf) {
       },
 
       {
+        desc: 'process a well-formed JRD document',
+        run: function (env, test) {
+          env.wf.__processJRD('some:url', JSON.stringify({ links: [] }), function (err) {
+            test.fail(err);
+          }, function(res) {
+            test.done();
+          });
+        }
+      },
+
+      {
+        desc: 'process a malformed JRD document',
+        run: function (env, test) {
+          env.wf.__processJRD('some:url', JSON.stringify({ links: {} }), function (err) {
+            test.fail(err);
+          }, function(res) {
+            test.done();
+          });
+        }
+      },
+
+      {
         desc: 'calling with correct useraddress (needs internet connectivity)',
         run: function (env, test) {
           env.wf.lookup('nick@silverbucket.net', function (err, data) {
