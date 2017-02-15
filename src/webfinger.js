@@ -247,7 +247,7 @@ if (typeof XMLHttpRequest === 'undefined') {
     var host = '';
     if (address.indexOf('://') > -1) {
       // other uri format
-      host = address.replace(/ /g,'').split('://')[1];
+      host = address.replace(/ /g,'').split('/')[2];
     } else {
       // useraddress
       host = address.replace(/ /g,'').split('@')[1];
