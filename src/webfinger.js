@@ -1,11 +1,11 @@
 /* global define */
 /*!
  * webfinger.js
- *   version 2.6.2
+ *   version 2.6.3
  *   http://github.com/silverbucket/webfinger.js
  *
  * Developed and Maintained by:
- *   Nick Jennings <nick@silverbucket.net> 2012 - 2016
+ *   Nick Jennings <nick@silverbucket.net> 2012
  *
  * webfinger.js is released under the AGPL (see LICENSE).
  *
@@ -18,7 +18,8 @@
  */
 
 if (typeof XMLHttpRequest === 'undefined') {
-  XMLHttpRequest = require('xmlhttprequest').XMLHttpRequest;
+  // XMLHttpRequest = require('xmlhttprequest').XMLHttpRequest;
+  XMLHttpRequest = require('xhr2');
 }
 
 (function (global) {
