@@ -1,6 +1,6 @@
 {
   "name": "webfinger.js",
-  "version": "2.6.3",
+  "version": "2.6.4",
   "description": "a simple webfinger record lookup library",
   "license": "LGPL",
   "private": false,
@@ -20,8 +20,7 @@
     "email": "nick@silverbucket.net"
   },
   "dependencies": {
-    "xhr2": "^0.1.4",
-    "xmlhttprequest": "^1.8.0"
+    "xhr2": "^0.1.4"
   },
   "devDependencies": {
     "gulp": "^3.9.1",
