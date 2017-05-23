@@ -102,11 +102,17 @@ if (typeof XMLHttpRequest === 'undefined') {
   // or response not json.
   WebFinger.prototype.__fetchJRD = function (url, errorHandler, sucessHandler) {
     var self = this;
-
+    var handlerSpent = false;
     var xhr = new XMLHttpRequest();
     xhr.timeout = this.config.request_timeout;
 
     function __processState() {
+      if (handlerSpent){
+        return;
+      }else{
+        handlerSpent = true;
+      }
+
       if (xhr.status === 200) {
         if (self.__isValidJSON(xhr.responseText)) {
           return sucessHandler(xhr.responseText);
