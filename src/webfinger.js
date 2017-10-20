@@ -104,7 +104,6 @@ if (typeof XMLHttpRequest === 'undefined') {
     var self = this;
     var handlerSpent = false;
     var xhr = new XMLHttpRequest();
-    xhr.timeout = this.config.request_timeout;
 
     function __processState() {
       if (handlerSpent){
@@ -169,6 +168,7 @@ if (typeof XMLHttpRequest === 'undefined') {
       };
 
       xhr.open('GET', url, true);
+      xhr.timeout = self.config.request_timeout;
       xhr.setRequestHeader('Accept', 'application/jrd+json, application/json');
       xhr.send();
     }
