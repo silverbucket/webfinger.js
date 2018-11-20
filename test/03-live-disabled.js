@@ -79,7 +79,7 @@ define(['require', './../src/webfinger.js'], function (require, amdwf) {
         run: function (env, test) {
           env.wf.lookup('http://silverbucket.net/account/nick', function (err, data) {
             test.assertTypeAnd(err, 'object');
-            test.assert(err.url, 'https://silverbucket.net/.well-known/webfinger?resource=http://silverbucket.net/account/nick');
+            test.assert(err.request, 'https://silverbucket.net/.well-known/webfinger?resource=http://silverbucket.net/account/nick');
           });
         }
       }
