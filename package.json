@@ -23,7 +23,7 @@
     "xhr2": "^0.1.4"
   },
   "devDependencies": {
-    "gulp": "^3.9.1",
+    "gulp": "^4.0.0",
     "jaribu": "^2.2.1",
     "minify": "^2.0.13"
   },
