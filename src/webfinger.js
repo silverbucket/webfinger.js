@@ -17,7 +17,7 @@
  *
  */
 
-if (typeof XMLHttpRequest === 'undefined') {
+if (typeof fetch !== 'function' && typeof XMLHttpRequest !== 'function') {
   // XMLHttpRequest = require('xmlhttprequest').XMLHttpRequest;
   XMLHttpRequest = require('xhr2');
 }
@@ -101,6 +101,82 @@ if (typeof XMLHttpRequest === 'undefined') {
   // make an http request and look for JRD response, fails if request fails
   // or response not json.
   WebFinger.prototype.__fetchJRD = function (url, errorHandler, sucessHandler) {
+    if (typeof fetch === 'function') {
+        return this.__fetchJRD_fetch(url, errorHandler, sucessHandler);
+    } else if (typeof XMLHttpRequest === 'function') {
+      return this.__fetchJRD_XHR(url, errorHandler, sucessHandler);
+    } else {
+      throw new Error("add a polyfill for fetch or XMLHttpRequest");
+    }
+  };
+  WebFinger.prototype.__fetchJRD_fetch = function (url, errorHandler, sucessHandler) {
+    var webfinger = this;
+    var abortController;
+    if (typeof AbortController === 'function') {
+      abortController = new AbortController();
+    }
+    var networkPromise = fetch(url, {
+      headers: {'Accept': 'application/jrd+json, application/json'},
+      signal: abortController ? abortController.signal : undefined
+    }).
+    then(function (response) {
+      if (response.ok) {
+        return response.text();
+      } else if (response.status === 404) {
+        throw generateErrorObject({
+          message: 'resource not found',
+          url: url,
+          status: response.status
+        });
+      } else {   // other HTTP status (redirects are handled transparently)
+        throw generateErrorObject({
+          message: 'error during request',
+          url: url,
+          status: response.status
+        });
+      }
+    },
+    function (err) {   // connection refused, etc.
+      throw generateErrorObject({
+        message: 'error during request',
+        url: url,
+        status: undefined,
+        err: err
+      })
+    }).
+    then(function (responseText) {
+      if (webfinger.__isValidJSON(responseText)) {
+        return responseText;
+      } else {
+        throw generateErrorObject({
+          message: 'invalid json',
+          url: url,
+          status: undefined
+        });
+      }
+    });
+
+    var timeoutPromise = new Promise(function (resolve, reject) {
+      setTimeout(function () {
+        reject(generateErrorObject({
+          message: 'request timed out',
+          url: url,
+          status: undefined
+        }));
+        if (abortController) {
+          abortController.abort();
+        }
+      }, webfinger.config.request_timeout);
+    });
+
+    Promise.race([networkPromise, timeoutPromise]).
+    then(function (responseText) {
+      sucessHandler(responseText);
+    }).catch(function (err) {
+      errorHandler(err);
+    });
+  };
+  WebFinger.prototype.__fetchJRD_XHR = function (url, errorHandler, sucessHandler) {
     var self = this;
     var handlerSpent = false;
     var xhr = new XMLHttpRequest();
