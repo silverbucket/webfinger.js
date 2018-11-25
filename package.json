@@ -25,10 +25,11 @@
   "devDependencies": {
     "gulp": "^4.0.0",
     "jaribu": "^2.2.1",
-    "minify": "^2.0.13"
+    "minify": "^4.1.0"
   },
   "scripts": {
-    "test": "node_modules/.bin/jaribu"
+    "test": "jaribu",
+    "build": "gulp"
   },
   "repository": {
     "type": "git",
