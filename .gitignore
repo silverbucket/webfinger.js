@@ -1,4 +1,5 @@
-node_modules
-dist
-.tmp
-.vscode
+node_modules/
+dist/
+.tmp/
+.vscode/
+.idea/
