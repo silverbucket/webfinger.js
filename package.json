@@ -23,6 +23,7 @@
     "xhr2": "^0.1.4"
   },
   "devDependencies": {
+    "node-fetch": "^2.3.0",
     "gulp": "^4.0.0",
     "jaribu": "^2.2.1",
     "minify": "^4.1.0"
