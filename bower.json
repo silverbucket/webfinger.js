@@ -1,6 +1,6 @@
 {
   "name": "webfinger.js",
-  "version": "2.6.6",
+  "version": "2.7.0",
   "homepage": "https://github.com/silverbucket/webfinger.js",
   "authors": [
     "Nick Jennings <nick@silverbucket.net>"
