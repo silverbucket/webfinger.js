@@ -20,7 +20,7 @@
     "email": "nick@silverbucket.net"
   },
   "dependencies": {
-    "xhr2": "0.1.4"
+    "xhr2": "0.2.1"
   },
   "devDependencies": {
     "gulp": "4.0.2",
