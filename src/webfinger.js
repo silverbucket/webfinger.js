@@ -100,16 +100,16 @@ if (typeof fetch !== 'function' && typeof XMLHttpRequest !== 'function') {
 
   // make an http request and look for JRD response, fails if request fails
   // or response not json.
-  WebFinger.prototype.__fetchJRD = function (url, errorHandler, sucessHandler) {
+  WebFinger.prototype.__fetchJRD = function (url, errorHandler, successHandler) {
     if (typeof fetch === 'function') {
-        return this.__fetchJRD_fetch(url, errorHandler, sucessHandler);
+        return this.__fetchJRD_fetch(url, errorHandler, successHandler);
     } else if (typeof XMLHttpRequest === 'function') {
-      return this.__fetchJRD_XHR(url, errorHandler, sucessHandler);
+      return this.__fetchJRD_XHR(url, errorHandler, successHandler);
     } else {
       throw new Error("add a polyfill for fetch or XMLHttpRequest");
     }
   };
-  WebFinger.prototype.__fetchJRD_fetch = function (url, errorHandler, sucessHandler) {
+  WebFinger.prototype.__fetchJRD_fetch = function (url, errorHandler, successHandler) {
     var webfinger = this;
     var abortController;
     if (typeof AbortController === 'function') {
@@ -171,12 +171,12 @@ if (typeof fetch !== 'function' && typeof XMLHttpRequest !== 'function') {
 
     Promise.race([networkPromise, timeoutPromise]).
     then(function (responseText) {
-      sucessHandler(responseText);
+      successHandler(responseText);
     }).catch(function (err) {
       errorHandler(err);
     });
   };
-  WebFinger.prototype.__fetchJRD_XHR = function (url, errorHandler, sucessHandler) {
+  WebFinger.prototype.__fetchJRD_XHR = function (url, errorHandler, successHandler) {
     var self = this;
     var handlerSpent = false;
     var xhr = new XMLHttpRequest();
@@ -190,7 +190,7 @@ if (typeof fetch !== 'function' && typeof XMLHttpRequest !== 'function') {
 
       if (xhr.status === 200) {
         if (self.__isValidJSON(xhr.responseText)) {
-          return sucessHandler(xhr.responseText);
+          return successHandler(xhr.responseText);
         } else {
           return errorHandler(generateErrorObject({
             message: 'invalid json',
