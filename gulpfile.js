@@ -1,8 +1,9 @@
-var gulp    = require('gulp');
-var minify  = require('minify');
-var fs      = require('fs');
-var pkg     = require('./package.json');
-var credits = "/* webfinger.js v" + pkg.version + " | (c) 2012 Nick Jennings | License: AGPL | https://github.com/silverbucket/webfinger.js */\n";
+const gulp = require('gulp');
+const minify = require('minify');
+const fs = require('fs');
+const pkg = require('./package.json');
+
+const credits = "/* webfinger.js v" + pkg.version + " | (c) 2012 Nick Jennings | License: AGPL | https://github.com/silverbucket/webfinger.js */\n";
 
 gulp.task('default', async function () {
 
