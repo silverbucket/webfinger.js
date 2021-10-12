@@ -2,7 +2,6 @@
 * build minified code
   - gulp
 * version bumps
-  - src/webfinger.js
   - package.json
   - bower.json
 * commit changes
