@@ -2,7 +2,7 @@
   "name": "webfinger.js",
   "version": "2.7.0",
   "description": "a simple webfinger record lookup library",
-  "license": "LGPL",
+  "license": "AGPL",
   "private": false,
   "keywords": [
     "webfinger",
@@ -20,11 +20,11 @@
     "email": "nick@silverbucket.net"
   },
   "dependencies": {
-    "xhr2": "^0.1.4"
+    "xhr2": "0.1.4"
   },
   "devDependencies": {
-    "gulp": "^4.0.2",
-    "jaribu": "^2.2.1",
+    "gulp": "4.0.2",
+    "jaribu": "2.2.3",
     "minify": "^4.1.0",
     "node-fetch": "3.0.0"
   },
