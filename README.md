@@ -85,7 +85,7 @@ When you include the `src/webfinger.js` script, a `WebFinger` object will be exp
 ```
 
 ## Demo
-See a working demo [here](https://silverbucket.github.com/webfinger.js/demo/)
+See a working demo [here](https://silverbucket.github.io/webfinger.js/demo/)
 
 ## License
 `webfinger.js` is released under the [LGPL](http://www.gnu.org/licenses/lgpl.html). See [LICENSE](LICENSE)
