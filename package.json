@@ -25,7 +25,7 @@
   "devDependencies": {
     "gulp": "4.0.2",
     "jaribu": "2.2.3",
-    "minify": "7.2.2",
+    "minify": "8.0.3",
     "node-fetch": "3.0.0"
   },
   "scripts": {
