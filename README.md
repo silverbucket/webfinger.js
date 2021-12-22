@@ -1,6 +1,6 @@
 # webfinger.js
 
-A webfinger client that runs both in the browser and in node.js.
+A WebFinger client that runs both in the browser and in node.js.
 
 [![Build Status](http://img.shields.io/travis/silverbucket/webfinger.js.svg?style=flat)](http://travis-ci.org/silverbucket/webfinger.js)
 [![license](https://img.shields.io/npm/l/webfinger.js.svg?style=flat)](https://npmjs.org/package/webfinger.js)
@@ -63,7 +63,7 @@ When you include the `src/webfinger.js` script, a `WebFinger` object will be exp
 //   object: { ... unformatted but parsed into native javascript object ... }
 // }
 
-  webfinger.lookupLink('nick@silverbucket.net', 'remotestorage' function (err, p) {
+  webfinger.lookupLink('nick@silverbucket.net', 'remotestorage', function (err, p) {
     if (err) {
       console.log('error: ', err.message);
     } else {
