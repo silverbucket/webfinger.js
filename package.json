@@ -20,7 +20,9 @@
     "name": "Nick Jennings",
     "email": "nick@silverbucket.net"
   },
-  "scripts": {},
+  "scripts": {
+    "lint": "eslint ."
+  },
   "repository": {
     "type": "git",
     "url": "git://github.com/silverbucket/webfinger.js.git"
@@ -31,6 +33,13 @@
   },
   "homepage": "https://github.com/silverbucket/webfinger.js",
   "devDependencies": {
-    "tsc": "^2.0.4"
+    "@eslint/js": "^9.18.0",
+    "@typescript-eslint/parser": "^8.20.0",
+    "eslint": "^9.18.0",
+    "globals": "^15.14.0",
+    "prettier": "^3.4.2",
+    "tsc": "^2.0.4",
+    "typescript": "^5.7.3",
+    "typescript-eslint": "^8.20.0"
   }
 }

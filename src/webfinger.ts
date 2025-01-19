@@ -1,4 +1,3 @@
-/* global define */
 /*!
  * webfinger.js
  *   http://github.com/silverbucket/webfinger.js
@@ -16,242 +15,108 @@
  *
  */
 
-if (typeof fetch !== 'function' && typeof XMLHttpRequest !== 'function') {
-  // XMLHttpRequest = require('xmlhttprequest').XMLHttpRequest;
-  XMLHttpRequest = require('xhr2');
+// URI to property name map
+const LINK_URI_MAPS = {
+  'http://webfist.org/spec/rel': 'webfist',
+  'http://webfinger.net/rel/avatar': 'avatar',
+  'remotestorage': 'remotestorage',
+  'http://tools.ietf.org/id/draft-dejong-remotestorage': 'remotestorage',
+  'remoteStorage': 'remotestorage',
+  'http://www.packetizer.com/rel/share': 'share',
+  'http://webfinger.net/rel/profile-page': 'profile',
+  'me': 'profile',
+  'vcard': 'vcard',
+  'blog': 'blog',
+  'http://packetizer.com/rel/blog': 'blog',
+  'http://schemas.google.com/g/2010#updates-from': 'updates',
+  'https://camlistore.org/rel/server': 'camilstore'
+};
+
+const LINK_PROPERTIES = {
+  'avatar': [],
+  'remotestorage': [],
+  'blog': [],
+  'vcard': [],
+  'updates': [],
+  'share': [],
+  'profile': [],
+  'webfist': [],
+  'camlistore': []
+};
+
+// list of endpoints to try, fallback from beginning to end.
+const URIS = ['webfinger', 'host-meta', 'host-meta.json'];
+
+type WebFingerConfig = {
+  tls_only: boolean,
+  webfist_fallback: boolean,
+  uri_fallback: boolean,
+  request_timeout: number
+};
+
+type JRD = {
+  links: Array<string>,
+  error?: string,
 }
 
-(function (global) {
-
-  // URI to property name map
-  var LINK_URI_MAPS = {
-    'http://webfist.org/spec/rel': 'webfist',
-    'http://webfinger.net/rel/avatar': 'avatar',
-    'remotestorage': 'remotestorage',
-    'http://tools.ietf.org/id/draft-dejong-remotestorage': 'remotestorage',
-    'remoteStorage': 'remotestorage',
-    'http://www.packetizer.com/rel/share': 'share',
-    'http://webfinger.net/rel/profile-page': 'profile',
-    'me': 'profile',
-    'vcard': 'vcard',
-    'blog': 'blog',
-    'http://packetizer.com/rel/blog': 'blog',
-    'http://schemas.google.com/g/2010#updates-from': 'updates',
-    'https://camlistore.org/rel/server': 'camilstore'
-  };
-
-  var LINK_PROPERTIES = {
-    'avatar': [],
-    'remotestorage': [],
-    'blog': [],
-    'vcard': [],
-    'updates': [],
-    'share': [],
-    'profile': [],
-    'webfist': [],
-    'camlistore': []
-  };
-
-  // list of endpoints to try, fallback from beginning to end.
-  var URIS = ['webfinger', 'host-meta', 'host-meta.json'];
-
-  function generateErrorObject(obj) {
-    obj.toString = function () {
-      return this.message;
-    };
-    return obj;
-  }
-
-  // given a URL ensures it's HTTPS.
-  // returns false for null string or non-HTTPS URL.
-  function isSecure(url) {
-    if (typeof url !== 'string') {
-      return false;
-    }
-    var parts = url.split('://');
-    if (parts[0] === 'https') {
-      return true;
-    }
-    return false;
-  }
-
-  /**
-   * Function: WebFinger
-   *
-   * WebFinger constructor
-   *
-   * Returns:
-   *
-   *   return WebFinger object
-   */
-  function WebFinger(config) {
-    if (typeof config !== 'object') {
-      config = {};
-    }
-
-    this.config = {
-      tls_only:         (typeof config.tls_only !== 'undefined') ? config.tls_only : true,
-      webfist_fallback: (typeof config.webfist_fallback !== 'undefined') ? config.webfist_fallback : false,
-      uri_fallback:     (typeof config.uri_fallback !== 'undefined') ? config.uri_fallback : false,
-      request_timeout:  (typeof config.request_timeout !== 'undefined') ? config.request_timeout : 10000
-    };
-  }
-
-  // make an http request and look for JRD response, fails if request fails
-  // or response not json.
-  WebFinger.prototype.__fetchJRD = function (url, errorHandler, successHandler) {
-    if (typeof fetch === 'function') {
-        return this.__fetchJRD_fetch(url, errorHandler, successHandler);
-    } else if (typeof XMLHttpRequest === 'function') {
-      return this.__fetchJRD_XHR(url, errorHandler, successHandler);
-    } else {
-      throw new Error("add a polyfill for fetch or XMLHttpRequest");
-    }
-  };
-  WebFinger.prototype.__fetchJRD_fetch = function (url, errorHandler, successHandler) {
-    var webfinger = this;
-    var abortController;
-    if (typeof AbortController === 'function') {
-      abortController = new AbortController();
-    }
-    var networkPromise = fetch(url, {
-      headers: {'Accept': 'application/jrd+json, application/json'},
-      signal: abortController ? abortController.signal : undefined
-    }).
-    then(function (response) {
-      if (response.ok) {
-        return response.text();
-      } else if (response.status === 404) {
-        throw generateErrorObject({
-          message: 'resource not found',
-          url: url,
-          status: response.status
-        });
-      } else {   // other HTTP status (redirects are handled transparently)
-        throw generateErrorObject({
-          message: 'error during request',
-          url: url,
-          status: response.status
-        });
-      }
+type ResultObject = {
+  object: JRD,
+  idx: {
+    links: {
+      [key: string]: Array<Entry>
     },
-    function (err) {   // connection refused, etc.
-      throw generateErrorObject({
-        message: 'error during request',
-        url: url,
-        status: undefined,
-        err: err
-      })
-    }).
-    then(function (responseText) {
-      if (webfinger.__isValidJSON(responseText)) {
-        return responseText;
-      } else {
-        throw generateErrorObject({
-          message: 'invalid json',
-          url: url,
-          status: undefined
-        });
-      }
+    properties: any,
+  }
+}
+
+type Entry = {
+  [key: string]: string
+}
+
+/**
+ * Class: WebFinger
+ *
+ * WebFinger constructor
+ *
+ * Returns:
+ *
+ *   return WebFinger object
+ */
+export default class WebFinger {
+  private config: WebFingerConfig;
+
+  constructor(cfg: WebFingerConfig) {
+    this.config = {
+      tls_only: (typeof cfg.tls_only !== 'undefined') ? cfg.tls_only : true,
+      webfist_fallback: (typeof cfg.webfist_fallback !== 'undefined') ? cfg.webfist_fallback : false,
+      uri_fallback: (typeof cfg.uri_fallback !== 'undefined') ? cfg.uri_fallback : false,
+      request_timeout: (typeof cfg.request_timeout !== 'undefined') ? cfg.request_timeout : 10000
+    };
+  }
+
+  // make an HTTP request and look for JRD response, fails if request fails
+  // or response not json.
+  private async fetchJRD(url: string): Promise<string> {
+    const response = await fetch(url, {
+      headers: {'Accept': 'application/jrd+json, application/json'},
     });
 
-    var timeoutPromise = new Promise(function (resolve, reject) {
-      setTimeout(function () {
-        reject(generateErrorObject({
-          message: 'request timed out',
-          url: url,
-          status: undefined
-        }));
-        if (abortController) {
-          abortController.abort();
-        }
-      }, webfinger.config.request_timeout);
-    });
-
-    Promise.race([networkPromise, timeoutPromise]).
-    then(function (responseText) {
-      successHandler(responseText);
-    }).catch(function (err) {
-      errorHandler(err);
-    });
-  };
-  WebFinger.prototype.__fetchJRD_XHR = function (url, errorHandler, successHandler) {
-    var self = this;
-    var handlerSpent = false;
-    var xhr = new XMLHttpRequest();
-
-    function __processState() {
-      if (handlerSpent){
-        return;
-      }else{
-        handlerSpent = true;
-      }
-
-      if (xhr.status === 200) {
-        if (self.__isValidJSON(xhr.responseText)) {
-          return successHandler(xhr.responseText);
-        } else {
-          return errorHandler(generateErrorObject({
-            message: 'invalid json',
-            url: url,
-            status: xhr.status
-          }));
-        }
-      } else if (xhr.status === 404) {
-        return errorHandler(generateErrorObject({
-          message: 'resource not found',
-          url: url,
-          status: xhr.status
-        }));
-      } else if ((xhr.status >= 301) && (xhr.status <= 302)) {
-        var location = xhr.getResponseHeader('Location');
-        if (isSecure(location)) {
-          return __makeRequest(location); // follow redirect
-        } else {
-          return errorHandler(generateErrorObject({
-            message: 'no redirect URL found',
-            url: url,
-            status: xhr.status
-          }));
-        }
-      } else {
-        return errorHandler(generateErrorObject({
-          message: 'error during request',
-          url: url,
-          status: xhr.status
-        }));
-      }
+    if (response.status === 404) {
+      throw Error('resource not found')
+    } else if (!response.ok) {   // other HTTP status (redirects are handled transparently)
+      throw Error('error during request');
     }
 
-    function __makeRequest() {
-      xhr.onreadystatechange = function () {
-        if (xhr.readyState === 4) {
-          __processState();
-        }
-      };
+    const responseText = await response.text();
 
-      xhr.onload = function () {
-        __processState();
-      };
-
-      xhr.ontimeout = function () {
-        return errorHandler(generateErrorObject({
-          message: 'request timed out',
-          url: url,
-          status: xhr.status
-        }));
-      };
-
-      xhr.open('GET', url, true);
-      xhr.timeout = self.config.request_timeout;
-      xhr.setRequestHeader('Accept', 'application/jrd+json, application/json');
-      xhr.send();
+    if (WebFinger.isValidJSON(responseText)) {
+      return responseText;
+    } else {
+      throw Error('invalid json')
     }
-
-    return __makeRequest();
   };
 
-  WebFinger.prototype.__isValidJSON = function (str) {
+  private static isValidJSON(str: string): boolean {
     try {
       JSON.parse(str);
     } catch (e) {
@@ -260,45 +125,43 @@ if (typeof fetch !== 'function' && typeof XMLHttpRequest !== 'function') {
     return true;
   };
 
-  WebFinger.prototype.__isLocalhost = function (host) {
-    var local = /^localhost(\.localdomain)?(\:[0-9]+)?$/;
+  private static isLocalhost (host: string): boolean {
+    const local = /^localhost(\.localdomain)?(\:[0-9]+)?$/;
     return local.test(host);
   };
 
-  // processes JRD object as if it's a webfinger response object
-  // looks for known properties and adds them to profile datat struct.
-  WebFinger.prototype.__processJRD = function (URL, JRD, errorHandler, successHandler) {
-    var parsedJRD = JSON.parse(JRD);
+  // processes JRD object as if it's a WebFinger response object
+  // looks for known properties and adds them to profile data struct.
+  private static async processJRD(URL: string, JRDstring: string): Promise<ResultObject> {
+    const parsedJRD: JRD = JSON.parse(JRDstring);
     if ((typeof parsedJRD !== 'object') ||
         (typeof parsedJRD.links !== 'object')) {
       if (typeof parsedJRD.error !== 'undefined') {
-        return errorHandler(generateErrorObject({ message: parsedJRD.error, request: URL }));
+        throw Error(parsedJRD.error)
       } else {
-        return errorHandler(generateErrorObject({ message: 'unknown response from server', request: URL }));
+        throw Error('unknown response from server');
       }
     }
 
-    var links = parsedJRD.links;
-    if (!Array.isArray(links)) {
-      links = [];
-    }
-    var result = {  // webfinger JRD - object, json, and our own indexing
+    const result: ResultObject = {  // WebFinger JRD - object, json, and our own indexing
       object: parsedJRD,
-      json: JRD,
-      idx: {}
+      idx: {
+        properties: {
+          'name': undefined
+        },
+        links: JSON.parse(JSON.stringify(LINK_PROPERTIES))
+      }
     };
 
-    result.idx.properties = {
-      'name': undefined
-    };
-    result.idx.links = JSON.parse(JSON.stringify(LINK_PROPERTIES));
+    // JRD links
+    const links = Array.isArray(parsedJRD.links) ? parsedJRD.links : [];
 
-    // process links
-    links.map(function (link, i) {
+    // process JRD links
+    links.map(function (link: any) {
       if (LINK_URI_MAPS.hasOwnProperty(link.rel)) {
         if (result.idx.links[LINK_URI_MAPS[link.rel]]) {
-          var entry = {};
-          Object.keys(link).map(function (item, n) {
+          const entry: Entry = {};
+          Object.keys(link).map(function (item) {
             entry[item] = link[item];
           });
           result.idx.links[LINK_URI_MAPS[link.rel]].push(entry);
@@ -307,130 +170,100 @@ if (typeof fetch !== 'function' && typeof XMLHttpRequest !== 'function') {
     });
 
     // process properties
-    var props = JSON.parse(JRD).properties;
-    for (var key in props) {
+    const props = JSON.parse(JRDstring).properties;
+    for (const key in props) {
       if (props.hasOwnProperty(key)) {
         if (key === 'http://packetizer.com/ns/name') {
           result.idx.properties.name = props[key];
         }
       }
     }
-    return successHandler(result);
+
+    return result;
   };
 
-  WebFinger.prototype.lookup = function (address, cb) {
-    if (typeof address !== 'string') {
-      throw new Error('first parameter must be a user address');
-    } else if (typeof cb !== 'function') {
-      throw new Error('second parameter must be a callback');
-    }
-
-    var self = this;
-    var host = '';
+  async lookup(address: string): Promise<ResultObject> {
+    let host = '';
     if (address.indexOf('://') > -1) {
       // other uri format
-      host = address.replace(/ /g,'').split('/')[2];
+      host = address.replace(/ /g, '').split('/')[2];
     } else {
       // useraddress
-      host = address.replace(/ /g,'').split('@')[1];
+      host = address.replace(/ /g, '').split('@')[1];
     }
-    var uri_index = 0;      // track which URIS we've tried already
-    var protocol = 'https'; // we use https by default
+    let uri_index = 0;      // track which URIS we've tried already
+    let protocol = 'https'; // we use https by default
 
-    if (self.__isLocalhost(host)) {
+    if (WebFinger.isLocalhost(host)) {
       protocol = 'http';
     }
 
-    function __buildURL() {
-      var uri = '';
-      if (! address.split('://')[1]) {
+    const __buildURL = () => {
+      let uri = '';
+      if (!address.split('://')[1]) {
         // the URI has not been defined, default to acct
         uri = 'acct:';
       }
       return protocol + '://' + host + '/.well-known/' +
-             URIS[uri_index] + '?resource=' + uri + address;
+          URIS[uri_index] + '?resource=' + uri + address;
     }
 
     // control flow for failures, what to do in various cases, etc.
-    function __fallbackChecks(err) {
-      if ((self.config.uri_fallback) && (host !== 'webfist.org') && (uri_index !== URIS.length - 1)) { // we have uris left to try
+    const  __fallbackChecks = async (err: any)=>  {
+      if ((this.config.uri_fallback) && (host !== 'webfist.org') && (uri_index !== URIS.length - 1)) { // we have uris left to try
         uri_index = uri_index + 1;
         return __call();
-      } else if ((!self.config.tls_only) && (protocol === 'https')) { // try normal http
+      } else if ((!this.config.tls_only) && (protocol === 'https')) { // try normal http
         uri_index = 0;
         protocol = 'http';
         return __call();
-      } else if ((self.config.webfist_fallback) && (host !== 'webfist.org')) { // webfist attempt
+      } else if ((this.config.webfist_fallback) && (host !== 'webfist.org')) { // webfist attempt
         uri_index = 0;
         protocol = 'http';
         host = 'webfist.org';
         // webfist will
         // 1. make a query to the webfist server for the users account
-        // 2. from the response, get a link to the actual webfinger json data
+        // 2. from the response, get a link to the actual WebFinger json data
         //    (stored somewhere in control of the user)
         // 3. make a request to that url and get the json
-        // 4. process it like a normal webfinger response
-        var URL = __buildURL();
-        self.__fetchJRD(URL, cb, function (data) { // get link to users JRD
-          self.__processJRD(URL, data, cb, function (result) {
-            if ((typeof result.idx.links.webfist === 'object') &&
-                (typeof result.idx.links.webfist[0].href === 'string')) {
-              self.__fetchJRD(result.idx.links.webfist[0].href, cb, function (JRD) {
-                self.__processJRD(URL, JRD, cb, function (result) {
-                  return cb(null, cb);
-                });
-              });
-            }
-          });
-        });
+        // 4. process it like a normal WebFinger response
+        const URL = __buildURL();
+        const data = await this.fetchJRD(URL); // get link to users JRD
+        const result = await WebFinger.processJRD(URL, data)
+        if (typeof result.idx.links.webfist === 'object') {
+          const JRD = await this.fetchJRD(result.idx.links.webfist[0].href);
+          return await WebFinger.processJRD(URL, JRD);
+        }
       } else {
-        return cb(err);
+        throw new Error(err)
       }
     }
 
-    function __call() {
+    const __call = async (): Promise<ResultObject> => {
       // make request
-      var URL = __buildURL();
-      self.__fetchJRD(URL, __fallbackChecks, function (JRD) {
-        self.__processJRD(URL, JRD, cb, function (result) { cb(null, result); });
-      });
+      const URL = __buildURL();
+      const JRD = await this.fetchJRD(URL).catch(__fallbackChecks);
+      if (typeof JRD === "string") {
+        return WebFinger.processJRD(URL, JRD);
+      } else {
+        throw new Error("unknown error");
+      }
     }
 
-    return setTimeout(__call, 0);
+    return __call();
   };
 
-  WebFinger.prototype.lookupLink = function (address, rel, cb) {
+  async lookupLink(address: string, rel: string): Promise<Entry> {
     if (LINK_PROPERTIES.hasOwnProperty(rel)) {
-      this.lookup(address, function (err, p) {
-        var links  = p.idx.links[rel];
-        if (err) {
-          return cb(err);
-        } else if (links.length === 0) {
-          return cb('no links found with rel="' + rel + '"');
-        } else {
-          return cb(null, links[0]);
-        }
-      });
+      const p: ResultObject = await this.lookup(address);
+      const links = p.idx.links[rel];
+      if (links.length === 0) {
+        return Promise.reject('no links found with rel="' + rel + '"');
+      } else {
+        return Promise.resolve(links[0]);
+      }
     } else {
-      return cb('unsupported rel ' + rel);
+      return Promise.reject('unsupported rel ' + rel);
     }
   };
-
-
-
-  // AMD support
-  if (typeof define === 'function' && define.amd) {
-      define([], function () { return WebFinger; });
-  // CommonJS and Node.js module support.
-  } else if (typeof exports !== 'undefined') {
-    // Support Node.js specific `module.exports` (which can be a function)
-    if (typeof module !== 'undefined' && module.exports) {
-        exports = module.exports = WebFinger;
-    }
-    // But always support CommonJS module 1.1.1 spec (`exports` cannot be a function)
-    exports.WebFinger = WebFinger;
-  } else {
-    // browser <script> support
-    global.WebFinger = WebFinger;
-  }
-})(this);
+}
