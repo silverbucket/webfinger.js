@@ -3,6 +3,7 @@
   "version": "2.7.1",
   "description": "a simple webfinger record lookup library",
   "license": "AGPL",
+  "packageManager": "pnpm@9.15.1",
   "private": false,
   "keywords": [
     "webfinger",
@@ -14,24 +15,12 @@
     "useraddress",
     "lookup"
   ],
-  "main": "./src/webfinger.js",
+  "main": "./dist/webfinger.js",
   "author": {
     "name": "Nick Jennings",
     "email": "nick@silverbucket.net"
   },
-  "dependencies": {
-    "xhr2": "0.2.1"
-  },
-  "devDependencies": {
-    "gulp": "4.0.2",
-    "jaribu": "2.2.3",
-    "minify": "7.2.2",
-    "node-fetch": "3.2.10"
-  },
-  "scripts": {
-    "test": "jaribu",
-    "build": "gulp"
-  },
+  "scripts": {},
   "repository": {
     "type": "git",
     "url": "git://github.com/silverbucket/webfinger.js.git"
@@ -40,5 +29,8 @@
   "bugs": {
     "url": "https://github.com/silverbucket/webfinger.js/issues"
   },
-  "homepage": "https://github.com/silverbucket/webfinger.js"
+  "homepage": "https://github.com/silverbucket/webfinger.js",
+  "devDependencies": {
+    "tsc": "^2.0.4"
+  }
 }
