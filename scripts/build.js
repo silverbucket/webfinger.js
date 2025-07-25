@@ -29,7 +29,7 @@ execSync(`bun build src/webfinger.ts --target=browser --format=esm --outfile=${t
 
 // Read the ESM output and wrap for browser compatibility
 const esmCode = fs.readFileSync(tempFile, 'utf8');
-const cleanCode = esmCode.replace(/export \{\s*WebFinger as default\s*\};?\s*$/, '');
+const cleanCode = esmCode.replace(/export \{[\s\S]*?\};?\s*$/m, '');
 
 const umdWrapper = `(function (root, factory) {
   if (typeof exports === 'object' && typeof module !== 'undefined') {
