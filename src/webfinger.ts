@@ -111,11 +111,37 @@ export type LinkObject = {
 }
 
 /**
- * Custom error class for WebFinger-specific errors
+ * Custom error class for WebFinger-specific errors.
+ * 
+ * This error is thrown for various WebFinger-related failures including:
+ * - Network errors (timeouts, DNS failures)
+ * - HTTP errors (404, 500, etc.)
+ * - Security violations (SSRF protection, invalid hosts)
+ * - Invalid response formats (malformed JSON, missing data)
+ * - Input validation failures (invalid addresses, formats)
+ * 
+ * @example
+ * ```typescript
+ * try {
+ *   await webfinger.lookup('user@localhost');
+ * } catch (error) {
+ *   if (error instanceof WebFingerError) {
+ *     console.log('WebFinger error:', error.message);
+ *     console.log('HTTP status:', error.status); // May be undefined
+ *   }
+ * }
+ * ```
  */
 export class WebFingerError extends Error {
+  /** HTTP status code if the error originated from an HTTP response */
   status?: number;
   
+  /**
+   * Creates a new WebFingerError instance.
+   * 
+   * @param message - Error message describing what went wrong
+   * @param status - Optional HTTP status code if applicable
+   */
   constructor(message: string, status?: number) {
     super(message);
     this.name = 'WebFingerError';
@@ -191,11 +217,31 @@ export default class WebFinger {
     return true;
   };
 
+  /**
+   * Checks if a host is localhost (used for protocol selection).
+   * 
+   * @private
+   * @param host - The hostname to check
+   * @returns True if the host is a localhost variant
+   */
   private static isLocalhost (host: string): boolean {
     return LOCALHOST_REGEX.test(host);
   };
 
-  // Comprehensive security check for private/internal addresses
+  /**
+   * Comprehensive security check for private/internal addresses to prevent SSRF attacks.
+   * 
+   * Blocks the following address ranges:
+   * - Localhost: localhost, 127.x.x.x, ::1, localhost.localdomain
+   * - Private IPv4: 10.x.x.x, 172.16-31.x.x, 192.168.x.x
+   * - Link-local: 169.254.x.x, fe80::/10
+   * - Multicast: 224.x.x.x-239.x.x.x, ff00::/8
+   * 
+   * @private
+   * @param host - The hostname or IP address to check (may include port)
+   * @returns True if the address is private/internal and should be blocked
+   * @throws {WebFingerError} When host format is invalid
+   */
   private static isPrivateAddress(host: string): boolean {
     // Handle IPv6 addresses in brackets
     let cleanHost = host;
@@ -290,7 +336,20 @@ export default class WebFinger {
     return false;
   };
 
-  // Validate and sanitize host to prevent path injection
+  /**
+   * Validates and sanitizes host to prevent path injection attacks.
+   * 
+   * Removes path components and validates hostname format to prevent:
+   * - Directory traversal attacks via path injection
+   * - Query parameter injection
+   * - Fragment injection
+   * - Invalid characters in hostnames
+   * 
+   * @private
+   * @param host - Raw host string that may contain path components
+   * @returns Cleaned hostname with only valid hostname and port
+   * @throws {WebFingerError} When host format is invalid or contains dangerous characters
+   */
   private static validateHost(host: string): string {
     // Remove any path components - only keep hostname and port
     const hostParts = host.split('/');
@@ -366,11 +425,16 @@ export default class WebFinger {
   };
 
   /**
-   * Performs a WebFinger lookup for the given address.
+   * Performs a WebFinger lookup for the given address with SSRF protection.
+   * 
+   * This method includes comprehensive security measures:
+   * - Blocks private/internal IP addresses by default
+   * - Validates host format to prevent path injection
+   * - Follows ActivityPub security guidelines
    * 
    * @param address - Email-like address (user@domain.com) or full URI to look up
    * @returns Promise resolving to WebFinger result with indexed links and properties
-   * @throws {WebFingerError} When lookup fails or address is invalid
+   * @throws {WebFingerError} When lookup fails, address is invalid, or SSRF protection blocks the request
    * 
    * @example
    * ```typescript
@@ -381,6 +445,14 @@ export default class WebFinger {
    * } catch (error) {
    *   console.error('Lookup failed:', error.message);
    * }
+   * ```
+   * 
+   * @example Security - Blocked addresses
+   * ```typescript
+   * // These will throw WebFingerError due to SSRF protection:
+   * await webfinger.lookup('user@localhost');     // Blocked
+   * await webfinger.lookup('user@127.0.0.1');    // Blocked  
+   * await webfinger.lookup('user@192.168.1.1');  // Blocked
    * ```
    */
   async lookup(address: string): Promise<WebFingerResult> {
