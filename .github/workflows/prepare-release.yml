@@ -66,6 +66,9 @@ jobs:
           sed -i 's/{{VERSION}}/${{ steps.version_bump.outputs.new_version }}/g' demo/index.html || true
           sed -i 's/webfinger\.js v[0-9]\+\.[0-9]\+\.[0-9]\+/webfinger.js v${{ steps.version_bump.outputs.new_version }}/g' demo/index.html || true
 
+      - name: Generate API documentation
+        run: bun run docs:generate
+
       - name: Generate release notes
         run: |
           # Generate release notes
@@ -106,7 +109,7 @@ jobs:
           NEW_VERSION=${{ steps.version_bump.outputs.new_version }}
           RELEASE_BRANCH="release/v$NEW_VERSION"
           git checkout -b "$RELEASE_BRANCH"
-          git add package.json dist/ demo/ CHANGELOG.md
+          git add package.json dist/ demo/ docs/ CHANGELOG.md
           git commit -m "chore: bump version to $NEW_VERSION
 
           🚀 Generated with automated release workflow
@@ -154,6 +157,7 @@ jobs:
           ## ✅ Release Steps Completed
           - Tests & linting passed
           - Project built successfully  
+          - API documentation generated
           - Demo page updated and tested
           - Release notes generated in `CHANGELOG.md`
 
