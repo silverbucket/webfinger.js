@@ -1,6 +1,6 @@
 {
   "name": "webfinger.js",
-  "version": "2.8.0",
+  "version": "2.7.1",
   "description": "A JS library to query WebFinger records",
   "license": "AGPL",
   "packageManager": "pnpm@9.15.1",
