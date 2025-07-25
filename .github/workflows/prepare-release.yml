@@ -1,4 +1,4 @@
-name: Release
+name: Prepare Release
 
 on:
   workflow_dispatch:
@@ -14,7 +14,7 @@ on:
         - major
 
 jobs:
-  release:
+  prepare-release:
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -118,7 +118,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: v${{ steps.version_bump.outputs.new_version }}
-          release_name: Release v${{ steps.version_bump.outputs.new_version }}
+          release_name: Prepare Release v${{ steps.version_bump.outputs.new_version }}
           body_path: release_notes.md
           draft: false
           prerelease: false
@@ -160,16 +160,19 @@ jobs:
 
       - name: Post-release summary
         run: |
-          echo "## 🎉 Release Summary" >> $GITHUB_STEP_SUMMARY
+          echo "## 🎉 Release Prepared" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "- **Version**: ${{ steps.current_version.outputs.version }} → ${{ steps.version_bump.outputs.new_version }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Type**: ${{ github.event.inputs.release_type }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **NPM**: https://www.npmjs.com/package/webfinger.js/v/${{ steps.version_bump.outputs.new_version }}" >> $GITHUB_STEP_SUMMARY
           echo "- **GitHub Release**: https://github.com/silverbucket/webfinger.js/releases/tag/v${{ steps.version_bump.outputs.new_version }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Demo**: https://silverbucket.github.io/webfinger.js/" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Next Steps:**" >> $GITHUB_STEP_SUMMARY
+          echo "- Test the demo" >> $GITHUB_STEP_SUMMARY
+          echo "- Review and merge the release PR" >> $GITHUB_STEP_SUMMARY
+          echo "- NPM publishing will happen automatically on merge" >> $GITHUB_STEP_SUMMARY
 
-      - name: Publish to npm
-        run: npm publish
+      # Note: NPM publishing will happen automatically when PR is merged
 
       - name: Create git tag and push
         run: |
@@ -177,12 +180,12 @@ jobs:
           git tag -a "v${{ steps.version_bump.outputs.new_version }}" -m "Release v${{ steps.version_bump.outputs.new_version }}"
           git push origin "v${{ steps.version_bump.outputs.new_version }}"
 
-      - name: Create release PR and merge
+      - name: Create release PR
         run: |
           # Create PR for release
           gh pr create \
             --title "Release v${{ steps.version_bump.outputs.new_version }}" \
-            --body "🚀 **Automated Release v${{ steps.version_bump.outputs.new_version }}**
+            --body "🚀 **Automated Prepare Release v${{ steps.version_bump.outputs.new_version }}**
 
           This PR contains the version bump for release v${{ steps.version_bump.outputs.new_version }}.
 
@@ -190,22 +193,21 @@ jobs:
           - Tests & linting passed
           - Project built successfully  
           - Demo page updated and tested
-          - Published to npm
           - GitHub release created
           - Git tag created
 
+          ## 📋 Pending Steps (on PR merge)
+          - 📦 **NPM publishing** - will happen automatically via GitHub Actions
+
           ## 🔗 Release Links
-          - **NPM**: https://www.npmjs.com/package/webfinger.js/v/${{ steps.version_bump.outputs.new_version }}
           - **GitHub Release**: https://github.com/silverbucket/webfinger.js/releases/tag/v${{ steps.version_bump.outputs.new_version }}
           - **Demo**: https://silverbucket.github.io/webfinger.js/
+          - **NPM**: https://www.npmjs.com/package/webfinger.js (will update after merge)
 
           ---
           🚀 Generated with automated release workflow" \
             --base "${{ github.ref_name }}" \
             --head "${{ env.RELEASE_BRANCH }}"
-
-          # Auto-merge the PR
-          gh pr merge "${{ env.RELEASE_BRANCH }}" --merge --auto
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
