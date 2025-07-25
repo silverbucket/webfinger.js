@@ -169,7 +169,7 @@ export default class WebFinger {
         }
         
         // Check if the host part looks like IPv4 or hostname (not IPv6)
-        if (hostPart.match(/^(\d{1,3}\.){3}\d{1,3}$/) || // IPv4 pattern
+        if (hostPart.match(IPV4_REGEX) || // IPv4 pattern
             hostPart.match(/^[a-zA-Z0-9.-]+$/)) { // Hostname pattern
           cleanHost = hostPart;
         }
