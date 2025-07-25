@@ -27,8 +27,8 @@
     "email": "nick@silverbucket.net"
   },
   "scripts": {
-    "build": "bun run tsc && bun build-dist.js --output .tmp/webfinger.js",
-    "build:release": "bun run tsc && bun build-dist.js --output dist/webfinger.js",
+    "build": "bun run tsc && bun scripts/build.js --output .tmp/webfinger.js",
+    "build:release": "bun run tsc && bun scripts/build.js --output dist/webfinger.js",
     "build:clean": "rm -rf dist && bun run build:release",
     "prepublishOnly": "bun run build:clean",
     "lint": "eslint .",

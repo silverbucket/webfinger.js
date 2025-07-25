@@ -123,26 +123,7 @@ yarn add webfinger.js@$NEW_VERSION
     --draft=false
 
 # Deploy to GitHub Pages
-echo -e "${YELLOW}🌐 Deploying demo to GitHub Pages...${NC}"
-
-# Checkout gh-pages branch
-git fetch origin gh-pages
-git checkout gh-pages
-
-# Copy pre-built files from release branch
-git checkout "$RELEASE_BRANCH" -- dist/webfinger.js demo/
-cp dist/webfinger.js webfinger.js
-cp -r demo/* .
-
-# Commit and push changes
-git add .
-git commit -m "Update demo to v$NEW_VERSION
-
-🚀 Generated with manual prepare release process" || true
-git push origin gh-pages
-
-# Switch back to release branch
-git checkout "$RELEASE_BRANCH"
+./scripts/deploy-to-ghpages.sh "$NEW_VERSION" "$RELEASE_BRANCH"
 
 # Create git tag
 echo -e "${YELLOW}🏷️  Creating git tag...${NC}"

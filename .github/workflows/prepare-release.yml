@@ -115,24 +115,7 @@ jobs:
           prerelease: false
 
       - name: Deploy to GitHub Pages
-        run: |
-          # Switch to gh-pages branch (clean checkout)
-          git fetch origin gh-pages
-          git checkout gh-pages
-          
-          # Copy pre-built files from release branch
-          git checkout "${{ env.RELEASE_BRANCH }}" -- dist/webfinger.js demo/
-          cp dist/webfinger.js webfinger.js
-          cp -r demo/* .
-          
-          # Commit and push changes
-          git add .
-          git commit -m "Update demo to v${{ steps.version_bump.outputs.new_version }}
-
-          🚀 Generated with automated release workflow
-
-          Co-Authored-By: GitHub Actions <action@github.com>" || true
-          git push origin gh-pages
+        run: ./scripts/deploy-to-ghpages.sh ${{ steps.version_bump.outputs.new_version }} ${{ env.RELEASE_BRANCH }}
 
       - name: Verify demo deployment
         run: ./scripts/verify-demo.sh ${{ steps.version_bump.outputs.new_version }}
