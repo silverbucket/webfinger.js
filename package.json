@@ -15,8 +15,17 @@
     "useraddress",
     "lookup"
   ],
+  "type": "module",
   "main": "./dist/webfinger.js",
   "types": "./dist/webfinger.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/webfinger.d.ts",
+      "import": "./dist/webfinger.js",
+      "require": "./dist/webfinger.js",
+      "default": "./dist/webfinger.js"
+    }
+  },
   "files": [
     "dist/**/*",
     "README.md",
