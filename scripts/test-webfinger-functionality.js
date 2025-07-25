@@ -64,12 +64,11 @@ if (demoVersion !== jsVersion) {
 
 console.log(`✅ Version consistency check passed (${demoVersion})`);
 
-// Test that we can execute the code
+// Test that we can execute the code in browser environment
 try {
-  // Create a minimal browser-like environment for CommonJS
+  // Create a minimal browser-like environment (no CommonJS exports)
   global.window = {};
-  global.exports = {};
-  global.module = { exports: {} };
+  global.self = global.window;
   
   // Execute the webfinger code
   eval(webfingerCode);

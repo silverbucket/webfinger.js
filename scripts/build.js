@@ -1,7 +1,8 @@
-#!/usr/bin/env node
+#!/usr/bin/env bun
 
 const fs = require('fs');
 const path = require('path');
+const { execSync } = require('child_process');
 
 // Parse command line arguments
 const args = process.argv.slice(2);
@@ -14,7 +15,7 @@ const outputPath = outputIndex !== -1 && args[outputIndex + 1]
 const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
 const version = pkg.version;
 
-console.log(`Post-processing ${outputPath} with version ${version}...`);
+console.log(`Building ${outputPath} with version ${version}...`);
 
 // Ensure output directory exists
 const outputDir = path.dirname(outputPath);
@@ -22,46 +23,34 @@ if (!fs.existsSync(outputDir)) {
   fs.mkdirSync(outputDir, { recursive: true });
 }
 
-// Read the compiled JavaScript (always from dist since that's where tsc outputs)
-const compiledJs = fs.readFileSync('dist/webfinger.js', 'utf8');
+// Use bun build to create ESM bundle
+const tempFile = outputPath + '.tmp';
+execSync(`bun build src/webfinger.ts --target=browser --format=esm --outfile=${tempFile} --banner="console.log('webfinger.js v${version} loaded');"`, { stdio: 'inherit' });
 
-// Add version logging at the top (after "use strict" and comments)
-const lines = compiledJs.split('\n');
-let insertIndex = 0;
+// Read the ESM output and wrap for browser compatibility
+const esmCode = fs.readFileSync(tempFile, 'utf8');
+const cleanCode = esmCode.replace(/export \{\s*WebFinger as default\s*\};?\s*$/, '');
 
-// Find where to insert the version log (after the license comment block)
-for (let i = 0; i < lines.length; i++) {
-  if (lines[i].includes('*/')) {
-    insertIndex = i + 1;
-    break;
-  }
-}
-
-// Insert version logging
-lines.splice(insertIndex, 0, `console.log('webfinger.js v${version} loaded');`);
-
-// Convert to browser-compatible format by wrapping in UMD pattern
 const umdWrapper = `(function (root, factory) {
   if (typeof exports === 'object' && typeof module !== 'undefined') {
-    // CommonJS
-    factory(exports);
+    module.exports = factory();
   } else if (typeof define === 'function' && define.amd) {
-    // AMD
-    define(['exports'], factory);
+    define([], factory);
   } else {
-    // Browser globals
-    var exports = {};
-    factory(exports);
-    root.WebFinger = exports.default || exports.WebFinger;
+    root.WebFinger = factory();
   }
-}(typeof self !== 'undefined' ? self : this, function (exports) {
+}(typeof self !== 'undefined' ? self : this, function () {
 
-${lines.join('\n')}
+${cleanCode}
+
+return WebFinger;
 
 }));`;
 
-// Write to specified output path
-const enhancedJs = umdWrapper;
-fs.writeFileSync(outputPath, enhancedJs);
+// Write the final bundle
+fs.writeFileSync(outputPath, umdWrapper);
 
-console.log(`✓ Enhanced ${outputPath} with version logging and browser compatibility`);
+// Clean up temp file
+fs.unlinkSync(tempFile);
+
+console.log(`✓ Built ${outputPath} with UMD wrapper and version ${version}`);
