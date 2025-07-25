@@ -1,3 +1,18 @@
+(function (root, factory) {
+  if (typeof exports === 'object' && typeof module !== 'undefined') {
+    // CommonJS
+    factory(exports);
+  } else if (typeof define === 'function' && define.amd) {
+    // AMD
+    define(['exports'], factory);
+  } else {
+    // Browser globals
+    var exports = {};
+    factory(exports);
+    root.WebFinger = exports.default || exports.WebFinger;
+  }
+}(typeof self !== 'undefined' ? self : this, function (exports) {
+
 "use strict";
 /*!
  * webfinger.js
@@ -262,7 +277,5 @@ class WebFinger {
 }
 exports.default = WebFinger;
 //# sourceMappingURL=webfinger.js.map
-// Browser global export
-if (typeof window !== 'undefined') {
-  window.WebFinger = exports.default;
-}
+
+}));
