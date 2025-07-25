@@ -16,6 +16,12 @@
     "lookup"
   ],
   "main": "./dist/webfinger.js",
+  "types": "./dist/webfinger.d.ts",
+  "files": [
+    "dist/**/*",
+    "README.md",
+    "LICENSE"
+  ],
   "author": {
     "name": "Nick Jennings",
     "email": "nick@silverbucket.net"
