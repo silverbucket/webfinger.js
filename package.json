@@ -36,7 +36,7 @@
     "email": "nick@silverbucket.net"
   },
   "scripts": {
-    "build": "bun run tsc && bun scripts/build.js --output .tmp/webfinger.js",
+    "build": "bun run tsc --project tsconfig.dev.json && bun scripts/build.js --output .tmp/webfinger.js",
     "build:release": "bun run tsc && bun scripts/build.js --output dist/webfinger.js",
     "build:clean": "rm -rf dist && bun run build:release",
     "prepublishOnly": "bun run build:clean",
