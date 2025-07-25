@@ -10,7 +10,8 @@ A modern, TypeScript-based WebFinger client that runs in both browsers and Node.
 ## Features
 
 ✨ **Modern ES6+ support** - Built with TypeScript, works with modern JavaScript  
-🔒 **Security-first** - Defaults to TLS-only connections  
+🔒 **Security-first** - SSRF protection, blocks private/internal addresses by default  
+🛡️ **Production-ready** - Prevents localhost/LAN access per ActivityPub security guidelines  
 🔄 **Flexible fallbacks** - Supports host-meta and WebFist fallback mechanisms  
 🌐 **Universal** - Works in browsers and Node.js  
 📦 **Zero dependencies** - Lightweight and self-contained  
@@ -74,6 +75,38 @@ const result = await webfinger.lookup('user@domain.com');
 🚀 **[Usage Examples](docs/EXAMPLES.md)** - Comprehensive examples and patterns  
 🛠️ **[Development Guide](docs/DEVELOPMENT.md)** - Contributing and development setup  
 🎮 **[Live Demo](https://silverbucket.github.io/webfinger.js/)** - Interactive WebFinger lookup
+
+## Security
+
+### SSRF Protection
+
+This library includes comprehensive protection against Server-Side Request Forgery (SSRF) attacks by default:
+
+- **Private address blocking**: Prevents requests to localhost, private IP ranges, and internal networks
+- **Path injection prevention**: Validates host formats to prevent directory traversal attacks
+- **ActivityPub compliance**: Follows [ActivityPub security guidelines](https://www.w3.org/TR/activitypub/#security-considerations) (Section B.3)
+
+#### Blocked Addresses
+
+The following address ranges are blocked by default:
+
+- **Localhost**: `localhost`, `127.x.x.x`, `::1`, `localhost.localdomain`
+- **Private IPv4**: `10.x.x.x`, `172.16-31.x.x`, `192.168.x.x`
+- **Link-local**: `169.254.x.x`, `fe80::/10`
+- **Multicast**: `224.x.x.x-239.x.x.x`, `ff00::/8`
+
+#### Development Override
+
+⚠️ **CAUTION**: Only for development/testing environments!
+
+```typescript
+const webfinger = new WebFinger({
+  allow_private_addresses: true  // Disables SSRF protection - DANGEROUS in production!
+});
+
+// This will now work (but should never be used in production)
+await webfinger.lookup('user@localhost:3000');
+```
 
 ## Contributing
 
