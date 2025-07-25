@@ -1,129 +1,425 @@
 <!DOCTYPE html>
-<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
-<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
-<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js"> <!--<![endif]-->
-  <head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-    <title>webfinger.js demo</title>
-    <meta name="description" content="">
-    <meta name="viewport" content="width=device-width">
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>webfinger.js Demo</title>
+  <meta name="description" content="Interactive demo of webfinger.js - A WebFinger protocol client for discovering user information across domains">
 
-    <style>
-      body { text-align: center; }
-      header { with: 100%; background-color: #A6A6A6; color: #FDFEDE;
-           padding: 1px; display: block; }
-      header .title { display: inline-block; }
-      header .project-details { margin: 0 0 0 80px; display: inline-block; }
-      header a { color: white; }
-      header a:visited { color: white; }
-      header a:hover { color: black; }
-      form { margin: 15px; }
-      #results { margin: 20px auto 0 auto; padding: 0px; }
-      .result { margin: 0; margin-bottom: 50px; }
-      #error { height: 18px; }
-      p.error { background-color: #FFDEDE; }
-    </style>
-  </head>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
-  <body>
-    <!--[if lt IE 7]>
-      <p class="chromeframe">You are using an outdated browser. <a href="http://browsehappy.com/">Upgrade your browser today</a>!</p>
-    <![endif]-->
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+      line-height: 1.6;
+      color: #333;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+    }
 
-    <header><div class="title"><h1>webfinger.js demo</h1></div><div class="project-details"><a href="https://github.com/silverbucket/webfinger.js">github repository</a></div></header>
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+    }
 
-    <article>
+    header {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border-radius: 12px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+      text-align: center;
+    }
 
-      <!-- form -->
-      <div>
+    h1 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: #2d3748;
+      margin-bottom: 0.5rem;
+    }
+
+    .version {
+      display: inline-block;
+      background: #667eea;
+      color: white;
+      padding: 0.25rem 0.75rem;
+      border-radius: 20px;
+      font-size: 0.875rem;
+      font-weight: 500;
+      margin-bottom: 1rem;
+    }
+
+    .description {
+      font-size: 1.125rem;
+      color: #4a5568;
+      margin-bottom: 1.5rem;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .links {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      background: #4a5568;
+      color: white;
+      border-radius: 6px;
+      text-decoration: none;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+
+    .link:hover {
+      background: #2d3748;
+      transform: translateY(-1px);
+    }
+
+    main {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border-radius: 12px;
+      padding: 2rem;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+      margin-bottom: 2rem;
+    }
+
+    .demo-section {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    .demo-section h2 {
+      font-size: 1.5rem;
+      color: #2d3748;
+      margin-bottom: 1rem;
+    }
+
+    .demo-description {
+      color: #666;
+      margin-bottom: 1.5rem;
+      font-size: 1rem;
+    }
+
+    .input-container {
+      display: flex;
+      gap: 1rem;
+      max-width: 500px;
+      margin: 0 auto 1rem;
+    }
+
+    input[name="email_address"] {
+      flex: 1;
+      padding: 0.75rem 1rem;
+      border: 2px solid #e2e8f0;
+      border-radius: 8px;
+      font-size: 1rem;
+      transition: border-color 0.2s;
+    }
+
+    input[name="email_address"]:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    .lookup-btn {
+      padding: 0.75rem 1.5rem;
+      background: #667eea;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .lookup-btn:hover {
+      background: #5a67d8;
+      transform: translateY(-1px);
+    }
+
+    .examples {
+      margin-top: 1rem;
+      font-size: 0.875rem;
+      color: #666;
+    }
+
+    .examples button {
+      background: none;
+      border: none;
+      color: #667eea;
+      cursor: pointer;
+      text-decoration: underline;
+      margin: 0 0.5rem;
+    }
+
+    .examples button:hover {
+      color: #5a67d8;
+    }
+
+    #error {
+      margin: 1rem 0;
+      min-height: 1.5rem;
+    }
+
+    .error {
+      background: #fed7d7;
+      color: #c53030;
+      padding: 0.75rem 1rem;
+      border-radius: 6px;
+      border: 1px solid #feb2b2;
+    }
+
+    #results {
+      margin-top: 2rem;
+    }
+
+    .result {
+      background: #f7fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      text-align: left;
+    }
+
+    .result h3 {
+      color: #2d3748;
+      margin-bottom: 1rem;
+      font-size: 1.25rem;
+    }
+
+    .result img {
+      max-width: 120px;
+      height: auto;
+      border-radius: 8px;
+      margin: 1rem 0;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .result a {
+      color: #667eea;
+      text-decoration: none;
+      word-break: break-all;
+    }
+
+    .result a:hover {
+      text-decoration: underline;
+    }
+
+    .result p {
+      margin: 0.5rem 0;
+      padding: 0.25rem 0;
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    .result p:last-child {
+      border-bottom: none;
+    }
+
+    @media (max-width: 640px) {
+      .container {
+        padding: 10px;
+      }
+
+      header {
+        padding: 1.5rem;
+      }
+
+      h1 {
+        font-size: 2rem;
+      }
+
+      .input-container {
+        flex-direction: column;
+      }
+
+      .links {
+        gap: 0.5rem;
+      }
+
+      .link {
+        font-size: 0.875rem;
+        padding: 0.5rem 0.75rem;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <header>
+      <h1>webfinger.js</h1>
+      <div class="version">v{{VERSION}}</div>
+      <p class="description">
+        Interactive demo of the WebFinger protocol client. WebFinger allows you to discover information about users across different domains using email-like addresses.
+      </p>
+      <div class="links">
+        <a href="https://github.com/silverbucket/webfinger.js" class="link">
+          📦 GitHub Repository
+        </a>
+        <a href="https://www.npmjs.com/package/webfinger.js" class="link">
+          📚 NPM Package
+        </a>
+        <a href="https://tools.ietf.org/rfc/rfc7033.txt" class="link">
+          📋 WebFinger RFC
+        </a>
+      </div>
+    </header>
+
+    <main>
+      <div class="demo-section">
+        <h2>Try WebFinger Lookup</h2>
+        <p class="demo-description">
+          Enter an email-like address to discover WebFinger information. The library will query the domain's WebFinger endpoint and return available profile links and metadata.
+        </p>
+
         <form name="webfinger">
-          <div class="label_container"><label for="email_address">enter an email address</label></div>
-          <input name="email_address" class="required" value="" size="55"/>
+          <div class="input-container">
+            <input
+              name="email_address"
+              placeholder="user@example.com"
+              value=""
+              autocomplete="off"
+            />
+            <button type="button" class="lookup-btn" onclick="performLookup()">
+              Lookup
+            </button>
+          </div>
         </form>
+
+        <div class="examples">
+          Try examples:
+          <button onclick="tryExample('nick@silverbucket.net')">nick@silverbucket.net</button>
+          <button onclick="tryExample('paulej@packetizer.com')">paulej@packetizer.com</button>
+        </div>
+
         <div id="error"></div>
       </div>
 
-      <!-- display results -->
-      <div id="results">
+      <div id="results"></div>
+    </main>
+  </div>
 
-      </div>
+  <script src="../dist/webfinger.js"></script>
+  <script>
+    const wf = new WebFinger({
+      webfist_fallback: true,
+      uri_fallback: true
+    });
 
-    </article>
+    // Handle form submission
+    document.webfinger.onkeydown = function (evt) {
+      const keyCode = evt ? (evt.which ? evt.which : evt.keyCode) : event.keyCode;
+      if (keyCode === 13) {
+        performLookup();
+        return false;
+      } else if (keyCode === 27) {
+        document.webfinger.email_address.value = '';
+        clearError();
+      } else {
+        clearError();
+        return true;
+      }
+    };
 
-    <script src="../dist/webfinger.js"></script>
+    function clearError() {
+      document.getElementById('error').innerHTML = '';
+    }
 
-    <script>
-      //document.webfinger.email_address.focus(); it's actually kind of annoying in this case to steal focus
-      document.webfinger.onkeydown = function (evt) {
-        var keyCode = evt ? (evt.which ? evt.which : evt.keyCode) : event.keyCode;
-        if (keyCode == 13) {
-          // enter.
-          var email_address = document.webfinger.email_address.value;
-          queryWebfinger(email_address);
-          return false;
-        } else if (keyCode == 27) {
-          // escape.
-          document.webfinger.email_address.value = '';
-        } else {
-          document.getElementById('error').innerHTML = '';
-          return true;
-        }
-      };
+    function showError(message, address) {
+      document.getElementById('error').innerHTML =
+        `<div class="error">${message} for ${address}</div>`;
+    }
 
-    </script>
-    <script>
-      var wf = new WebFinger({
-        webfist_fallback: true,
-        uri_fallback: true
-      });
+    function tryExample(address) {
+      document.webfinger.email_address.value = address;
+      performLookup();
+    }
 
-      function queryWebfinger(emailAddress) {
-        wf.lookup(emailAddress, function (err, p) {
-          console.log('webfinger.js result for ' + emailAddress + ': ', err, p);
-
-          if (err) {
-            console.log('error getting webfinger data for ' + emailAddress + ': ' + err.message);
-            console.log(document.getElementById('error'));
-            document.getElementById('error').innerHTML = '<p class="error">' + err.message + ' for ' + emailAddress + '</p>';
-
-          } else if (p) {
-
-            // build entry html
-            var entry = '<div class="result"><h2>';
-            if (typeof p.idx.properties.name !== 'undefined') {  // add name if it's found
-              entry = entry + p.idx.properties.name + '<br />';
-            }
-            entry = entry + emailAddress + '</h2>';
-
-            if (typeof p.idx.links.avatar[0] === 'object') {
-              entry += '<p><img height="200px" src="' + p.idx.links.avatar[0].href + '"></p>';
-            }
-            p.idx.links.avatar = [];
-
-            Object.keys(p.idx.links).map(function (key, i) {
-              if ((typeof p.idx.links[key] !== 'object') || (typeof p.idx.links[key].length !== 'number')) {
-                return;
-              }
-
-              p.idx.links[key].map(function (record, j) {
-                entry += '<p>' + key + ': <a target="_blank" href="' + record.href + '">' + record.href + '</a></p>';
-              });
-            });
-            entry += '</div>';
-
-            var results = document.getElementById("results");
-            results.insertAdjacentHTML("afterbegin", entry);
-          } else {
-            document.getElementById('error').innerHTML = '<p class="error">unable to get record for ' + emailAddress + '</p>';
-          }
-        });
+    function performLookup() {
+      const emailAddress = document.webfinger.email_address.value.trim();
+      if (!emailAddress) {
+        showError('Please enter an email address', '');
+        return;
       }
 
-      queryWebfinger('nick@silverbucket.net');
-      queryWebfinger('paulej@packetizer.com');
-      queryWebfinger('bradfitz@gmail.com');
-    </script>
-  </body>
+      clearError();
+      queryWebfinger(emailAddress);
+    }
+
+    function queryWebfinger(emailAddress) {
+      console.log('Looking up WebFinger for:', emailAddress);
+
+      wf.lookup(emailAddress, function (err, p) {
+        console.log('WebFinger result for', emailAddress + ':', err, p);
+
+        if (err) {
+          console.error('Error getting WebFinger data:', err.message);
+          showError(err.message, emailAddress);
+        } else if (p) {
+          displayResult(emailAddress, p);
+        } else {
+          showError('Unable to get record', emailAddress);
+        }
+      });
+    }
+
+    function displayResult(emailAddress, profile) {
+      let entry = '<div class="result">';
+      entry += '<h3>';
+
+      if (profile.idx.properties.name) {
+        entry += profile.idx.properties.name + '<br>';
+      }
+      entry += emailAddress + '</h3>';
+
+      // Display avatar if available
+      if (profile.idx.links.avatar && profile.idx.links.avatar[0]) {
+        entry += `<img src="${profile.idx.links.avatar[0].href}" alt="Avatar">`;
+      }
+
+      // Display all other links
+      Object.keys(profile.idx.links).forEach(key => {
+        if (key === 'avatar') return; // Already handled above
+
+        const links = profile.idx.links[key];
+        if (Array.isArray(links)) {
+          links.forEach(record => {
+            entry += `<p><strong>${key}:</strong> <a href="${record.href}" target="_blank">${record.href}</a></p>`;
+          });
+        }
+      });
+
+      entry += '</div>';
+
+      const results = document.getElementById("results");
+      results.insertAdjacentHTML("afterbegin", entry);
+    }
+
+    // Auto-load some examples on page load
+    window.addEventListener('load', function() {
+      // Small delay to ensure everything is loaded
+      setTimeout(() => {
+        queryWebfinger('nick@silverbucket.net');
+      }, 500);
+    });
+  </script>
+</body>
 </html>

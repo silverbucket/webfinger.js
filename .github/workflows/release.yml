@@ -129,6 +129,54 @@ jobs:
           draft: false
           prerelease: false
 
+      - name: Deploy to GitHub Pages
+        run: |
+          # Checkout gh-pages branch
+          git fetch origin gh-pages
+          git checkout gh-pages
+          
+          # Copy latest dist file to demo directory  
+          cp dist/webfinger.js demo/
+          cp -r demo/* .
+          
+          # Inject version into demo page
+          sed -i 's/{{VERSION}}/${{ steps.version_bump.outputs.new_version }}/g' index.html
+          
+          # Also update any existing version references
+          sed -i 's/webfinger\.js v[0-9]\+\.[0-9]\+\.[0-9]\+/webfinger.js v${{ steps.version_bump.outputs.new_version }}/g' index.html || true
+          
+          # Commit and push changes
+          git add .
+          git commit -m "Update demo to v${{ steps.version_bump.outputs.new_version }}
+
+          🚀 Generated with automated release workflow
+
+          Co-Authored-By: GitHub Actions <action@github.com>" || true
+          git push origin gh-pages
+
+      - name: Test demo deployment
+        run: |
+          echo "Waiting for GitHub Pages to deploy..."
+          sleep 30
+          
+          # Test demo page is accessible
+          DEMO_URL="https://silverbucket.github.io/webfinger.js/"
+          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$DEMO_URL" || echo "000")
+          
+          if [ "$HTTP_STATUS" = "200" ]; then
+            echo "✅ Demo page is accessible at $DEMO_URL"
+          else
+            echo "⚠️ Demo page returned HTTP $HTTP_STATUS - may need time to propagate"
+          fi
+          
+          # Test that webfinger.js loads without errors
+          if curl -s "$DEMO_URL" | grep -q "webfinger.js"; then
+            echo "✅ Demo page contains webfinger.js references"
+          else
+            echo "❌ Demo page missing webfinger.js references"
+            exit 1
+          fi
+
       - name: Post-release summary
         run: |
           echo "## 🎉 Release Summary" >> $GITHUB_STEP_SUMMARY
@@ -137,3 +185,4 @@ jobs:
           echo "- **Type**: ${{ github.event.inputs.release_type }}" >> $GITHUB_STEP_SUMMARY
           echo "- **NPM**: https://www.npmjs.com/package/webfinger.js/v/${{ steps.version_bump.outputs.new_version }}" >> $GITHUB_STEP_SUMMARY
           echo "- **GitHub Release**: https://github.com/silverbucket/webfinger.js/releases/tag/v${{ steps.version_bump.outputs.new_version }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Demo**: https://silverbucket.github.io/webfinger.js/" >> $GITHUB_STEP_SUMMARY
