@@ -392,11 +392,7 @@
         entry += `<img src="${profile.idx.links.avatar[0].href}" alt="Avatar" style="float: right; margin-left: 1rem;">`;
       }
 
-      // Show basic info
-      if (profile.idx.properties.name) {
-        entry += `<p><strong>Name:</strong> ${profile.idx.properties.name}</p>`;
-      }
-      entry += `<p><strong>Address:</strong> ${emailAddress}</p>`;
+      // Show basic info (name and address already in header)
 
       // Display links with better formatting
       const linkLabels = {
@@ -428,16 +424,10 @@
       entry += '</div>';
 
       const results = document.getElementById("results");
-      results.insertAdjacentHTML("afterbegin", entry);
+      results.innerHTML = entry; // Replace previous results
     }
 
-    // Auto-load some examples on page load
-    window.addEventListener('load', function() {
-      // Small delay to ensure everything is loaded
-      setTimeout(() => {
-        queryWebfinger('nick@silverbucket.net');
-      }, 500);
-    });
+    // Demo is ready - no auto-loading
   </script>
 </body>
 </html>
