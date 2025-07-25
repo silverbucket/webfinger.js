@@ -1,20 +1,32 @@
-name: Compliance
-on: pull_request
+name: CI
+on: 
+  push:
+    branches: [ master, main ]
+  pull_request:
+    branches: [ master, main ]
+
 jobs:
   test:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [ 14.x, 16.x ]
+        bun-version: [ '1.1.42', 'latest' ]
     steps:
       - uses: actions/checkout@v4
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v4
+      
+      - name: Setup Bun ${{ matrix.bun-version }}
+        uses: oven-sh/setup-bun@v2
         with:
-          node-version: ${{ matrix.node-version }}
+          bun-version: ${{ matrix.bun-version }}
+      
       - name: Install Dependencies
-        run: npm install
+        run: bun install
+      
+      - name: Lint
+        run: bun run lint
+      
       - name: Build
-        run: npm run build
+        run: bun run build
+      
       - name: Test
-        run: npm test
+        run: bun test
