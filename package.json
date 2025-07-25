@@ -1,7 +1,7 @@
 {
   "name": "webfinger.js",
   "version": "2.7.1",
-  "description": "Query WebFinger records",
+  "description": "A client library to query WebFinger records",
   "license": "AGPL",
   "packageManager": "bun@1.1.42",
   "private": false,
