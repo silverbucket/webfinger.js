@@ -1,0 +1,144 @@
+name: Publish to NPM on Release PR Merge
+run-name: Publish release build #${{ github.run_number }}
+
+on:
+  pull_request:
+    types: [closed]
+    branches: [master, main]
+
+jobs:
+  publish:
+    # Only run if PR was merged and head branch starts with 'release/'
+    if: github.event.pull_request.merged == true && startsWith(github.event.pull_request.head.ref, 'release/')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Build project
+        run: bun run build
+
+      - name: Setup npm authentication
+        run: |
+          echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
+
+      - name: Get version from package.json
+        id: version
+        run: echo "version=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
+
+      - name: Configure Git
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+
+      - name: Create and push git tag
+        run: |
+          git tag v${{ steps.version.outputs.version }}
+          git push origin v${{ steps.version.outputs.version }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract release notes for current version
+        id: release_notes
+        run: |
+          # Extract just the current version's notes from RELEASE_NOTES.md
+          VERSION="v${{ steps.version.outputs.version }}"
+          
+          if [ -f RELEASE_NOTES.md ]; then
+            # Find the section for this version and extract until the next version or end of file
+            awk "/^## $VERSION \([0-9-]+\)$/{flag=1; next} /^## v[0-9]+\.[0-9]+\.[0-9]+ \([0-9-]+\)$/{flag=0} flag" RELEASE_NOTES.md > current_release_notes.txt
+            
+            # Add installation and links sections
+            cat >> current_release_notes.txt << EOF
+          
+          ## 📦 Installation
+          
+          \`\`\`bash
+          # Using bun (recommended)
+          bun add webfinger.js@${{ steps.version.outputs.version }}
+          
+          # Using npm
+          npm install webfinger.js@${{ steps.version.outputs.version }}
+          
+          # Using yarn
+          yarn add webfinger.js@${{ steps.version.outputs.version }}
+          \`\`\`
+          
+          ## 🔗 Links
+          
+          - [NPM Package](https://www.npmjs.com/package/webfinger.js/v/${{ steps.version.outputs.version }})
+          - [Documentation](https://github.com/silverbucket/webfinger.js#readme)
+          - [Live Demo](https://silverbucket.github.io/webfinger.js/)
+          
+          ---
+          🚀 Generated with automated release workflow
+          EOF
+          else
+            # Fallback if no RELEASE_NOTES.md file
+            cat > current_release_notes.txt << EOF
+          ## 🚀 What's New
+          
+          Release v${{ steps.version.outputs.version }}
+          
+          ## 📦 Installation
+          
+          \`\`\`bash
+          # Using bun (recommended)
+          bun add webfinger.js@${{ steps.version.outputs.version }}
+          
+          # Using npm
+          npm install webfinger.js@${{ steps.version.outputs.version }}
+          
+          # Using yarn
+          yarn add webfinger.js@${{ steps.version.outputs.version }}
+          \`\`\`
+          
+          ## 🔗 Links
+          
+          - [NPM Package](https://www.npmjs.com/package/webfinger.js/v/${{ steps.version.outputs.version }})
+          - [Documentation](https://github.com/silverbucket/webfinger.js#readme)
+          - [Live Demo](https://silverbucket.github.io/webfinger.js/)
+          
+          ---
+          🚀 Generated with automated release workflow
+          EOF
+          fi
+
+      - name: Create GitHub Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v${{ steps.version.outputs.version }}
+          release_name: Release v${{ steps.version.outputs.version }}
+          body_path: current_release_notes.txt
+          draft: false
+          prerelease: false
+
+      - name: Publish to npm
+        run: npm publish
+
+      - name: Add publish summary
+        run: |
+          echo "## 📦 NPM Publish Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Version**: v${{ steps.version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Git Tag**: v${{ steps.version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **GitHub Release**: https://github.com/silverbucket/webfinger.js/releases/tag/v${{ steps.version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **NPM Package**: https://www.npmjs.com/package/webfinger.js/v/${{ steps.version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Demo**: https://silverbucket.github.io/webfinger.js/" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✅ Release is now complete!"

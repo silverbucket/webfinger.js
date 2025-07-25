@@ -1,7 +1,7 @@
 {
   "name": "webfinger.js",
-  "version": "2.7.1",
-  "description": "Query WebFinger records",
+  "version": "2.8.0",
+  "description": "A client library to query WebFinger records",
   "license": "AGPL",
   "packageManager": "bun@1.1.42",
   "private": false,
@@ -27,10 +27,19 @@
     "email": "nick@silverbucket.net"
   },
   "scripts": {
-    "build": "bun run tsc && bun build-dist.js",
-    "prepublishOnly": "bun run build",
+    "build": "bun run tsc && bun scripts/build.js --output .tmp/webfinger.js",
+    "build:release": "bun run tsc && bun scripts/build.js --output dist/webfinger.js",
+    "build:clean": "rm -rf dist && bun run build:release",
+    "prepublishOnly": "bun run build:clean",
     "lint": "eslint .",
-    "test": "bun test"
+    "test:ts": "bun test",
+    "test:js": "bun test --env-file .env.test-js",
+    "test": "bun run build && bun run test:ts && bun run test:js",
+    "test:ci": "bun run lint && bun run test",
+    "prepare-release": "./scripts/prepare-release.sh",
+    "prepare-release:patch": "./scripts/prepare-release.sh patch",
+    "prepare-release:minor": "./scripts/prepare-release.sh minor",
+    "prepare-release:major": "./scripts/prepare-release.sh major"
   },
   "repository": {
     "type": "git",
