@@ -69,11 +69,16 @@ echo -e "${GREEN}✅ New version: $NEW_VERSION${NC}"
 echo -e "${YELLOW}🔨 Building project with new version...${NC}"
 bun run build
 
+# Update demo page with new version
+echo -e "${YELLOW}📝 Updating demo page with new version...${NC}"
+sed -i "s/{{VERSION}}/$NEW_VERSION/g" demo/index.html || true
+sed -i "s/webfinger\.js v[0-9]\+\.[0-9]\+\.[0-9]\+/webfinger.js v$NEW_VERSION/g" demo/index.html || true
+
 # Create release branch
 RELEASE_BRANCH="release/v$NEW_VERSION"
 echo -e "${YELLOW}🌿 Creating release branch: $RELEASE_BRANCH${NC}"
 git checkout -b "$RELEASE_BRANCH"
-git add package.json
+git add package.json dist/ demo/
 git commit -m "chore: bump version to $NEW_VERSION
 
 🚀 Generated with manual prepare release process
@@ -119,20 +124,15 @@ yarn add webfinger.js@$NEW_VERSION
 
 # Deploy to GitHub Pages
 echo -e "${YELLOW}🌐 Deploying demo to GitHub Pages...${NC}"
-# Save the built files before switching branches
-cp dist/webfinger.js /tmp/webfinger.js
-cp -r demo /tmp/demo-source
 
 # Checkout gh-pages branch
 git fetch origin gh-pages
 git checkout gh-pages
 
-# Copy saved files
-cp /tmp/webfinger.js webfinger.js
-cp -r /tmp/demo-source/* .
-
-# Inject version into demo page
-sed -i "s/{{VERSION}}/$NEW_VERSION/g" index.html
+# Copy pre-built files from release branch
+git checkout "$RELEASE_BRANCH" -- dist/webfinger.js demo/
+cp dist/webfinger.js webfinger.js
+cp -r demo/* .
 
 # Commit and push changes
 git add .
