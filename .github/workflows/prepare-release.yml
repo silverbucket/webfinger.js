@@ -73,28 +73,31 @@ jobs:
           NEW_VERSION=${{ steps.version_bump.outputs.new_version }}
           CHANGELOG=$(git log --pretty=format:"- %s" v$CURRENT_VERSION..HEAD | grep -v "^- chore: bump version" || echo "- Bug fixes and improvements")
           
-          # Create or update RELEASE_NOTES.md
-          if [ ! -f RELEASE_NOTES.md ]; then
-              cat > RELEASE_NOTES.md << EOF
-          # Release Notes
+          # Create or update CHANGELOG.md
+          if [ ! -f CHANGELOG.md ]; then
+              # Create new file if it doesn't exist (shouldn't happen now that we have the base file)
+              cat > CHANGELOG.md << EOF
+          # Changelog
           
-          ## v$NEW_VERSION ($(date '+%Y-%m-%d'))
+          All notable changes to this project will be documented in this file.
+          
+          ## [v$NEW_VERSION] - $(date '+%Y-%m-%d')
           
           $CHANGELOG
           
           EOF
           else
-              cp RELEASE_NOTES.md RELEASE_NOTES.md.bak
-              cat > RELEASE_NOTES.md << EOF
-          # Release Notes
-          
-          ## v$NEW_VERSION ($(date '+%Y-%m-%d'))
+              # Insert new version after the header
+              cat > new_entry.tmp << EOF
+          ## [v$NEW_VERSION] - $(date '+%Y-%m-%d')
           
           $CHANGELOG
           
           EOF
-              tail -n +2 RELEASE_NOTES.md.bak >> RELEASE_NOTES.md
-              rm RELEASE_NOTES.md.bak
+              # Insert after line that contains "Semantic Versioning" 
+              awk '/Semantic Versioning/ {print; print ""; getline < "new_entry.tmp"; while ((getline line < "new_entry.tmp") > 0) print line; print ""; next} 1' CHANGELOG.md > CHANGELOG.md.tmp
+              mv CHANGELOG.md.tmp CHANGELOG.md
+              rm new_entry.tmp
           fi
 
       - name: Create release branch
@@ -103,7 +106,7 @@ jobs:
           NEW_VERSION=${{ steps.version_bump.outputs.new_version }}
           RELEASE_BRANCH="release/v$NEW_VERSION"
           git checkout -b "$RELEASE_BRANCH"
-          git add package.json dist/ demo/ RELEASE_NOTES.md
+          git add package.json dist/ demo/ CHANGELOG.md
           git commit -m "chore: bump version to $NEW_VERSION
 
           🚀 Generated with automated release workflow
@@ -152,14 +155,14 @@ jobs:
           - Tests & linting passed
           - Project built successfully  
           - Demo page updated and tested
-          - Release notes generated in `RELEASE_NOTES.md`
+          - Release notes generated in `CHANGELOG.md`
 
           ## ✏️ **Edit Release Notes**
-          You can edit the release notes for this version in the `RELEASE_NOTES.md` file in this PR to curate the changelog before merging.
+          You can edit the release notes for this version in the `CHANGELOG.md` file in this PR to curate the changelog before merging.
 
           ## 📋 Pending Steps (on PR merge)
           - 🏷️ **Git tag creation** - will happen automatically via GitHub Actions
-          - 📋 **GitHub release creation** - will use edited notes from `RELEASE_NOTES.md`
+          - 📋 **GitHub release creation** - will use edited notes from `CHANGELOG.md`
           - 📦 **NPM publishing** - will happen automatically via GitHub Actions
 
           ## 🔗 Release Links
