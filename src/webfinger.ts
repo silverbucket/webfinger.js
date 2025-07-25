@@ -47,10 +47,17 @@ const LINK_PROPERTIES = {
 // list of endpoints to try, fallback from beginning to end.
 const URIS = ['webfinger', 'host-meta', 'host-meta.json'];
 
+/**
+ * Configuration options for WebFinger client
+ */
 type WebFingerConfig = {
+  /** Use HTTPS only. When false, allows HTTP fallback for localhost. */
   tls_only: boolean,
+  /** Enable WebFist fallback service for discovering WebFinger endpoints. */
   webfist_fallback: boolean,
+  /** Enable host-meta and host-meta.json fallback endpoints. */
   uri_fallback: boolean,
+  /** Request timeout in milliseconds. */
   request_timeout: number
 };
 
@@ -85,17 +92,31 @@ class WebFingerError extends Error {
 }
 
 /**
- * Class: WebFinger
- *
- * WebFinger constructor
- *
- * Returns:
- *
- *   return WebFinger object
+ * WebFinger client for discovering user information across domains.
+ * 
+ * @example
+ * ```typescript
+ * const webfinger = new WebFinger({
+ *   webfist_fallback: true,
+ *   tls_only: true
+ * });
+ * 
+ * const result = await webfinger.lookup('user@domain.com');
+ * console.log(result.idx.properties.name);
+ * ```
  */
 export default class WebFinger {
   private config: WebFingerConfig;
 
+  /**
+   * Creates a new WebFinger client instance.
+   * 
+   * @param cfg - Configuration options for the WebFinger client
+   * @param cfg.tls_only - Use HTTPS only (default: true)
+   * @param cfg.webfist_fallback - Enable WebFist fallback (default: false)
+   * @param cfg.uri_fallback - Enable host-meta fallback (default: false) 
+   * @param cfg.request_timeout - Request timeout in milliseconds (default: 10000)
+   */
   constructor(cfg: Partial<WebFingerConfig> = {}) {
     this.config = {
       tls_only: (typeof cfg.tls_only !== 'undefined') ? cfg.tls_only : true,
@@ -194,6 +215,24 @@ export default class WebFinger {
     return result;
   };
 
+  /**
+   * Performs a WebFinger lookup for the given address.
+   * 
+   * @param address - Email-like address (user@domain.com) or full URI to look up
+   * @returns Promise resolving to WebFinger result with indexed links and properties
+   * @throws {WebFingerError} When lookup fails or address is invalid
+   * 
+   * @example
+   * ```typescript
+   * try {
+   *   const result = await webfinger.lookup('nick@silverbucket.net');
+   *   console.log('Name:', result.idx.properties.name);
+   *   console.log('Avatar:', result.idx.links.avatar?.[0]?.href);
+   * } catch (error) {
+   *   console.error('Lookup failed:', error.message);
+   * }
+   * ```
+   */
   async lookup(address: string): Promise<ResultObject> {
     if (!address) {
       throw new WebFingerError('address is required');
@@ -281,6 +320,25 @@ export default class WebFinger {
     return __call();
   };
 
+  /**
+   * Looks up a specific link relation for the given address.
+   * 
+   * @param address - Email-like address (user@domain.com) or full URI
+   * @param rel - Link relation type (e.g., 'avatar', 'blog', 'remotestorage')
+   * @returns Promise resolving to the first matching link object
+   * @throws {WebFingerError} When lookup fails
+   * @throws {Error} When no links found for the specified relation
+   * 
+   * @example
+   * ```typescript
+   * try {
+   *   const storage = await webfinger.lookupLink('user@example.com', 'remotestorage');
+   *   console.log('Storage endpoint:', storage.href);
+   * } catch (error) {
+   *   console.log('No RemoteStorage found');
+   * }
+   * ```
+   */
   async lookupLink(address: string, rel: string): Promise<Entry> {
     if (Object.prototype.hasOwnProperty.call(LINK_PROPERTIES, rel)) {
       const p: ResultObject = await this.lookup(address);
