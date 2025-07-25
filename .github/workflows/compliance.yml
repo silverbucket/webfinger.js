@@ -22,5 +22,8 @@ jobs:
       - name: Install Dependencies
         run: bun install
       
-      - name: Run CI Pipeline
-        run: bun run test:ci
+      - name: Run Linting
+        run: bun run lint
+        
+      - name: Run Tests
+        run: bun run test
