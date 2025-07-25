@@ -1,4 +1,5 @@
 name: Publish to NPM on Release PR Merge
+run-name: Publish release build #${{ github.run_number }}
 
 on:
   pull_request:
