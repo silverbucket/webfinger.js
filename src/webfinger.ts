@@ -50,7 +50,7 @@ const URIS = ['webfinger', 'host-meta', 'host-meta.json'];
 /**
  * Configuration options for WebFinger client
  */
-type WebFingerConfig = {
+export type WebFingerConfig = {
   /** Use HTTPS only. When false, allows HTTP fallback for localhost. */
   tls_only: boolean,
   /** Enable WebFist fallback service for discovering WebFinger endpoints. */
@@ -61,27 +61,46 @@ type WebFingerConfig = {
   request_timeout: number
 };
 
-type JRD = {
+/**
+ * JSON Resource Descriptor - Raw WebFinger response format
+ */
+export type JRD = {
   links: Array<Record<string, unknown>>,
   properties?: Record<string, unknown>,
   error?: string,
 }
 
-type ResultObject = {
+/**
+ * Complete WebFinger lookup result with processed data
+ */
+export type WebFingerResult = {
   object: JRD,
   idx: {
     links: {
-      [key: string]: Array<Entry>
+      [key: string]: Array<LinkObject>
     },
     properties: Record<string, unknown>,
   }
 }
 
-type Entry = {
-  [key: string]: string
+/**
+ * Individual link object in WebFinger response
+ */
+export type LinkObject = {
+  /** Target URL */
+  href: string;
+  /** Link relation type */
+  rel: string;
+  /** MIME type (optional) */
+  type?: string;
+  /** Additional properties */
+  [key: string]: string | undefined;
 }
 
-class WebFingerError extends Error {
+/**
+ * Custom error class for WebFinger-specific errors
+ */
+export class WebFingerError extends Error {
   status?: number;
   
   constructor(message: string, status?: number) {
@@ -164,7 +183,7 @@ export default class WebFinger {
 
   // processes JRD object as if it's a WebFinger response object
   // looks for known properties and adds them to profile data struct.
-  private static async processJRD(URL: string, JRDstring: string): Promise<ResultObject> {
+  private static async processJRD(URL: string, JRDstring: string): Promise<WebFingerResult> {
     const parsedJRD: JRD = JSON.parse(JRDstring);
     if ((typeof parsedJRD !== 'object') ||
         (typeof parsedJRD.links !== 'object')) {
@@ -175,7 +194,7 @@ export default class WebFinger {
       }
     }
 
-    const result: ResultObject = {  // WebFinger JRD - object, json, and our own indexing
+    const result: WebFingerResult = {  // WebFinger JRD - object, json, and our own indexing
       object: parsedJRD,
       idx: {
         properties: {
@@ -193,7 +212,10 @@ export default class WebFinger {
       if (Object.prototype.hasOwnProperty.call(LINK_URI_MAPS, String(link.rel))) {
         const mappedKey = LINK_URI_MAPS[String(link.rel) as keyof typeof LINK_URI_MAPS];
         if (result.idx.links[mappedKey]) {
-          const entry: Entry = {};
+          const entry: LinkObject = {
+            href: String(link.href || ''),
+            rel: String(link.rel || '')
+          };
           Object.keys(link).map(function (item) {
             entry[item] = String(link[item]);
           });
@@ -233,7 +255,7 @@ export default class WebFinger {
    * }
    * ```
    */
-  async lookup(address: string): Promise<ResultObject> {
+  async lookup(address: string): Promise<WebFingerResult> {
     if (!address) {
       throw new WebFingerError('address is required');
     }
@@ -306,7 +328,7 @@ export default class WebFinger {
       }
     }
 
-    const __call = async (): Promise<ResultObject> => {
+    const __call = async (): Promise<WebFingerResult> => {
       // make request
       const URL = __buildURL();
       const JRD = await this.fetchJRD(URL).catch(__fallbackChecks);
@@ -339,9 +361,9 @@ export default class WebFinger {
    * }
    * ```
    */
-  async lookupLink(address: string, rel: string): Promise<Entry> {
+  async lookupLink(address: string, rel: string): Promise<LinkObject> {
     if (Object.prototype.hasOwnProperty.call(LINK_PROPERTIES, rel)) {
-      const p: ResultObject = await this.lookup(address);
+      const p: WebFingerResult = await this.lookup(address);
       const links = p.idx.links[rel];
       if (links.length === 0) {
         return Promise.reject('no links found with rel="' + rel + '"');

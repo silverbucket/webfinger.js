@@ -1,0 +1,24 @@
+{
+  "entryPoints": ["src/webfinger.ts"],
+  "out": "docs",
+  "plugin": ["typedoc-plugin-markdown"],
+  "outputFileStrategy": "modules",
+  "fileExtension": ".md",
+  "entryFileName": "API.md",
+  "hideGenerator": true,
+  "gitRevision": "master",
+  "gitRemote": "origin",
+  "includeVersion": true,
+  "readme": "none",
+  "navigation": {
+    "includeCategories": false,
+    "includeGroups": false
+  },
+  "categorizeByGroup": false,
+  "groupOrder": [
+    "Classes",
+    "Interfaces", 
+    "Type Aliases",
+    "Functions"
+  ]
+}

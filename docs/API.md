@@ -1,370 +1,372 @@
-# API Documentation
+**webfinger.js v2.8.0**
 
-Complete API reference for webfinger.js with TypeScript support.
+***
 
-## Table of Contents
+# webfinger.js v2.8.0
 
-- [WebFinger Class](#webfinger-class)
-- [Configuration Options](#configuration-options)
-- [Methods](#methods)
-- [Types](#types)
-- [Error Handling](#error-handling)
-- [Examples](#examples)
+## Classes
 
-## WebFinger Class
+### default
 
-The main WebFinger client class for performing WebFinger lookups.
+Defined in: [src/webfinger.ts:127](https://github.com/silverbucket/webfinger.js/blob/master/src/webfinger.ts#L127)
 
-```typescript
-import WebFinger from 'webfinger.js';
+WebFinger client for discovering user information across domains.
 
-const client = new WebFinger(config);
-```
-
-### Constructor
+#### Example
 
 ```typescript
-constructor(config?: WebFingerConfig)
+const webfinger = new WebFinger({
+  webfist_fallback: true,
+  tls_only: true
+});
+
+const result = await webfinger.lookup('user@domain.com');
+console.log(result.idx.properties.name);
 ```
+
+#### Constructors
+
+##### Constructor
+
+> **new default**(`cfg`): [`default`](#default)
+
+Defined in: [src/webfinger.ts:139](https://github.com/silverbucket/webfinger.js/blob/master/src/webfinger.ts#L139)
 
 Creates a new WebFinger client instance.
 
-**Parameters:**
-- `config` - Optional configuration object
+###### Parameters
 
-**Example:**
-```typescript
-const webfinger = new WebFinger({
-  tls_only: true,
-  webfist_fallback: true,
-  uri_fallback: true,
-  request_timeout: 15000
-});
-```
+###### cfg
 
-## Configuration Options
+`Partial`\<[`WebFingerConfig`](#webfingerconfig)\> = `{}`
 
-### WebFingerConfig Interface
+Configuration options for the WebFinger client
 
-```typescript
-interface WebFingerConfig {
-  /**
-   * Use HTTPS only. When false, allows HTTP fallback for localhost.
-   * @default true
-   */
-  tls_only?: boolean;
+###### Returns
 
-  /**
-   * Enable WebFist fallback service for discovering WebFinger endpoints.
-   * @default false
-   */
-  webfist_fallback?: boolean;
+[`default`](#default)
 
-  /**
-   * Enable host-meta and host-meta.json fallback endpoints.
-   * @default false  
-   */
-  uri_fallback?: boolean;
+#### Methods
 
-  /**
-   * Request timeout in milliseconds.
-   * @default 10000
-   */
-  request_timeout?: number;
-}
-```
+##### lookup()
 
-## Methods
+> **lookup**(`address`): `Promise`\<[`WebFingerResult`](#webfingerresult)\>
 
-### lookup()
+Defined in: [src/webfinger.ts:258](https://github.com/silverbucket/webfinger.js/blob/master/src/webfinger.ts#L258)
 
 Performs a WebFinger lookup for the given address.
 
-```typescript
-async lookup(address: string): Promise<WebFingerResult>
-```
+###### Parameters
 
-**Parameters:**
-- `address: string` - Email-like address (e.g., `user@domain.com`) or full URI
+###### address
 
-**Returns:**
-- `Promise<WebFingerResult>` - Complete WebFinger response with indexed data
+`string`
 
-**Throws:**
-- `WebFingerError` - When lookup fails or address is invalid
+Email-like address (user@domain.com) or full URI to look up
 
-**Example:**
+###### Returns
+
+`Promise`\<[`WebFingerResult`](#webfingerresult)\>
+
+Promise resolving to WebFinger result with indexed links and properties
+
+###### Throws
+
+When lookup fails or address is invalid
+
+###### Example
+
 ```typescript
 try {
   const result = await webfinger.lookup('nick@silverbucket.net');
-  console.log('Display name:', result.idx.properties.name);
-  console.log('Avatar URL:', result.idx.links.avatar?.[0]?.href);
+  console.log('Name:', result.idx.properties.name);
+  console.log('Avatar:', result.idx.links.avatar?.[0]?.href);
 } catch (error) {
-  if (error instanceof WebFingerError) {
-    console.error('WebFinger error:', error.message, 'Status:', error.status);
-  }
+  console.error('Lookup failed:', error.message);
 }
 ```
 
-### lookupLink()
+##### lookupLink()
+
+> **lookupLink**(`address`, `rel`): `Promise`\<[`LinkObject`](#linkobject)\>
+
+Defined in: [src/webfinger.ts:364](https://github.com/silverbucket/webfinger.js/blob/master/src/webfinger.ts#L364)
 
 Looks up a specific link relation for the given address.
 
-```typescript
-async lookupLink(address: string, rel: string): Promise<LinkObject>
-```
+###### Parameters
 
-**Parameters:**
-- `address: string` - Email-like address or URI
-- `rel: string` - Link relation type (see [Supported Relations](#supported-relations))
+###### address
 
-**Returns:**
-- `Promise<LinkObject>` - First matching link object
+`string`
 
-**Throws:**
-- `WebFingerError` - When lookup fails
-- `Error` - When no links found for the specified relation
+Email-like address (user@domain.com) or full URI
 
-**Example:**
+###### rel
+
+`string`
+
+Link relation type (e.g., 'avatar', 'blog', 'remotestorage')
+
+###### Returns
+
+`Promise`\<[`LinkObject`](#linkobject)\>
+
+Promise resolving to the first matching link object
+
+###### Throws
+
+When lookup fails
+
+###### Throws
+
+When no links found for the specified relation
+
+###### Example
+
 ```typescript
 try {
   const storage = await webfinger.lookupLink('user@example.com', 'remotestorage');
   console.log('Storage endpoint:', storage.href);
 } catch (error) {
-  console.log('No RemoteStorage endpoint found');
+  console.log('No RemoteStorage found');
 }
 ```
 
-## Types
-
-### WebFingerResult
-
-The complete response from a WebFinger lookup.
-
-```typescript
-interface WebFingerResult {
-  /** Raw JSON Resource Descriptor from the server */
-  object: JRD;
-  
-  /** Processed and indexed data for easy access */
-  idx: {
-    properties: {
-      /** Display name of the user */
-      name?: string;
-    };
-    links: {
-      /** Profile image links */
-      avatar: LinkObject[];
-      /** Blog or website links */
-      blog: LinkObject[];
-      /** Social profile page links */
-      profile: LinkObject[];
-      /** RemoteStorage endpoints */
-      remotestorage: LinkObject[];
-      /** vCard data links */
-      vcard: LinkObject[];
-      /** File sharing links */
-      share: LinkObject[];
-      /** Activity stream updates */
-      updates: LinkObject[];
-      /** WebFist fallback links */
-      webfist: LinkObject[];
-      /** Camlistore endpoints */
-      camlistore: LinkObject[];
-    };
-  };
-}
-```
-
-### LinkObject
-
-Represents a single link relation in the WebFinger response.
-
-```typescript
-interface LinkObject {
-  /** Target URL */
-  href: string;
-  
-  /** Link relation type */
-  rel: string;
-  
-  /** MIME type (optional) */
-  type?: string;
-  
-  /** Additional link properties */
-  properties?: Record<string, any>;
-  
-  /** Link template (for templated links) */
-  template?: string;
-  
-  /** Link titles in different languages */
-  titles?: Record<string, string>;
-}
-```
+***
 
 ### WebFingerError
 
-Custom error class for WebFinger-specific errors.
+Defined in: [src/webfinger.ts:103](https://github.com/silverbucket/webfinger.js/blob/master/src/webfinger.ts#L103)
 
-```typescript
-class WebFingerError extends Error {
-  /** HTTP status code (when available) */
-  status?: number;
-  
-  constructor(message: string, status?: number);
-}
-```
+Custom error class for WebFinger-specific errors
 
-## Supported Relations
+#### Extends
 
-The following link relations are automatically indexed:
+- `Error`
 
-| Relation | Key | Description |
-|----------|-----|-------------|
-| `http://webfinger.net/rel/avatar` | `avatar` | Profile images |
-| `http://webfinger.net/rel/profile-page` | `profile` | Profile pages |
-| `me` | `profile` | Self-identification |
-| `blog` | `blog` | Blog or website |
-| `http://packetizer.com/rel/blog` | `blog` | Blog (alternative) |
-| `vcard` | `vcard` | vCard data |
-| `remotestorage` | `remotestorage` | RemoteStorage |
-| `http://tools.ietf.org/id/draft-dejong-remotestorage` | `remotestorage` | RemoteStorage (spec) |
-| `http://www.packetizer.com/rel/share` | `share` | File sharing |
-| `http://schemas.google.com/g/2010#updates-from` | `updates` | Activity updates |
-| `http://webfist.org/spec/rel` | `webfist` | WebFist fallback |
-| `https://camlistore.org/rel/server` | `camlistore` | Camlistore server |
+#### Constructors
 
-## Error Handling
+##### Constructor
 
-### Common Error Types
+> **new WebFingerError**(`message`, `status?`): [`WebFingerError`](#webfingererror)
 
-```typescript
-try {
-  const result = await webfinger.lookup('invalid-address');
-} catch (error) {
-  if (error instanceof WebFingerError) {
-    switch (error.status) {
-      case 404:
-        console.error('User not found');
-        break;
-      case 500:
-        console.error('Server error');
-        break;
-      default:
-        console.error('WebFinger error:', error.message);
-    }
-  } else {
-    console.error('Network or parsing error:', error.message);
-  }
-}
-```
+Defined in: [src/webfinger.ts:106](https://github.com/silverbucket/webfinger.js/blob/master/src/webfinger.ts#L106)
 
-### Error Status Codes
+###### Parameters
 
-- `404` - Resource not found (user doesn't exist or no WebFinger support)
-- `400` - Bad request (invalid address format)
-- `500` - Server error
-- `undefined` - Network error, timeout, or parsing error
+###### message
 
-## Examples
+`string`
 
-### TypeScript with Full Type Safety
+###### status?
 
-```typescript
-import WebFinger, { WebFingerResult, LinkObject, WebFingerError } from 'webfinger.js';
+`number`
 
-class ProfileService {
-  private webfinger: WebFinger;
+###### Returns
 
-  constructor() {
-    this.webfinger = new WebFinger({
-      webfist_fallback: true,
-      uri_fallback: true
-    });
-  }
+[`WebFingerError`](#webfingererror)
 
-  async getUserProfile(address: string): Promise<UserProfile | null> {
-    try {
-      const result: WebFingerResult = await this.webfinger.lookup(address);
-      
-      return {
-        address,
-        name: result.idx.properties.name || 'Unknown User',
-        avatar: this.extractUrl(result.idx.links.avatar),
-        website: this.extractUrl(result.idx.links.blog),
-        profile: this.extractUrl(result.idx.links.profile)
-      };
-    } catch (error) {
-      if (error instanceof WebFingerError && error.status === 404) {
-        return null; // User not found
-      }
-      throw error; // Re-throw other errors
-    }
-  }
+###### Overrides
 
-  private extractUrl(links: LinkObject[]): string | undefined {
-    return links.length > 0 ? links[0].href : undefined;
-  }
-}
+`Error.constructor`
 
-interface UserProfile {
-  address: string;
-  name: string;
-  avatar?: string;
-  website?: string;
-  profile?: string;
-}
+#### Properties
 
-// Usage
-const profileService = new ProfileService();
-const profile = await profileService.getUserProfile('nick@silverbucket.net');
-```
+##### cause?
 
-### React Hook Example
+> `optional` **cause**: `unknown`
 
-```typescript
-import { useState, useEffect } from 'react';
-import WebFinger, { WebFingerResult, WebFingerError } from 'webfinger.js';
+Defined in: node\_modules/typescript/lib/lib.es2022.error.d.ts:26
 
-function useWebFinger(address: string | null) {
-  const [result, setResult] = useState<WebFingerResult | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+###### Inherited from
 
-  useEffect(() => {
-    if (!address) return;
+`Error.cause`
 
-    const webfinger = new WebFinger();
-    setLoading(true);
-    setError(null);
+##### message
 
-    webfinger.lookup(address)
-      .then(setResult)
-      .catch((err: WebFingerError) => {
-        setError(err.message);
-        setResult(null);
-      })
-      .finally(() => setLoading(false));
-  }, [address]);
+> **message**: `string`
 
-  return { result, loading, error };
-}
+Defined in: node\_modules/typescript/lib/lib.es5.d.ts:1077
 
-// Component usage
-function UserCard({ userAddress }: { userAddress: string }) {
-  const { result, loading, error } = useWebFinger(userAddress);
+###### Inherited from
 
-  if (loading) return <div>Loading...</div>;
-  if (error) return <div>Error: {error}</div>;
-  if (!result) return null;
+`Error.message`
 
-  return (
-    <div>
-      <h3>{result.idx.properties.name || userAddress}</h3>
-      {result.idx.links.avatar?.[0] && (
-        <img src={result.idx.links.avatar[0].href} alt="Avatar" />
-      )}
-    </div>
-  );
-}
-```
+##### name
+
+> **name**: `string`
+
+Defined in: node\_modules/typescript/lib/lib.es5.d.ts:1076
+
+###### Inherited from
+
+`Error.name`
+
+##### stack?
+
+> `optional` **stack**: `string`
+
+Defined in: node\_modules/typescript/lib/lib.es5.d.ts:1078
+
+###### Inherited from
+
+`Error.stack`
+
+##### status?
+
+> `optional` **status**: `number`
+
+Defined in: [src/webfinger.ts:104](https://github.com/silverbucket/webfinger.js/blob/master/src/webfinger.ts#L104)
+
+## Type Aliases
+
+### JRD
+
+> **JRD** = `object`
+
+Defined in: [src/webfinger.ts:67](https://github.com/silverbucket/webfinger.js/blob/master/src/webfinger.ts#L67)
+
+JSON Resource Descriptor - Raw WebFinger response format
+
+#### Properties
+
+##### error?
+
+> `optional` **error**: `string`
+
+Defined in: [src/webfinger.ts:70](https://github.com/silverbucket/webfinger.js/blob/master/src/webfinger.ts#L70)
+
+##### links
+
+> **links**: `Record`\<`string`, `unknown`\>[]
+
+Defined in: [src/webfinger.ts:68](https://github.com/silverbucket/webfinger.js/blob/master/src/webfinger.ts#L68)
+
+##### properties?
+
+> `optional` **properties**: `Record`\<`string`, `unknown`\>
+
+Defined in: [src/webfinger.ts:69](https://github.com/silverbucket/webfinger.js/blob/master/src/webfinger.ts#L69)
+
+***
+
+### LinkObject
+
+> **LinkObject** = `object`
+
+Defined in: [src/webfinger.ts:89](https://github.com/silverbucket/webfinger.js/blob/master/src/webfinger.ts#L89)
+
+Individual link object in WebFinger response
+
+#### Indexable
+
+\[`key`: `string`\]: `undefined` \| `string`
+
+Additional properties
+
+#### Properties
+
+##### href
+
+> **href**: `string`
+
+Defined in: [src/webfinger.ts:91](https://github.com/silverbucket/webfinger.js/blob/master/src/webfinger.ts#L91)
+
+Target URL
+
+##### rel
+
+> **rel**: `string`
+
+Defined in: [src/webfinger.ts:93](https://github.com/silverbucket/webfinger.js/blob/master/src/webfinger.ts#L93)
+
+Link relation type
+
+##### type?
+
+> `optional` **type**: `string`
+
+Defined in: [src/webfinger.ts:95](https://github.com/silverbucket/webfinger.js/blob/master/src/webfinger.ts#L95)
+
+MIME type (optional)
+
+***
+
+### WebFingerConfig
+
+> **WebFingerConfig** = `object`
+
+Defined in: [src/webfinger.ts:53](https://github.com/silverbucket/webfinger.js/blob/master/src/webfinger.ts#L53)
+
+Configuration options for WebFinger client
+
+#### Properties
+
+##### request\_timeout
+
+> **request\_timeout**: `number`
+
+Defined in: [src/webfinger.ts:61](https://github.com/silverbucket/webfinger.js/blob/master/src/webfinger.ts#L61)
+
+Request timeout in milliseconds.
+
+##### tls\_only
+
+> **tls\_only**: `boolean`
+
+Defined in: [src/webfinger.ts:55](https://github.com/silverbucket/webfinger.js/blob/master/src/webfinger.ts#L55)
+
+Use HTTPS only. When false, allows HTTP fallback for localhost.
+
+##### uri\_fallback
+
+> **uri\_fallback**: `boolean`
+
+Defined in: [src/webfinger.ts:59](https://github.com/silverbucket/webfinger.js/blob/master/src/webfinger.ts#L59)
+
+Enable host-meta and host-meta.json fallback endpoints.
+
+##### webfist\_fallback
+
+> **webfist\_fallback**: `boolean`
+
+Defined in: [src/webfinger.ts:57](https://github.com/silverbucket/webfinger.js/blob/master/src/webfinger.ts#L57)
+
+Enable WebFist fallback service for discovering WebFinger endpoints.
+
+***
+
+### WebFingerResult
+
+> **WebFingerResult** = `object`
+
+Defined in: [src/webfinger.ts:76](https://github.com/silverbucket/webfinger.js/blob/master/src/webfinger.ts#L76)
+
+Complete WebFinger lookup result with processed data
+
+#### Properties
+
+##### idx
+
+> **idx**: `object`
+
+Defined in: [src/webfinger.ts:78](https://github.com/silverbucket/webfinger.js/blob/master/src/webfinger.ts#L78)
+
+###### links
+
+> **links**: `object`
+
+###### Index Signature
+
+\[`key`: `string`\]: [`LinkObject`](#linkobject)[]
+
+###### properties
+
+> **properties**: `Record`\<`string`, `unknown`\>
+
+##### object
+
+> **object**: [`JRD`](#jrd)
+
+Defined in: [src/webfinger.ts:77](https://github.com/silverbucket/webfinger.js/blob/master/src/webfinger.ts#L77)
