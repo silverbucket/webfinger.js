@@ -21,7 +21,10 @@
     "email": "nick@silverbucket.net"
   },
   "scripts": {
-    "lint": "eslint ."
+    "build": "npx tsc",
+    "prepublishOnly": "npm run build",
+    "lint": "eslint .",
+    "test": "node test-runner.js"
   },
   "repository": {
     "type": "git",
@@ -35,11 +38,13 @@
   "devDependencies": {
     "@eslint/js": "^9.18.0",
     "@typescript-eslint/parser": "^8.20.0",
+    "amdefine": "^1.0.1",
     "eslint": "^9.18.0",
     "globals": "^15.14.0",
+    "node-fetch": "^2.7.0",
     "prettier": "^3.4.2",
-    "tsc": "^2.0.4",
     "typescript": "^5.7.3",
-    "typescript-eslint": "^8.20.0"
+    "typescript-eslint": "^8.20.0",
+    "xhr2": "^0.2.1"
   }
 }

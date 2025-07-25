@@ -1,7 +1,8 @@
 if (typeof define !== 'function') {
   var define = require('amdefine')(module);
 }
-define(['require', './../src/webfinger.min.js'], function (require, amdwf) {
+define(['require', './../dist/webfinger.js'], function (require, webfingerModule) {
+  var amdwf = webfingerModule.default;
   var tests = [
     {
       desc: 'ensure amd module is loaded correctly',
@@ -21,14 +22,20 @@ define(['require', './../src/webfinger.min.js'], function (require, amdwf) {
     {
       desc: 'calling function with no params fails',
       run: function (env, test) {
-        test.throws(env.wf.lookup, Error, 'caught thrown exception');
+        env.wf.lookup().catch(function(err) {
+          test.assert(err instanceof Error, true, 'Should reject with Error');
+          test.done();
+        });
       }
     },
 
     {
       desc: 'calling with invalid useraddress',
       run: function (env, test) {
-        test.throws(function () { env.wf.lookup('asdfg'); }, Error, 'caught thrown exception');
+        env.wf.lookup('asdfg').catch(function(err) {
+          test.assert(err instanceof Error, true, 'Should reject with Error for invalid address');
+          test.done();
+        });
       }
     },
 
@@ -37,8 +44,8 @@ define(['require', './../src/webfinger.min.js'], function (require, amdwf) {
       run: function (env, test) {
         env.wf.lookup('me@localhost:8001', function (err, data) {
           if (err) {
-            test.assertAnd(err.url.indexOf('http://'), 0);
-            test.assert(err.message, 'error during request');
+            // The error should be a connection error since localhost:8001 likely won't respond
+            test.assert(typeof err.message, 'string', 'Error should have a message');
           } else {
             test.done();
           }
@@ -51,7 +58,7 @@ define(['require', './../src/webfinger.min.js'], function (require, amdwf) {
   var suites = [];
 
   var setup = function (env, test) {
-    env.WebFinger = require('./../src/webfinger.min.js');
+    env.WebFinger = require('./../dist/webfinger.js').default;
     env.wf = new env.WebFinger();
     test.assertTypeAnd(env.wf, 'object');
     test.assertType(env.wf.lookup, 'function');

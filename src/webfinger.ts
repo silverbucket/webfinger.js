@@ -55,7 +55,8 @@ type WebFingerConfig = {
 };
 
 type JRD = {
-  links: Array<string>,
+  links: Array<Record<string, unknown>>,
+  properties?: Record<string, unknown>,
   error?: string,
 }
 
@@ -65,12 +66,22 @@ type ResultObject = {
     links: {
       [key: string]: Array<Entry>
     },
-    properties: any,
+    properties: Record<string, unknown>,
   }
 }
 
 type Entry = {
   [key: string]: string
+}
+
+class WebFingerError extends Error {
+  status?: number;
+  
+  constructor(message: string, status?: number) {
+    super(message);
+    this.name = 'WebFingerError';
+    this.status = status;
+  }
 }
 
 /**
@@ -85,7 +96,7 @@ type Entry = {
 export default class WebFinger {
   private config: WebFingerConfig;
 
-  constructor(cfg: WebFingerConfig) {
+  constructor(cfg: Partial<WebFingerConfig> = {}) {
     this.config = {
       tls_only: (typeof cfg.tls_only !== 'undefined') ? cfg.tls_only : true,
       webfist_fallback: (typeof cfg.webfist_fallback !== 'undefined') ? cfg.webfist_fallback : false,
@@ -102,9 +113,9 @@ export default class WebFinger {
     });
 
     if (response.status === 404) {
-      throw Error('resource not found')
+      throw new WebFingerError('resource not found', 404)
     } else if (!response.ok) {   // other HTTP status (redirects are handled transparently)
-      throw Error('error during request');
+      throw new WebFingerError('error during request', response.status);
     }
 
     const responseText = await response.text();
@@ -112,21 +123,21 @@ export default class WebFinger {
     if (WebFinger.isValidJSON(responseText)) {
       return responseText;
     } else {
-      throw Error('invalid json')
+      throw new WebFingerError('invalid json')
     }
   };
 
   private static isValidJSON(str: string): boolean {
     try {
       JSON.parse(str);
-    } catch (e) {
+    } catch {
       return false;
     }
     return true;
   };
 
   private static isLocalhost (host: string): boolean {
-    const local = /^localhost(\.localdomain)?(\:[0-9]+)?$/;
+    const local = /^localhost(\.localdomain)?(:[0-9]+)?$/;
     return local.test(host);
   };
 
@@ -137,9 +148,9 @@ export default class WebFinger {
     if ((typeof parsedJRD !== 'object') ||
         (typeof parsedJRD.links !== 'object')) {
       if (typeof parsedJRD.error !== 'undefined') {
-        throw Error(parsedJRD.error)
+        throw new WebFingerError(parsedJRD.error)
       } else {
-        throw Error('unknown response from server');
+        throw new WebFingerError('unknown response from server');
       }
     }
 
@@ -157,22 +168,23 @@ export default class WebFinger {
     const links = Array.isArray(parsedJRD.links) ? parsedJRD.links : [];
 
     // process JRD links
-    links.map(function (link: any) {
-      if (LINK_URI_MAPS.hasOwnProperty(link.rel)) {
-        if (result.idx.links[LINK_URI_MAPS[link.rel]]) {
+    links.map(function (link: Record<string, unknown>) {
+      if (Object.prototype.hasOwnProperty.call(LINK_URI_MAPS, String(link.rel))) {
+        const mappedKey = LINK_URI_MAPS[String(link.rel) as keyof typeof LINK_URI_MAPS];
+        if (result.idx.links[mappedKey]) {
           const entry: Entry = {};
           Object.keys(link).map(function (item) {
-            entry[item] = link[item];
+            entry[item] = String(link[item]);
           });
-          result.idx.links[LINK_URI_MAPS[link.rel]].push(entry);
+          result.idx.links[mappedKey].push(entry);
         }
       }
     });
 
     // process properties
-    const props = JSON.parse(JRDstring).properties;
+    const props = parsedJRD.properties || {};
     for (const key in props) {
-      if (props.hasOwnProperty(key)) {
+      if (Object.prototype.hasOwnProperty.call(props, key)) {
         if (key === 'http://packetizer.com/ns/name') {
           result.idx.properties.name = props[key];
         }
@@ -183,13 +195,29 @@ export default class WebFinger {
   };
 
   async lookup(address: string): Promise<ResultObject> {
+    if (!address) {
+      throw new WebFingerError('address is required');
+    }
+    
     let host = '';
     if (address.indexOf('://') > -1) {
       // other uri format
-      host = address.replace(/ /g, '').split('/')[2];
+      const parts = address.replace(/ /g, '').split('/');
+      if (parts.length < 3) {
+        throw new WebFingerError('invalid URI format');
+      }
+      host = parts[2];
     } else {
       // useraddress
-      host = address.replace(/ /g, '').split('@')[1];
+      const parts = address.replace(/ /g, '').split('@');
+      if (parts.length !== 2 || !parts[1]) {
+        throw new WebFingerError('invalid useraddress format');
+      }
+      host = parts[1];
+    }
+    
+    if (!host) {
+      throw new WebFingerError('could not determine host from address');
     }
     let uri_index = 0;      // track which URIS we've tried already
     let protocol = 'https'; // we use https by default
@@ -209,7 +237,7 @@ export default class WebFinger {
     }
 
     // control flow for failures, what to do in various cases, etc.
-    const  __fallbackChecks = async (err: any)=>  {
+    const  __fallbackChecks = async (err: Error)=>  {
       if ((this.config.uri_fallback) && (host !== 'webfist.org') && (uri_index !== URIS.length - 1)) { // we have uris left to try
         uri_index = uri_index + 1;
         return __call();
@@ -235,7 +263,7 @@ export default class WebFinger {
           return await WebFinger.processJRD(URL, JRD);
         }
       } else {
-        throw new Error(err)
+        throw err instanceof Error ? err : new WebFingerError(String(err))
       }
     }
 
@@ -246,7 +274,7 @@ export default class WebFinger {
       if (typeof JRD === "string") {
         return WebFinger.processJRD(URL, JRD);
       } else {
-        throw new Error("unknown error");
+        throw new WebFingerError("unknown error");
       }
     }
 
@@ -254,7 +282,7 @@ export default class WebFinger {
   };
 
   async lookupLink(address: string, rel: string): Promise<Entry> {
-    if (LINK_PROPERTIES.hasOwnProperty(rel)) {
+    if (Object.prototype.hasOwnProperty.call(LINK_PROPERTIES, rel)) {
       const p: ResultObject = await this.lookup(address);
       const links = p.idx.links[rel];
       if (links.length === 0) {
