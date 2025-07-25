@@ -176,6 +176,37 @@ describe('Security Tests - SSRF Prevention', () => {
       }
     });
 
+    it('should handle invalid IPv4 addresses', async () => {
+      const webfinger = new WebFinger();
+      
+      const invalidIPv4Addresses = [
+        'user@256.256.256.256',    // Octets > 255
+        'user@192.168.1.300',      // Last octet > 255
+        'user@192.168.999.1',      // Third octet > 255
+        'user@999.168.1.1',        // First octet > 255
+      ];
+
+      for (const address of invalidIPv4Addresses) {
+        await expect(webfinger.lookup(address))
+          .rejects.toThrow('private or internal addresses are not allowed');
+      }
+    });
+
+    it('should handle invalid port numbers', async () => {
+      const webfinger = new WebFinger();
+      
+      const invalidPortAddresses = [
+        'user@example.com:abc',     // Non-numeric port
+        'user@example.com:99999x',  // Invalid port format
+        'user@localhost:notaport',  // Non-numeric port
+      ];
+
+      for (const address of invalidPortAddresses) {
+        await expect(webfinger.lookup(address))
+          .rejects.toThrow('invalid host format');
+      }
+    });
+
     it('should handle port numbers correctly', async () => {
       const webfinger = new WebFinger({ request_timeout: 1000 });
       

@@ -156,9 +156,24 @@ export default class WebFinger {
     } else if (cleanHost.includes(':')) {
       // Check if this is an IPv6 address (contains multiple colons) or IPv4/hostname with port
       const colonCount = (cleanHost.match(/:/g) || []).length;
-      if (colonCount === 1 && !cleanHost.match(/^[0-9a-f]*:[0-9a-f]*$/i)) {
-        // Single colon, likely hostname:port or ipv4:port
-        cleanHost = cleanHost.split(':')[0];
+      if (colonCount === 1) {
+        // Single colon - check if it's hostname:port or ipv4:port (not IPv6)
+        const parts = cleanHost.split(':');
+        const hostPart = parts[0];
+        const portPart = parts[1];
+        
+        // Validate that port is numeric if present
+        if (portPart && !/^\d+$/.test(portPart)) {
+          // Invalid port, treat as invalid host
+          throw new WebFingerError('invalid host format');
+        }
+        
+        // Check if the host part looks like IPv4 or hostname (not IPv6)
+        if (hostPart.match(/^(\d{1,3}\.){3}\d{1,3}$/) || // IPv4 pattern
+            hostPart.match(/^[a-zA-Z0-9.-]+$/)) { // Hostname pattern
+          cleanHost = hostPart;
+        }
+        // Otherwise keep as is (might be short IPv6 like ::1)
       }
       // Otherwise it's IPv6, keep as is
     }
@@ -173,26 +188,37 @@ export default class WebFinger {
     }
     
     // Check for private IPv4 ranges (only if it looks like IPv4)
-    const ipv4Match = cleanHost.match(/^(\d+)\.(\d+)\.(\d+)\.(\d+)$/);
+    const ipv4Match = cleanHost.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);
     if (ipv4Match) {
-      const [, a, b] = ipv4Match.map(Number);
+      const [, aStr, bStr, cStr, dStr] = ipv4Match;
+      const a = Number(aStr);
+      const b = Number(bStr);
+      const c = Number(cStr);
+      const d = Number(dStr);
       
-      // 10.0.0.0/8
+      // Validate that all octets are valid numbers and in range 0-255
+      if (isNaN(a) || isNaN(b) || isNaN(c) || isNaN(d) ||
+          a > 255 || b > 255 || c > 255 || d > 255) {
+        // Invalid IPv4, treat as potentially dangerous
+        return true;
+      }
+      
+      // 10.0.0.0/8 (Private)
       if (a === 10) return true;
       
-      // 172.16.0.0/12
+      // 172.16.0.0/12 (Private)
       if (a === 172 && b >= 16 && b <= 31) return true;
       
-      // 192.168.0.0/16
+      // 192.168.0.0/16 (Private)
       if (a === 192 && b === 168) return true;
       
-      // 169.254.0.0/16 (link-local)
+      // 169.254.0.0/16 (Link-local)
       if (a === 169 && b === 254) return true;
       
-      // 224.0.0.0/4 (multicast)
+      // 224.0.0.0/4 (Multicast)
       if (a >= 224 && a <= 239) return true;
       
-      // 240.0.0.0/4 (reserved)
+      // 240.0.0.0/4 (Reserved)
       if (a >= 240) return true;
     }
     
