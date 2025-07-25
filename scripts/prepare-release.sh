@@ -7,7 +7,7 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
-echo -e "${GREEN}🚀 Starting manual release process...${NC}"
+echo -e "${GREEN}🚀 Starting manual prepare release process...${NC}"
 
 # Check if we're on main branch
 CURRENT_BRANCH=$(git branch --show-current)
@@ -29,7 +29,7 @@ git pull origin $CURRENT_BRANCH
 # Check if release type is provided
 if [ -z "$1" ]; then
     echo -e "${RED}❌ Please specify release type: major, minor, or patch${NC}"
-    echo "Usage: ./scripts/release.sh [major|minor|patch]"
+    echo "Usage: ./scripts/prepare-release.sh [major|minor|patch]"
     exit 1
 fi
 
@@ -76,9 +76,9 @@ git checkout -b "$RELEASE_BRANCH"
 git add package.json
 git commit -m "chore: bump version to $NEW_VERSION
 
-🚀 Generated with manual release process
+🚀 Generated with manual prepare release process
 
-Co-Authored-By: Release Script <noreply@example.com>"
+Co-Authored-By: Prepare Release Script <noreply@example.com>"
 
 # Push release branch
 echo -e "${YELLOW}⬆️  Pushing release branch...${NC}"
@@ -114,7 +114,7 @@ yarn add webfinger.js@$NEW_VERSION
 - [Live Demo](https://silverbucket.github.io/webfinger.js/)
 
 ---
-🚀 Generated with manual release process" \
+🚀 Generated with manual prepare release process" \
     --draft=false
 
 # Deploy to GitHub Pages
@@ -138,7 +138,7 @@ sed -i "s/{{VERSION}}/$NEW_VERSION/g" index.html
 git add .
 git commit -m "Update demo to v$NEW_VERSION
 
-🚀 Generated with manual release process" || true
+🚀 Generated with manual prepare release process" || true
 git push origin gh-pages
 
 # Switch back to release branch
@@ -149,9 +149,7 @@ echo -e "${YELLOW}🏷️  Creating git tag...${NC}"
 git tag -a "v$NEW_VERSION" -m "Release v$NEW_VERSION"
 git push origin "v$NEW_VERSION"
 
-# Publish to npm
-echo -e "${YELLOW}📢 Publishing to npm...${NC}"
-npm publish
+# Note: NPM publishing will happen automatically when PR is merged
 
 # Verify demo deployment
 echo -e "${YELLOW}🔍 Verifying demo deployment...${NC}"
@@ -175,24 +173,28 @@ This PR contains the version bump for release v$NEW_VERSION.
 - Tests & linting passed
 - Project built successfully  
 - Demo page updated and tested
-- Published to npm
 - GitHub release created
 - Git tag created
 
+## 📋 Pending Steps (on PR merge)
+- 📦 **NPM publishing** - will happen automatically via GitHub Actions
+
 ## 🔗 Release Links
-- **NPM**: https://www.npmjs.com/package/webfinger.js/v/$NEW_VERSION
 - **GitHub Release**: https://github.com/silverbucket/webfinger.js/releases/tag/v$NEW_VERSION
 - **Demo**: https://silverbucket.github.io/webfinger.js/
+- **NPM**: https://www.npmjs.com/package/webfinger.js (will update after merge)
 
 ---
-🚀 Generated with manual release process" \
+🚀 Generated with manual prepare release process" \
     --base "$CURRENT_BRANCH" \
     --head "$RELEASE_BRANCH"
 
-echo -e "${GREEN}🎉 Release $NEW_VERSION completed successfully!${NC}"
+echo -e "${GREEN}🎉 Release $NEW_VERSION prepared successfully!${NC}"
 echo -e "${GREEN}📋 Next steps:${NC}"
+echo -e "   • Test the demo at: https://silverbucket.github.io/webfinger.js/"
 echo -e "   • Review and merge the release PR"
-echo -e "   • Update any dependent projects"
+echo -e "   • NPM publishing will happen automatically on merge"
+echo -e "   • Update any dependent projects after NPM publish"
 echo -e "   • Announce the release"
 
 # Cleanup function for failures

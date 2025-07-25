@@ -33,10 +33,10 @@
     "lint": "eslint .",
     "test": "bun test",
     "test:ci": "bun run lint && bun test && bun run build",
-    "release": "./scripts/release.sh",
-    "release:patch": "./scripts/release.sh patch",
-    "release:minor": "./scripts/release.sh minor",
-    "release:major": "./scripts/release.sh major"
+    "prepare-release": "./scripts/prepare-release.sh",
+    "prepare-release:patch": "./scripts/prepare-release.sh patch",
+    "prepare-release:minor": "./scripts/prepare-release.sh minor",
+    "prepare-release:major": "./scripts/prepare-release.sh major"
   },
   "repository": {
     "type": "git",
