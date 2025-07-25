@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        bun-version: [ '1.1.42', 'latest' ]
+        bun-version: [ '1.1.x', 'latest' ]
     steps:
       - uses: actions/checkout@v4
       
