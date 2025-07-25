@@ -40,15 +40,28 @@ for (let i = 0; i < lines.length; i++) {
 // Insert version logging
 lines.splice(insertIndex, 0, `console.log('webfinger.js v${version} loaded');`);
 
-// Convert to browser-compatible format by adding browser global export
-const browserFooter = `
-// Browser global export
-if (typeof window !== 'undefined') {
-  window.WebFinger = exports.default;
-}`;
+// Convert to browser-compatible format by wrapping in UMD pattern
+const umdWrapper = `(function (root, factory) {
+  if (typeof exports === 'object' && typeof module !== 'undefined') {
+    // CommonJS
+    factory(exports);
+  } else if (typeof define === 'function' && define.amd) {
+    // AMD
+    define(['exports'], factory);
+  } else {
+    // Browser globals
+    var exports = {};
+    factory(exports);
+    root.WebFinger = exports.default || exports.WebFinger;
+  }
+}(typeof self !== 'undefined' ? self : this, function (exports) {
+
+${lines.join('\n')}
+
+}));`;
 
 // Write to specified output path
-const enhancedJs = lines.join('\n') + browserFooter;
+const enhancedJs = umdWrapper;
 fs.writeFileSync(outputPath, enhancedJs);
 
 console.log(`✓ Enhanced ${outputPath} with version logging and browser compatibility`);
