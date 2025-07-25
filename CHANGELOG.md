@@ -10,9 +10,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Migrated to Bun (#80) @silverbucket
 - Improved release process via Github Actions @silverbucket
 - Updated documentation @silverbucket
-- Improved build system using bun build with UMD wrapper @slvrbckt
-- Modernized demo page interface and functionality @slvrbckt
-- Better error handling and type safety @slvrbckt
+- Improved build system using bun build with UMD wrapper @silverbucket
+- Modernized demo page interface and functionality @silverbucket
+- Better error handling and type safety @silverbucket
 - Fixed typo in Readme (#54) @galfert
 
 ## [v2.7.1] - 2021-10-12
