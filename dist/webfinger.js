@@ -142,7 +142,7 @@ class WebFinger {
         // Check for private IPv4 ranges (only if it looks like IPv4)
         const ipv4Match = cleanHost.match(/^(\d+)\.(\d+)\.(\d+)\.(\d+)$/);
         if (ipv4Match) {
-            const [, a, b, c, d] = ipv4Match.map(Number);
+            const [, a, b] = ipv4Match.map(Number);
             // 10.0.0.0/8
             if (a === 10)
                 return true;
