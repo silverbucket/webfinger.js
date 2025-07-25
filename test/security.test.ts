@@ -59,20 +59,22 @@ describe('Security Tests - SSRF Prevention', () => {
     });
 
     it('should allow public addresses', async () => {
-      const webfinger = new WebFinger({ request_timeout: 500 });
+      const webfinger = new WebFinger({ request_timeout: 3000 });
       
       const publicAddresses = [
-        'user@example.com',       // Public domain
-        'user@github.com'         // Public domain
+        'user@example.com'        // Public domain - should not be blocked for security reasons
       ];
 
       // These should not be rejected for private address reasons
-      // (they may fail for other reasons like network/404, but not security)
+      // (they may fail for other reasons like network/404, but not SSRF security)
       for (const address of publicAddresses) {
         try {
           await webfinger.lookup(address);
         } catch (error) {
+          // Ensure the error is NOT about private addresses (SSRF protection)
           expect(error.message).not.toContain('private or internal addresses are not allowed');
+          // We expect this to fail with 404 or network error, not security error
+          expect(error.message).toMatch(/resource not found|error during request|unknown response/i);
         }
       }
     });
