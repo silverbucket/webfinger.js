@@ -53,13 +53,6 @@ var LINK_PROPERTIES = {
   camlistore: []
 };
 var URIS = ["webfinger", "host-meta", "host-meta.json"];
-var IPV4_OCTET = "(?:25[0-5]|2[0-4]\\d|1\\d{2}|[1-9]?\\d)";
-var IPV4_REGEX = new RegExp(`^(?:${IPV4_OCTET}\\.){3}${IPV4_OCTET}$`);
-var IPV4_CAPTURE_REGEX = new RegExp(`^(${IPV4_OCTET})\\.(${IPV4_OCTET})\\.(${IPV4_OCTET})\\.(${IPV4_OCTET})$`);
-var LOCALHOST_REGEX = /^localhost(?:\.localdomain)?(?::\d+)?$/;
-var NUMERIC_PORT_REGEX = /^\d+$/;
-var HOSTNAME_REGEX = /^[a-zA-Z0-9.-]+$/;
-var LOCALHOST_127_REGEX = /^127\.(?:\d{1,3}\.){2}\d{1,3}$/;
 
 class WebFingerError extends Error {
   status;
@@ -77,8 +70,7 @@ class WebFinger {
       tls_only: typeof cfg.tls_only !== "undefined" ? cfg.tls_only : true,
       webfist_fallback: typeof cfg.webfist_fallback !== "undefined" ? cfg.webfist_fallback : false,
       uri_fallback: typeof cfg.uri_fallback !== "undefined" ? cfg.uri_fallback : false,
-      request_timeout: typeof cfg.request_timeout !== "undefined" ? cfg.request_timeout : 1e4,
-      allow_private_addresses: typeof cfg.allow_private_addresses !== "undefined" ? cfg.allow_private_addresses : false
+      request_timeout: typeof cfg.request_timeout !== "undefined" ? cfg.request_timeout : 1e4
     };
   }
   async fetchJRD(url) {
@@ -106,74 +98,8 @@ class WebFinger {
     return true;
   }
   static isLocalhost(host) {
-    return LOCALHOST_REGEX.test(host);
-  }
-  static isPrivateAddress(host) {
-    let cleanHost = host;
-    if (cleanHost.startsWith("[") && cleanHost.includes("]:")) {
-      cleanHost = cleanHost.substring(1, cleanHost.lastIndexOf("]:"));
-    } else if (cleanHost.startsWith("[") && cleanHost.endsWith("]")) {
-      cleanHost = cleanHost.substring(1, cleanHost.length - 1);
-    } else if (cleanHost.includes(":")) {
-      const colonCount = (cleanHost.match(/:/g) || []).length;
-      if (colonCount === 1) {
-        const parts = cleanHost.split(":");
-        const hostPart = parts[0];
-        const portPart = parts[1];
-        if (portPart && !NUMERIC_PORT_REGEX.test(portPart)) {
-          throw new WebFingerError("invalid host format");
-        }
-        if (hostPart.match(IPV4_REGEX) || hostPart.match(HOSTNAME_REGEX)) {
-          cleanHost = hostPart;
-        }
-      }
-    }
-    if (cleanHost === "localhost" || cleanHost === "127.0.0.1" || cleanHost.match(LOCALHOST_127_REGEX) || cleanHost === "::1" || cleanHost === "localhost.localdomain") {
-      return true;
-    }
-    const ipv4Match = cleanHost.match(IPV4_CAPTURE_REGEX);
-    if (ipv4Match) {
-      const [, aStr, bStr, cStr, dStr] = ipv4Match;
-      const a = Number(aStr);
-      const b = Number(bStr);
-      const c = Number(cStr);
-      const d = Number(dStr);
-      if (isNaN(a) || isNaN(b) || isNaN(c) || isNaN(d)) {
-        return true;
-      }
-      if (a === 10)
-        return true;
-      if (a === 172 && b >= 16 && b <= 31)
-        return true;
-      if (a === 192 && b === 168)
-        return true;
-      if (a === 169 && b === 254)
-        return true;
-      if (a >= 224 && a <= 239)
-        return true;
-      if (a >= 240)
-        return true;
-    }
-    if (cleanHost.includes(":")) {
-      const colonCount = (cleanHost.match(/:/g) || []).length;
-      if (colonCount > 1 || colonCount === 1 && !cleanHost.match(/^[a-zA-Z0-9.-]+:\d+$/)) {
-        if (cleanHost.match(/^(fc|fd)[0-9a-f]{2}:/i) || cleanHost.match(/^fe80:/i) || cleanHost.match(/^ff[0-9a-f]{2}:/i)) {
-          return true;
-        }
-      }
-    }
-    return false;
-  }
-  static validateHost(host) {
-    const hostParts = host.split("/");
-    const cleanHost = hostParts[0];
-    if (!cleanHost || cleanHost.length === 0) {
-      throw new WebFingerError("invalid host format");
-    }
-    if (cleanHost.includes("?") || cleanHost.includes("#") || cleanHost.includes(" ")) {
-      throw new WebFingerError("invalid characters in host");
-    }
-    return cleanHost;
+    const local = /^localhost(\.localdomain)?(:[0-9]+)?$/;
+    return local.test(host);
   }
   static async processJRD(URL, JRDstring) {
     const parsedJRD = JSON.parse(JRDstring);
@@ -236,10 +162,6 @@ class WebFinger {
     }
     if (!host) {
       throw new WebFingerError("could not determine host from address");
-    }
-    host = WebFinger.validateHost(host);
-    if (!this.config.allow_private_addresses && WebFinger.isPrivateAddress(host)) {
-      throw new WebFingerError("private or internal addresses are not allowed");
     }
     let uri_index = 0;
     let protocol = "https";

@@ -19,7 +19,6 @@ type WebFingerConfig = {
     webfist_fallback: boolean;
     uri_fallback: boolean;
     request_timeout: number;
-    allow_private_addresses: boolean;
 };
 type JRD = {
     links: Array<Record<string, unknown>>;
@@ -53,8 +52,6 @@ export default class WebFinger {
     private fetchJRD;
     private static isValidJSON;
     private static isLocalhost;
-    private static isPrivateAddress;
-    private static validateHost;
     private static processJRD;
     lookup(address: string): Promise<ResultObject>;
     lookupLink(address: string, rel: string): Promise<Entry>;
