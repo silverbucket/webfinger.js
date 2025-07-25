@@ -10,7 +10,8 @@ A modern, TypeScript-based WebFinger client that runs in both browsers and Node.
 ## Features
 
 ✨ **Modern ES6+ support** - Built with TypeScript, works with modern JavaScript  
-🔒 **Security-first** - Defaults to TLS-only connections  
+🔒 **Security-first** - SSRF protection, blocks private/internal addresses by default  
+🛡️ **Production-ready** - Prevents localhost/LAN access per ActivityPub security guidelines  
 🔄 **Flexible fallbacks** - Supports host-meta and WebFist fallback mechanisms  
 🌐 **Universal** - Works in browsers and Node.js  
 📦 **Zero dependencies** - Lightweight and self-contained  
@@ -112,10 +113,11 @@ webfinger.lookup('nick@silverbucket.net', (err, result) => {
 
 ```typescript
 interface WebFingerConfig {
-  tls_only?: boolean;        // Default: true - Use HTTPS only
-  webfist_fallback?: boolean; // Default: false - Enable WebFist fallback
-  uri_fallback?: boolean;    // Default: false - Enable host-meta fallback  
-  request_timeout?: number;  // Default: 10000 - Request timeout in ms
+  tls_only?: boolean;               // Default: true - Use HTTPS only
+  webfist_fallback?: boolean;       // Default: false - Enable WebFist fallback
+  uri_fallback?: boolean;           // Default: false - Enable host-meta fallback  
+  request_timeout?: number;         // Default: 10000 - Request timeout in ms
+  allow_private_addresses?: boolean; // Default: false - Allow localhost/LAN addresses (DANGEROUS!)
 }
 ```
 
@@ -216,6 +218,38 @@ async function findRemoteStorage(userAddress: string) {
 }
 ```
 
+## Security
+
+### SSRF Protection
+
+This library includes comprehensive protection against Server-Side Request Forgery (SSRF) attacks by default:
+
+- **Private address blocking**: Prevents requests to localhost, private IP ranges, and internal networks
+- **Path injection prevention**: Validates host formats to prevent directory traversal attacks
+- **ActivityPub compliance**: Follows [ActivityPub security guidelines](https://www.w3.org/TR/activitypub/#security-considerations) (Section B.3)
+
+#### Blocked Addresses
+
+The following address ranges are blocked by default:
+
+- **Localhost**: `localhost`, `127.x.x.x`, `::1`, `localhost.localdomain`
+- **Private IPv4**: `10.x.x.x`, `172.16-31.x.x`, `192.168.x.x`
+- **Link-local**: `169.254.x.x`, `fe80::/10`
+- **Multicast**: `224.x.x.x-239.x.x.x`, `ff00::/8`
+
+#### Development Override
+
+⚠️ **CAUTION**: Only for development/testing environments!
+
+```typescript
+const webfinger = new WebFinger({
+  allow_private_addresses: true  // Disables SSRF protection - DANGEROUS in production!
+});
+
+// This will now work (but should never be used in production)
+await webfinger.lookup('user@localhost:3000');
+```
+
 ## Development
 
 This project uses [Bun](https://bun.sh) for development.
@@ -244,4 +278,4 @@ webfinger.js is released under the [AGPL License](LICENSE). See the license file
 
 ## Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+Contributions are welcome! Feel free to submit bug reports and pull requests.

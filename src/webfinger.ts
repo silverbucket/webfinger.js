@@ -51,7 +51,8 @@ type WebFingerConfig = {
   tls_only: boolean,
   webfist_fallback: boolean,
   uri_fallback: boolean,
-  request_timeout: number
+  request_timeout: number,
+  allow_private_addresses: boolean
 };
 
 type JRD = {
@@ -101,7 +102,8 @@ export default class WebFinger {
       tls_only: (typeof cfg.tls_only !== 'undefined') ? cfg.tls_only : true,
       webfist_fallback: (typeof cfg.webfist_fallback !== 'undefined') ? cfg.webfist_fallback : false,
       uri_fallback: (typeof cfg.uri_fallback !== 'undefined') ? cfg.uri_fallback : false,
-      request_timeout: (typeof cfg.request_timeout !== 'undefined') ? cfg.request_timeout : 10000
+      request_timeout: (typeof cfg.request_timeout !== 'undefined') ? cfg.request_timeout : 10000,
+      allow_private_addresses: (typeof cfg.allow_private_addresses !== 'undefined') ? cfg.allow_private_addresses : false
     };
   }
 
@@ -139,6 +141,91 @@ export default class WebFinger {
   private static isLocalhost (host: string): boolean {
     const local = /^localhost(\.localdomain)?(:[0-9]+)?$/;
     return local.test(host);
+  };
+
+  // Comprehensive security check for private/internal addresses
+  private static isPrivateAddress(host: string): boolean {
+    // Handle IPv6 addresses in brackets
+    let cleanHost = host;
+    if (cleanHost.startsWith('[') && cleanHost.includes(']:')) {
+      // Extract IPv6 from [ipv6]:port format
+      cleanHost = cleanHost.substring(1, cleanHost.lastIndexOf(']:'));
+    } else if (cleanHost.startsWith('[') && cleanHost.endsWith(']')) {
+      // Extract IPv6 from [ipv6] format
+      cleanHost = cleanHost.substring(1, cleanHost.length - 1);
+    } else if (cleanHost.includes(':')) {
+      // Check if this is an IPv6 address (contains multiple colons) or IPv4/hostname with port
+      const colonCount = (cleanHost.match(/:/g) || []).length;
+      if (colonCount === 1 && !cleanHost.match(/^[0-9a-f]*:[0-9a-f]*$/i)) {
+        // Single colon, likely hostname:port or ipv4:port
+        cleanHost = cleanHost.split(':')[0];
+      }
+      // Otherwise it's IPv6, keep as is
+    }
+    
+    // Check for localhost variants
+    if (cleanHost === 'localhost' || 
+        cleanHost === '127.0.0.1' || 
+        cleanHost.match(/^127\.\d+\.\d+\.\d+$/) ||
+        cleanHost === '::1' ||
+        cleanHost === 'localhost.localdomain') {
+      return true;
+    }
+    
+    // Check for private IPv4 ranges (only if it looks like IPv4)
+    const ipv4Match = cleanHost.match(/^(\d+)\.(\d+)\.(\d+)\.(\d+)$/);
+    if (ipv4Match) {
+      const [, a, b, c, d] = ipv4Match.map(Number);
+      
+      // 10.0.0.0/8
+      if (a === 10) return true;
+      
+      // 172.16.0.0/12
+      if (a === 172 && b >= 16 && b <= 31) return true;
+      
+      // 192.168.0.0/16
+      if (a === 192 && b === 168) return true;
+      
+      // 169.254.0.0/16 (link-local)
+      if (a === 169 && b === 254) return true;
+      
+      // 224.0.0.0/4 (multicast)
+      if (a >= 224 && a <= 239) return true;
+      
+      // 240.0.0.0/4 (reserved)
+      if (a >= 240) return true;
+    }
+    
+    // Check for private IPv6 ranges
+    if (cleanHost.includes(':')) {
+      // IPv6 private ranges
+      if (cleanHost.match(/^(fc|fd)[0-9a-f]{2}:/i) || // Unique local addresses
+          cleanHost.match(/^fe80:/i) || // Link-local
+          cleanHost.match(/^ff[0-9a-f]{2}:/i)) { // Multicast
+        return true;
+      }
+    }
+    
+    return false;
+  };
+
+  // Validate and sanitize host to prevent path injection
+  private static validateHost(host: string): string {
+    // Remove any path components - only keep hostname and port
+    const hostParts = host.split('/');
+    const cleanHost = hostParts[0];
+    
+    // Validate hostname format
+    if (!cleanHost || cleanHost.length === 0) {
+      throw new WebFingerError('invalid host format');
+    }
+    
+    // Check for invalid characters that could indicate injection
+    if (cleanHost.includes('?') || cleanHost.includes('#') || cleanHost.includes(' ')) {
+      throw new WebFingerError('invalid characters in host');
+    }
+    
+    return cleanHost;
   };
 
   // processes JRD object as if it's a WebFinger response object
@@ -218,6 +305,14 @@ export default class WebFinger {
     
     if (!host) {
       throw new WebFingerError('could not determine host from address');
+    }
+
+    // Security: Validate and sanitize the host
+    host = WebFinger.validateHost(host);
+    
+    // Security: Check for private/internal addresses to prevent SSRF
+    if (!this.config.allow_private_addresses && WebFinger.isPrivateAddress(host)) {
+      throw new WebFingerError('private or internal addresses are not allowed');
     }
     let uri_index = 0;      // track which URIS we've tried already
     let protocol = 'https'; // we use https by default
