@@ -6,3 +6,4 @@
 - Migrate to Bun (#80)
 - Improve release process via Github Actions
 - Update documentation
+- Fix typo in Readme (#54) @galfert
