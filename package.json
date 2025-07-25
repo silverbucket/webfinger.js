@@ -1,7 +1,7 @@
 {
   "name": "webfinger.js",
-  "version": "2.7.1",
-  "description": "a simple webfinger record lookup library",
+  "version": "2.8.0",
+  "description": "A JS library to query WebFinger records",
   "license": "AGPL",
   "packageManager": "pnpm@9.15.1",
   "private": false,
@@ -21,7 +21,7 @@
     "email": "nick@silverbucket.net"
   },
   "scripts": {
-    "build": "npx tsc",
+    "build": "npx tsc && node build-dist.js",
     "prepublishOnly": "npm run build",
     "lint": "eslint .",
     "test": "node test-runner.js"

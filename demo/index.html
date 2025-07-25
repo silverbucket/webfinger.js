@@ -52,7 +52,7 @@
 
     </article>
 
-    <script src="../src/webfinger.js"></script>
+    <script src="../dist/webfinger.js"></script>
 
     <script>
       //document.webfinger.email_address.focus(); it's actually kind of annoying in this case to steal focus
@@ -75,7 +75,6 @@
     </script>
     <script>
       var wf = new WebFinger({
-        debug: true,
         webfist_fallback: true,
         uri_fallback: true
       });

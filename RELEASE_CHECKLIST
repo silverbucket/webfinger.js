@@ -1,10 +1,10 @@
 * run tests!
   - npm test
-* build TypeScript to JavaScript
+* build TypeScript to JavaScript (includes version logging and browser compatibility)
   - npm run build
 * version bumps
   - package.json
-* commit changes
+* commit changes (including updated dist/)
 * tag release
 * push code & tags
 * go to github page and make release from tag
