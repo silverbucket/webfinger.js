@@ -79,7 +79,7 @@ describe('WebFinger', () => {
     it('should handle non-existent domains gracefully', async () => {
       const testWf = new WebFinger({ 
         uri_fallback: true,
-        request_timeout: 3000 
+        request_timeout: 2000 
       });
       
       // This should fail with a network error or 404
