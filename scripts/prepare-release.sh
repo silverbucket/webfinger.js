@@ -69,6 +69,10 @@ echo -e "${GREEN}✅ New version: $NEW_VERSION${NC}"
 echo -e "${YELLOW}🔨 Building project with new version...${NC}"
 bun run build:release
 
+# Generate API documentation
+echo -e "${YELLOW}📚 Generating API documentation...${NC}"
+bun run docs:generate
+
 # Update demo page with new version
 echo -e "${YELLOW}📝 Updating demo page with new version...${NC}"
 sed -i "s/{{VERSION}}/$NEW_VERSION/g" demo/index.html || true
@@ -78,7 +82,7 @@ sed -i "s/webfinger\.js v[0-9]\+\.[0-9]\+\.[0-9]\+/webfinger.js v$NEW_VERSION/g"
 RELEASE_BRANCH="release/v$NEW_VERSION"
 echo -e "${YELLOW}🌿 Creating release branch: $RELEASE_BRANCH${NC}"
 git checkout -b "$RELEASE_BRANCH"
-git add package.json dist/ demo/ CHANGELOG.md
+git add package.json dist/ demo/ docs/ CHANGELOG.md
 git commit -m "chore: bump version to $NEW_VERSION
 
 🚀 Generated with manual prepare release process
@@ -153,6 +157,7 @@ This PR contains the version bump for release v$NEW_VERSION.
 ## ✅ Release Steps Completed
 - Tests & linting passed
 - Project built successfully  
+- API documentation generated
 - Demo page updated and tested
 - Release notes generated in \`CHANGELOG.md\`
 
