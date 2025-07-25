@@ -50,6 +50,72 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Extract release notes for current version
+        id: release_notes
+        run: |
+          # Extract just the current version's notes from RELEASE_NOTES.md
+          VERSION="v${{ steps.version.outputs.version }}"
+          
+          if [ -f RELEASE_NOTES.md ]; then
+            # Find the section for this version and extract until the next version or end of file
+            awk "/^## $VERSION \([0-9-]+\)$/{flag=1; next} /^## v[0-9]+\.[0-9]+\.[0-9]+ \([0-9-]+\)$/{flag=0} flag" RELEASE_NOTES.md > current_release_notes.txt
+            
+            # Add installation and links sections
+            cat >> current_release_notes.txt << EOF
+          
+          ## 📦 Installation
+          
+          \`\`\`bash
+          # Using bun (recommended)
+          bun add webfinger.js@${{ steps.version.outputs.version }}
+          
+          # Using npm
+          npm install webfinger.js@${{ steps.version.outputs.version }}
+          
+          # Using yarn
+          yarn add webfinger.js@${{ steps.version.outputs.version }}
+          \`\`\`
+          
+          ## 🔗 Links
+          
+          - [NPM Package](https://www.npmjs.com/package/webfinger.js/v/${{ steps.version.outputs.version }})
+          - [Documentation](https://github.com/silverbucket/webfinger.js#readme)
+          - [Live Demo](https://silverbucket.github.io/webfinger.js/)
+          
+          ---
+          🚀 Generated with automated release workflow
+          EOF
+          else
+            # Fallback if no RELEASE_NOTES.md file
+            cat > current_release_notes.txt << EOF
+          ## 🚀 What's New
+          
+          Release v${{ steps.version.outputs.version }}
+          
+          ## 📦 Installation
+          
+          \`\`\`bash
+          # Using bun (recommended)
+          bun add webfinger.js@${{ steps.version.outputs.version }}
+          
+          # Using npm
+          npm install webfinger.js@${{ steps.version.outputs.version }}
+          
+          # Using yarn
+          yarn add webfinger.js@${{ steps.version.outputs.version }}
+          \`\`\`
+          
+          ## 🔗 Links
+          
+          - [NPM Package](https://www.npmjs.com/package/webfinger.js/v/${{ steps.version.outputs.version }})
+          - [Documentation](https://github.com/silverbucket/webfinger.js#readme)
+          - [Live Demo](https://silverbucket.github.io/webfinger.js/)
+          
+          ---
+          🚀 Generated with automated release workflow
+          EOF
+          fi
+
       - name: Create GitHub Release
         uses: actions/create-release@v1
         env:
@@ -57,32 +123,7 @@ jobs:
         with:
           tag_name: v${{ steps.version.outputs.version }}
           release_name: Release v${{ steps.version.outputs.version }}
-          body: |
-            ## 🚀 What's New
-            
-            Release v${{ steps.version.outputs.version }}
-            
-            ## 📦 Installation
-            
-            ```bash
-            # Using bun (recommended)
-            bun add webfinger.js@${{ steps.version.outputs.version }}
-            
-            # Using npm
-            npm install webfinger.js@${{ steps.version.outputs.version }}
-            
-            # Using yarn
-            yarn add webfinger.js@${{ steps.version.outputs.version }}
-            ```
-            
-            ## 🔗 Links
-            
-            - [NPM Package](https://www.npmjs.com/package/webfinger.js/v/${{ steps.version.outputs.version }})
-            - [Documentation](https://github.com/silverbucket/webfinger.js#readme)
-            - [Live Demo](https://silverbucket.github.io/webfinger.js/)
-            
-            ---
-            🚀 Generated with automated release workflow
+          body_path: current_release_notes.txt
           draft: false
           prerelease: false
 

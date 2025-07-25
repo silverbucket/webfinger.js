@@ -78,7 +78,7 @@ sed -i "s/webfinger\.js v[0-9]\+\.[0-9]\+\.[0-9]\+/webfinger.js v$NEW_VERSION/g"
 RELEASE_BRANCH="release/v$NEW_VERSION"
 echo -e "${YELLOW}🌿 Creating release branch: $RELEASE_BRANCH${NC}"
 git checkout -b "$RELEASE_BRANCH"
-git add package.json dist/ demo/
+git add package.json dist/ demo/ RELEASE_NOTES.md
 git commit -m "chore: bump version to $NEW_VERSION
 
 🚀 Generated with manual prepare release process
@@ -89,7 +89,40 @@ Co-Authored-By: Prepare Release Script <noreply@example.com>"
 echo -e "${YELLOW}⬆️  Pushing release branch...${NC}"
 git push origin "$RELEASE_BRANCH"
 
-# Note: GitHub release creation will happen automatically when PR is merged
+# Generate release notes
+echo -e "${YELLOW}📝 Generating release notes...${NC}"
+CHANGELOG=$(git log --pretty=format:"- %s" v$CURRENT_VERSION..HEAD | grep -v "^- chore: bump version" || echo "- Bug fixes and improvements")
+
+# Create or update RELEASE_NOTES.md
+if [ ! -f RELEASE_NOTES.md ]; then
+    # Create new file if it doesn't exist
+    cat > RELEASE_NOTES.md << EOF
+# Release Notes
+
+## v$NEW_VERSION ($(date '+%Y-%m-%d'))
+
+$CHANGELOG
+
+EOF
+else
+    # Prepend to existing file
+    cp RELEASE_NOTES.md RELEASE_NOTES.md.bak
+    cat > RELEASE_NOTES.md << EOF
+# Release Notes
+
+## v$NEW_VERSION ($(date '+%Y-%m-%d'))
+
+$CHANGELOG
+
+EOF
+    # Add existing content (skip the first line "# Release Notes")
+    tail -n +2 RELEASE_NOTES.md.bak >> RELEASE_NOTES.md
+    rm RELEASE_NOTES.md.bak
+fi
+
+echo -e "${GREEN}✅ Release notes generated. You can edit RELEASE_NOTES.md in the PR to curate the changelog.${NC}"
+
+# Note: GitHub release creation will happen automatically when PR is merged using RELEASE_NOTES.md
 
 # Deploy to GitHub Pages
 ./scripts/deploy-to-ghpages.sh "$NEW_VERSION" "$RELEASE_BRANCH"
@@ -120,10 +153,14 @@ This PR contains the version bump for release v$NEW_VERSION.
 - Tests & linting passed
 - Project built successfully  
 - Demo page updated and tested
+- Release notes generated in \`RELEASE_NOTES.md\`
+
+## ✏️ **Edit Release Notes**
+You can edit the release notes for this version in the \`RELEASE_NOTES.md\` file in this PR to curate the changelog before merging.
 
 ## 📋 Pending Steps (on PR merge)
 - 🏷️ **Git tag creation** - will happen automatically via GitHub Actions
-- 📋 **GitHub release creation** - will happen automatically via GitHub Actions  
+- 📋 **GitHub release creation** - will use edited notes from \`RELEASE_NOTES.md\`
 - 📦 **NPM publishing** - will happen automatically via GitHub Actions
 
 ## 🔗 Release Links
