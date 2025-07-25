@@ -125,10 +125,7 @@ yarn add webfinger.js@$NEW_VERSION
 # Deploy to GitHub Pages
 ./scripts/deploy-to-ghpages.sh "$NEW_VERSION" "$RELEASE_BRANCH"
 
-# Create git tag
-echo -e "${YELLOW}🏷️  Creating git tag...${NC}"
-git tag -a "v$NEW_VERSION" -m "Release v$NEW_VERSION"
-git push origin "v$NEW_VERSION"
+# Note: Git tagging will happen automatically when PR is merged
 
 # Note: NPM publishing will happen automatically when PR is merged
 
@@ -186,9 +183,7 @@ cleanup_on_failure() {
     git push origin --delete "$RELEASE_BRANCH" 2>/dev/null || true
     git branch -D "$RELEASE_BRANCH" 2>/dev/null || true
     
-    # Delete tag if it exists
-    git push origin --delete "v$NEW_VERSION" 2>/dev/null || true
-    git tag -d "v$NEW_VERSION" 2>/dev/null || true
+    # Note: No git tags to clean up - tagging happens on merge
     
     echo -e "${RED}Cleanup completed. Check the logs above for details.${NC}"
 }
