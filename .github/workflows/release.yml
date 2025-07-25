@@ -41,9 +41,6 @@ jobs:
       - name: Run linting
         run: bun run lint
 
-      - name: Build project
-        run: bun run build
-
       - name: Configure Git
         run: |
           git config --local user.email "action@github.com"
@@ -59,6 +56,9 @@ jobs:
           npm version ${{ github.event.inputs.release_type }} --no-git-tag-version
           NEW_VERSION=$(node -p "require('./package.json').version")
           echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+
+      - name: Build project with new version
+        run: bun run build
 
       - name: Create release branch
         run: |

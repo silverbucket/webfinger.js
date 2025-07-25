@@ -57,10 +57,6 @@ bun test
 echo -e "${YELLOW}🔍 Running linter...${NC}"
 bun run lint
 
-# Build the project
-echo -e "${YELLOW}🔨 Building project...${NC}"
-bun run build
-
 # Bump version using npm (which updates package.json)
 echo -e "${YELLOW}📈 Bumping version ($RELEASE_TYPE)...${NC}"
 npm version $RELEASE_TYPE --no-git-tag-version
@@ -68,6 +64,10 @@ npm version $RELEASE_TYPE --no-git-tag-version
 # Get new version
 NEW_VERSION=$(bun -p "require('./package.json').version")
 echo -e "${GREEN}✅ New version: $NEW_VERSION${NC}"
+
+# Build the project (AFTER version bump so it includes correct version)
+echo -e "${YELLOW}🔨 Building project with new version...${NC}"
+bun run build
 
 # Create release branch
 RELEASE_BRANCH="release/v$NEW_VERSION"
