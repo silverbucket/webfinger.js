@@ -28,9 +28,15 @@
   },
   "scripts": {
     "build": "bun run tsc && bun build-dist.js",
-    "prepublishOnly": "bun run build",
+    "build:clean": "rm -rf dist && bun run build",
+    "prepublishOnly": "bun run build:clean",
     "lint": "eslint .",
-    "test": "bun test"
+    "test": "bun test",
+    "test:ci": "bun run lint && bun test && bun run build",
+    "release": "./scripts/release.sh",
+    "release:patch": "./scripts/release.sh patch",
+    "release:minor": "./scripts/release.sh minor",
+    "release:major": "./scripts/release.sh major"
   },
   "repository": {
     "type": "git",
