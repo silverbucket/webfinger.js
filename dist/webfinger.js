@@ -46,6 +46,15 @@ const LINK_PROPERTIES = {
 };
 // list of endpoints to try, fallback from beginning to end.
 const URIS = ['webfinger', 'host-meta', 'host-meta.json'];
+// IPv4 address regex patterns - validate octets 0-255
+const IPV4_OCTET = '(?:25[0-5]|2[0-4]\\d|1\\d{2}|[1-9]?\\d)'; // 0-255
+const IPV4_REGEX = new RegExp(`^(?:${IPV4_OCTET}\\.){3}${IPV4_OCTET}$`);
+const IPV4_CAPTURE_REGEX = new RegExp(`^(${IPV4_OCTET})\\.(${IPV4_OCTET})\\.(${IPV4_OCTET})\\.(${IPV4_OCTET})$`);
+// Other validation regex patterns  
+const LOCALHOST_REGEX = /^localhost(?:\.localdomain)?(?::\d+)?$/;
+const NUMERIC_PORT_REGEX = /^\d+$/;
+const HOSTNAME_REGEX = /^[a-zA-Z0-9.-]+$/;
+const LOCALHOST_127_REGEX = /^127\.(?:\d{1,3}\.){2}\d{1,3}$/;
 class WebFingerError extends Error {
     status;
     constructor(message, status) {
@@ -106,8 +115,7 @@ class WebFinger {
     }
     ;
     static isLocalhost(host) {
-        const local = /^localhost(\.localdomain)?(:[0-9]+)?$/;
-        return local.test(host);
+        return LOCALHOST_REGEX.test(host);
     }
     ;
     // Comprehensive security check for private/internal addresses
@@ -131,13 +139,13 @@ class WebFinger {
                 const hostPart = parts[0];
                 const portPart = parts[1];
                 // Validate that port is numeric if present
-                if (portPart && !/^\d+$/.test(portPart)) {
+                if (portPart && !NUMERIC_PORT_REGEX.test(portPart)) {
                     // Invalid port, treat as invalid host
                     throw new WebFingerError('invalid host format');
                 }
                 // Check if the host part looks like IPv4 or hostname (not IPv6)
-                if (hostPart.match(/^(\d{1,3}\.){3}\d{1,3}$/) || // IPv4 pattern
-                    hostPart.match(/^[a-zA-Z0-9.-]+$/)) { // Hostname pattern
+                if (hostPart.match(IPV4_REGEX) || // IPv4 pattern
+                    hostPart.match(HOSTNAME_REGEX)) { // Hostname pattern
                     cleanHost = hostPart;
                 }
                 // Otherwise keep as is (might be short IPv6 like ::1)
@@ -147,23 +155,22 @@ class WebFinger {
         // Check for localhost variants
         if (cleanHost === 'localhost' ||
             cleanHost === '127.0.0.1' ||
-            cleanHost.match(/^127\.\d+\.\d+\.\d+$/) ||
+            cleanHost.match(LOCALHOST_127_REGEX) ||
             cleanHost === '::1' ||
             cleanHost === 'localhost.localdomain') {
             return true;
         }
         // Check for private IPv4 ranges (only if it looks like IPv4)
-        const ipv4Match = cleanHost.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);
+        const ipv4Match = cleanHost.match(IPV4_CAPTURE_REGEX);
         if (ipv4Match) {
             const [, aStr, bStr, cStr, dStr] = ipv4Match;
             const a = Number(aStr);
             const b = Number(bStr);
             const c = Number(cStr);
             const d = Number(dStr);
-            // Validate that all octets are valid numbers and in range 0-255
-            if (isNaN(a) || isNaN(b) || isNaN(c) || isNaN(d) ||
-                a > 255 || b > 255 || c > 255 || d > 255) {
-                // Invalid IPv4, treat as potentially dangerous
+            // Note: Regex already validates 0-255 range, but we still check for NaN as defense-in-depth
+            if (isNaN(a) || isNaN(b) || isNaN(c) || isNaN(d)) {
+                // This should not happen with our regex, but treat as potentially dangerous
                 return true;
             }
             // 10.0.0.0/8 (Private)
@@ -185,13 +192,17 @@ class WebFinger {
             if (a >= 240)
                 return true;
         }
-        // Check for private IPv6 ranges
+        // Check for private IPv6 ranges (only if cleanHost still contains colons after processing above)
         if (cleanHost.includes(':')) {
-            // IPv6 private ranges
-            if (cleanHost.match(/^(fc|fd)[0-9a-f]{2}:/i) || // Unique local addresses
-                cleanHost.match(/^fe80:/i) || // Link-local
-                cleanHost.match(/^ff[0-9a-f]{2}:/i)) { // Multicast
-                return true;
+            // IPv6 private ranges - verify this is actually IPv6, not hostname:port that wasn't processed
+            const colonCount = (cleanHost.match(/:/g) || []).length;
+            if (colonCount > 1 || // Multiple colons = definitely IPv6
+                (colonCount === 1 && !cleanHost.match(/^[a-zA-Z0-9.-]+:\d+$/))) { // Single colon but not hostname:port format
+                if (cleanHost.match(/^(fc|fd)[0-9a-f]{2}:/i) || // Unique local addresses
+                    cleanHost.match(/^fe80:/i) || // Link-local
+                    cleanHost.match(/^ff[0-9a-f]{2}:/i)) { // Multicast
+                    return true;
+                }
             }
         }
         return false;
