@@ -225,7 +225,7 @@ describe('Security Tests - SSRF Prevention', () => {
     });
   });
 
-  describe('Regression Tests for CVE-2023-XXXXX', () => {
+  describe('Regression Tests for SSRF Vulnerability', () => {
     it('should prevent the original SSRF vulnerability', async () => {
       const webfinger = new WebFinger();
       
