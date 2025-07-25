@@ -89,38 +89,7 @@ Co-Authored-By: Prepare Release Script <noreply@example.com>"
 echo -e "${YELLOW}⬆️  Pushing release branch...${NC}"
 git push origin "$RELEASE_BRANCH"
 
-# Create GitHub release
-echo -e "${YELLOW}📋 Creating GitHub release...${NC}"
-CHANGELOG=$(git log --pretty=format:"- %s" v$CURRENT_VERSION..HEAD | grep -v "^- chore: bump version" || echo "- Bug fixes and improvements")
-
-gh release create "v$NEW_VERSION" \
-    --title "Release v$NEW_VERSION" \
-    --notes "## 🚀 What's New
-
-$CHANGELOG
-
-## 📦 Installation
-
-\`\`\`bash
-# Using bun (recommended)
-bun add webfinger.js@$NEW_VERSION
-
-# Using npm
-npm install webfinger.js@$NEW_VERSION
-
-# Using yarn  
-yarn add webfinger.js@$NEW_VERSION
-\`\`\`
-
-## 🔗 Links
-
-- [NPM Package](https://www.npmjs.com/package/webfinger.js)
-- [Documentation](https://github.com/silverbucket/webfinger.js#readme)
-- [Live Demo](https://silverbucket.github.io/webfinger.js/)
-
----
-🚀 Generated with manual prepare release process" \
-    --draft=false
+# Note: GitHub release creation will happen automatically when PR is merged
 
 # Deploy to GitHub Pages
 ./scripts/deploy-to-ghpages.sh "$NEW_VERSION" "$RELEASE_BRANCH"
@@ -151,15 +120,15 @@ This PR contains the version bump for release v$NEW_VERSION.
 - Tests & linting passed
 - Project built successfully  
 - Demo page updated and tested
-- GitHub release created
-- Git tag created
 
 ## 📋 Pending Steps (on PR merge)
+- 🏷️ **Git tag creation** - will happen automatically via GitHub Actions
+- 📋 **GitHub release creation** - will happen automatically via GitHub Actions  
 - 📦 **NPM publishing** - will happen automatically via GitHub Actions
 
 ## 🔗 Release Links
-- **GitHub Release**: https://github.com/silverbucket/webfinger.js/releases/tag/v$NEW_VERSION
 - **Demo**: https://silverbucket.github.io/webfinger.js/
+- **GitHub Release**: (will be created after merge)
 - **NPM**: https://www.npmjs.com/package/webfinger.js (will update after merge)
 
 ---

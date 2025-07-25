@@ -50,6 +50,42 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Create GitHub Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v${{ steps.version.outputs.version }}
+          release_name: Release v${{ steps.version.outputs.version }}
+          body: |
+            ## 🚀 What's New
+            
+            Release v${{ steps.version.outputs.version }}
+            
+            ## 📦 Installation
+            
+            ```bash
+            # Using bun (recommended)
+            bun add webfinger.js@${{ steps.version.outputs.version }}
+            
+            # Using npm
+            npm install webfinger.js@${{ steps.version.outputs.version }}
+            
+            # Using yarn
+            yarn add webfinger.js@${{ steps.version.outputs.version }}
+            ```
+            
+            ## 🔗 Links
+            
+            - [NPM Package](https://www.npmjs.com/package/webfinger.js/v/${{ steps.version.outputs.version }})
+            - [Documentation](https://github.com/silverbucket/webfinger.js#readme)
+            - [Live Demo](https://silverbucket.github.io/webfinger.js/)
+            
+            ---
+            🚀 Generated with automated release workflow
+          draft: false
+          prerelease: false
+
       - name: Publish to npm
         run: npm publish
 
@@ -59,6 +95,7 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "- **Version**: v${{ steps.version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Git Tag**: v${{ steps.version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **GitHub Release**: https://github.com/silverbucket/webfinger.js/releases/tag/v${{ steps.version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
           echo "- **NPM Package**: https://www.npmjs.com/package/webfinger.js/v/${{ steps.version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Demo**: https://silverbucket.github.io/webfinger.js/" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
