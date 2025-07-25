@@ -125,13 +125,17 @@ jobs:
 
       - name: Deploy to GitHub Pages
         run: |
+          # Save the built files before switching branches
+          cp dist/webfinger.js /tmp/webfinger.js
+          cp -r demo /tmp/demo-source
+          
           # Checkout gh-pages branch
           git fetch origin gh-pages
           git checkout gh-pages
           
-          # Copy latest dist file to demo directory  
-          cp dist/webfinger.js demo/
-          cp -r demo/* .
+          # Copy saved files
+          cp /tmp/webfinger.js webfinger.js
+          cp -r /tmp/demo-source/* .
           
           # Inject version into demo page
           sed -i 's/{{VERSION}}/${{ steps.version_bump.outputs.new_version }}/g' index.html
@@ -148,28 +152,11 @@ jobs:
           Co-Authored-By: GitHub Actions <action@github.com>" || true
           git push origin gh-pages
 
-      - name: Test demo deployment
-        run: |
-          echo "Waiting for GitHub Pages to deploy..."
-          sleep 30
-          
-          # Test demo page is accessible
-          DEMO_URL="https://silverbucket.github.io/webfinger.js/"
-          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$DEMO_URL" || echo "000")
-          
-          if [ "$HTTP_STATUS" = "200" ]; then
-            echo "✅ Demo page is accessible at $DEMO_URL"
-          else
-            echo "⚠️ Demo page returned HTTP $HTTP_STATUS - may need time to propagate"
-          fi
-          
-          # Test that webfinger.js loads without errors
-          if curl -s "$DEMO_URL" | grep -q "webfinger.js"; then
-            echo "✅ Demo page contains webfinger.js references"
-          else
-            echo "❌ Demo page missing webfinger.js references"
-            exit 1
-          fi
+      - name: Verify demo deployment
+        run: ./scripts/verify-demo.sh ${{ steps.version_bump.outputs.new_version }}
+
+      - name: Test WebFinger functionality
+        run: bun scripts/test-webfinger-functionality.js
 
       - name: Post-release summary
         run: |
