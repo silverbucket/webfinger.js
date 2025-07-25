@@ -1,8 +1,9 @@
 {
   "name": "webfinger.js",
   "version": "2.7.1",
-  "description": "a simple webfinger record lookup library",
+  "description": "A JS library to query WebFinger records",
   "license": "AGPL",
+  "packageManager": "pnpm@9.15.1",
   "private": false,
   "keywords": [
     "webfinger",
@@ -14,23 +15,16 @@
     "useraddress",
     "lookup"
   ],
-  "main": "./src/webfinger.js",
+  "main": "./dist/webfinger.js",
   "author": {
     "name": "Nick Jennings",
     "email": "nick@silverbucket.net"
   },
-  "dependencies": {
-    "xhr2": "0.2.1"
-  },
-  "devDependencies": {
-    "gulp": "4.0.2",
-    "jaribu": "2.2.3",
-    "minify": "7.2.2",
-    "node-fetch": "3.2.10"
-  },
   "scripts": {
-    "test": "jaribu",
-    "build": "gulp"
+    "build": "npx tsc && node build-dist.js",
+    "prepublishOnly": "npm run build",
+    "lint": "eslint .",
+    "test": "node test-runner.js"
   },
   "repository": {
     "type": "git",
@@ -40,5 +34,17 @@
   "bugs": {
     "url": "https://github.com/silverbucket/webfinger.js/issues"
   },
-  "homepage": "https://github.com/silverbucket/webfinger.js"
+  "homepage": "https://github.com/silverbucket/webfinger.js",
+  "devDependencies": {
+    "@eslint/js": "^9.18.0",
+    "@typescript-eslint/parser": "^8.20.0",
+    "amdefine": "^1.0.1",
+    "eslint": "^9.18.0",
+    "globals": "^15.14.0",
+    "node-fetch": "^2.7.0",
+    "prettier": "^3.4.2",
+    "typescript": "^5.7.3",
+    "typescript-eslint": "^8.20.0",
+    "xhr2": "^0.2.1"
+  }
 }
