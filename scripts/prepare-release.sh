@@ -67,7 +67,7 @@ echo -e "${GREEN}✅ New version: $NEW_VERSION${NC}"
 
 # Build the project (AFTER version bump so it includes correct version)
 echo -e "${YELLOW}🔨 Building project with new version...${NC}"
-bun run build
+bun run build:release
 
 # Update demo page with new version
 echo -e "${YELLOW}📝 Updating demo page with new version...${NC}"

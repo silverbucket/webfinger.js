@@ -1,14 +1,28 @@
 #!/usr/bin/env node
 
 const fs = require('fs');
+const path = require('path');
+
+// Parse command line arguments
+const args = process.argv.slice(2);
+const outputIndex = args.indexOf('--output');
+const outputPath = outputIndex !== -1 && args[outputIndex + 1] 
+  ? args[outputIndex + 1] 
+  : 'dist/webfinger.js';
 
 // Read package.json to get version
 const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
 const version = pkg.version;
 
-console.log(`Post-processing dist/webfinger.js with version ${version}...`);
+console.log(`Post-processing ${outputPath} with version ${version}...`);
 
-// Read the compiled JavaScript
+// Ensure output directory exists
+const outputDir = path.dirname(outputPath);
+if (!fs.existsSync(outputDir)) {
+  fs.mkdirSync(outputDir, { recursive: true });
+}
+
+// Read the compiled JavaScript (always from dist since that's where tsc outputs)
 const compiledJs = fs.readFileSync('dist/webfinger.js', 'utf8');
 
 // Add version logging at the top (after "use strict" and comments)
@@ -33,8 +47,8 @@ if (typeof window !== 'undefined') {
   window.WebFinger = exports.default;
 }`;
 
-// Write back to dist directory
+// Write to specified output path
 const enhancedJs = lines.join('\n') + browserFooter;
-fs.writeFileSync('dist/webfinger.js', enhancedJs);
+fs.writeFileSync(outputPath, enhancedJs);
 
-console.log('✓ Enhanced dist/webfinger.js with version logging and browser compatibility');
+console.log(`✓ Enhanced ${outputPath} with version logging and browser compatibility`);

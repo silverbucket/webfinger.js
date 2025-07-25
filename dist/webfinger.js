@@ -15,7 +15,6 @@
  * information must remain.
  *
  */
-console.log('webfinger.js v2.7.1 loaded');
 Object.defineProperty(exports, "__esModule", { value: true });
 // URI to property name map
 const LINK_URI_MAPS = {
@@ -262,7 +261,3 @@ class WebFinger {
 }
 exports.default = WebFinger;
 //# sourceMappingURL=webfinger.js.map
-// Browser global export
-if (typeof window !== 'undefined') {
-  window.WebFinger = exports.default;
-}
