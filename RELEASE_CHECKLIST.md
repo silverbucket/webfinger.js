@@ -1,11 +1,11 @@
 # Release Checklist
 
 ## Pre-release Testing
-- [ ] Run tests: `npm test`
-- [ ] Run linting: `npm run lint`
+- [ ] Run tests: `bun test`
+- [ ] Run linting: `bun run lint`
 
 ## Build and Version
-- [ ] Build TypeScript to JavaScript (includes version logging and browser compatibility): `npm run build`
+- [ ] Build TypeScript to JavaScript (includes version logging and browser compatibility): `bun run build`
 - [ ] Update version in `package.json`
 - [ ] Verify version appears correctly in `dist/webfinger.js` console log
 
@@ -16,7 +16,7 @@
 
 ## Publication
 - [ ] Go to GitHub and create release from tag
-- [ ] Publish to npm: `npm publish`
+- [ ] Publish to npm: `bun publish` or `npm publish`
 
 ## Verification
 - [ ] Verify demo works at https://silverbucket.github.io/webfinger.js/demo/

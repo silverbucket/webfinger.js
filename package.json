@@ -3,7 +3,7 @@
   "version": "2.7.1",
   "description": "A JS library to query WebFinger records",
   "license": "AGPL",
-  "packageManager": "pnpm@9.15.1",
+  "packageManager": "bun@1.1.42",
   "private": false,
   "keywords": [
     "webfinger",
@@ -21,10 +21,10 @@
     "email": "nick@silverbucket.net"
   },
   "scripts": {
-    "build": "npx tsc && node build-dist.js",
-    "prepublishOnly": "npm run build",
+    "build": "bun run tsc && bun run build-dist.js",
+    "prepublishOnly": "bun run build",
     "lint": "eslint .",
-    "test": "node test-runner.js"
+    "test": "bun test"
   },
   "repository": {
     "type": "git",
@@ -38,13 +38,10 @@
   "devDependencies": {
     "@eslint/js": "^9.18.0",
     "@typescript-eslint/parser": "^8.20.0",
-    "amdefine": "^1.0.1",
     "eslint": "^9.18.0",
     "globals": "^15.14.0",
-    "node-fetch": "^2.7.0",
     "prettier": "^3.4.2",
     "typescript": "^5.7.3",
-    "typescript-eslint": "^8.20.0",
-    "xhr2": "^0.2.1"
+    "typescript-eslint": "^8.20.0"
   }
 }
