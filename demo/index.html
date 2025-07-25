@@ -364,49 +364,67 @@
       queryWebfinger(emailAddress);
     }
 
-    function queryWebfinger(emailAddress) {
+    async function queryWebfinger(emailAddress) {
       console.log('Looking up WebFinger for:', emailAddress);
 
-      wf.lookup(emailAddress, function (err, p) {
-        console.log('WebFinger result for', emailAddress + ':', err, p);
-
-        if (err) {
-          console.error('Error getting WebFinger data:', err.message);
-          showError(err.message, emailAddress);
-        } else if (p) {
-          displayResult(emailAddress, p);
-        } else {
-          showError('Unable to get record', emailAddress);
-        }
-      });
+      try {
+        const profile = await wf.lookup(emailAddress);
+        console.log('WebFinger result for', emailAddress + ':', profile);
+        displayResult(emailAddress, profile);
+      } catch (err) {
+        console.error('Error getting WebFinger data:', err.message);
+        showError(err.message, emailAddress);
+      }
     }
 
     function displayResult(emailAddress, profile) {
       let entry = '<div class="result">';
+      
+      // Header with name and address
       entry += '<h3>';
-
       if (profile.idx.properties.name) {
         entry += profile.idx.properties.name + '<br>';
       }
-      entry += emailAddress + '</h3>';
+      entry += '<span style="font-size: 0.9em; color: #666;">' + emailAddress + '</span></h3>';
 
       // Display avatar if available
       if (profile.idx.links.avatar && profile.idx.links.avatar[0]) {
-        entry += `<img src="${profile.idx.links.avatar[0].href}" alt="Avatar">`;
+        entry += `<img src="${profile.idx.links.avatar[0].href}" alt="Avatar" style="float: right; margin-left: 1rem;">`;
       }
 
-      // Display all other links
+      // Show basic info
+      if (profile.idx.properties.name) {
+        entry += `<p><strong>Name:</strong> ${profile.idx.properties.name}</p>`;
+      }
+      entry += `<p><strong>Address:</strong> ${emailAddress}</p>`;
+
+      // Display links with better formatting
+      const linkLabels = {
+        'profile': '👤 Profile Page',
+        'blog': '📝 Blog',
+        'avatar': '🖼️ Avatar',
+        'vcard': '👤 vCard',
+        'remotestorage': '☁️ Remote Storage',
+        'webfist': '🔗 WebFist',
+        'share': '📤 Share',
+        'updates': '📡 Updates',
+        'camlistore': '📦 Camlistore'
+      };
+
       Object.keys(profile.idx.links).forEach(key => {
         if (key === 'avatar') return; // Already handled above
 
         const links = profile.idx.links[key];
-        if (Array.isArray(links)) {
-          links.forEach(record => {
-            entry += `<p><strong>${key}:</strong> <a href="${record.href}" target="_blank">${record.href}</a></p>`;
+        if (Array.isArray(links) && links.length > 0) {
+          const label = linkLabels[key] || key.charAt(0).toUpperCase() + key.slice(1);
+          links.forEach((record, index) => {
+            const displayLabel = index === 0 ? label : `${label} (${index + 1})`;
+            entry += `<p><strong>${displayLabel}:</strong> <a href="${record.href}" target="_blank">${record.href}</a></p>`;
           });
         }
       });
 
+      entry += '<div style="clear: both;"></div>'; // Clear the float
       entry += '</div>';
 
       const results = document.getElementById("results");
