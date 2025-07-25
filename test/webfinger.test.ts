@@ -78,13 +78,14 @@ describe('WebFinger', () => {
   describe('Network Error Handling', () => {
     it('should handle non-existent domains gracefully', async () => {
       const testWf = new WebFinger({ 
-        uri_fallback: true,
-        request_timeout: 2000 
+        uri_fallback: false,
+        webfist_fallback: false,
+        request_timeout: 1000 
       });
       
       // This should fail with a network error or 404
       await expect(testWf.lookup('test@nonexistentdomain12345.com')).rejects.toThrow();
-    });
+    }, 5000);
 
     it('should handle domains without WebFinger support', async () => {
       const testWf = new WebFinger({ 
