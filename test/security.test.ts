@@ -227,6 +227,188 @@ describe('Security Tests - SSRF Prevention', () => {
     });
   });
 
+  describe('Redirect-based SSRF Prevention', () => {
+    it('should reject redirects to localhost', async () => {
+      const webfinger = new WebFinger({ request_timeout: 1000 });
+      
+      // Mock a fetch that returns a redirect to localhost
+      const originalFetch = globalThis.fetch;
+      globalThis.fetch = async (url) => {
+        if (typeof url === 'string' && url.includes('evil.com')) {
+          return new Response('', { 
+            status: 302, 
+            headers: { 'location': 'http://localhost:8080/admin' }
+          });
+        }
+        return originalFetch(url);
+      };
+      
+      try {
+        await expect(webfinger.lookup('user@evil.com'))
+          .rejects.toThrow('redirect to private or internal address blocked');
+      } finally {
+        globalThis.fetch = originalFetch;
+      }
+    });
+
+    it('should reject redirects to private IP ranges', async () => {
+      const webfinger = new WebFinger({ request_timeout: 1000 });
+      
+      const privateRedirects = [
+        'http://127.0.0.1:8080/secret',
+        'http://10.0.0.1/admin',
+        'http://192.168.1.1:3000/internal',
+        'http://172.16.0.1/restricted'
+      ];
+      
+      for (const redirectTarget of privateRedirects) {
+        const originalFetch = globalThis.fetch;
+        globalThis.fetch = async (url) => {
+          if (typeof url === 'string' && url.includes('evil.com')) {
+            return new Response('', { 
+              status: 301, 
+              headers: { 'location': redirectTarget }
+            });
+          }
+          return originalFetch(url);
+        };
+        
+        try {
+          await expect(webfinger.lookup('user@evil.com'))
+            .rejects.toThrow('redirect to private or internal address blocked');
+        } finally {
+          globalThis.fetch = originalFetch;
+        }
+      }
+    });
+
+    it('should handle too many redirects', async () => {
+      const webfinger = new WebFinger({ request_timeout: 1000 });
+      
+      const originalFetch = globalThis.fetch;
+      globalThis.fetch = async (url) => {
+        if (typeof url === 'string' && url.includes('redirect-loop.com')) {
+          return new Response('', { 
+            status: 302, 
+            headers: { 'location': url } // Redirect to self
+          });
+        }
+        return originalFetch(url);
+      };
+      
+      try {
+        await expect(webfinger.lookup('user@redirect-loop.com'))
+          .rejects.toThrow('too many redirects');
+      } finally {
+        globalThis.fetch = originalFetch;
+      }
+    });
+
+    it('should reject redirects without location header', async () => {
+      const webfinger = new WebFinger({ request_timeout: 1000 });
+      
+      const originalFetch = globalThis.fetch;
+      globalThis.fetch = async (url) => {
+        if (typeof url === 'string' && url.includes('bad-redirect.com')) {
+          return new Response('', { status: 302 }); // No location header
+        }
+        return originalFetch(url);
+      };
+      
+      try {
+        await expect(webfinger.lookup('user@bad-redirect.com'))
+          .rejects.toThrow('redirect without location header');
+      } finally {
+        globalThis.fetch = originalFetch;
+      }
+    });
+
+    it('should reject invalid redirect URLs', async () => {
+      const webfinger = new WebFinger({ request_timeout: 1000 });
+      
+      const originalFetch = globalThis.fetch;
+      const originalURL = globalThis.URL;
+      
+      // Mock URL constructor to throw for specific location
+      globalThis.URL = function(url: string, base?: string) {
+        if (url === 'ht!tp://invalid') {
+          throw new Error('Invalid URL');
+        }
+        return new originalURL(url, base);
+      } as any;
+      
+      globalThis.fetch = async (url) => {
+        if (typeof url === 'string' && url.includes('invalid-redirect.com')) {
+          return new Response('', { 
+            status: 302, 
+            headers: { 'location': 'ht!tp://invalid' }
+          });
+        }
+        // Block all other requests to prevent real network calls
+        throw new Error('Network request blocked in test');
+      };
+      
+      try {
+        await expect(webfinger.lookup('user@invalid-redirect.com'))
+          .rejects.toThrow('invalid redirect URL');
+      } finally {
+        globalThis.fetch = originalFetch;
+        globalThis.URL = originalURL;
+      }
+    });
+
+    it('should follow legitimate redirects to public domains', async () => {
+      const webfinger = new WebFinger({ request_timeout: 1000 });
+      
+      const originalFetch = globalThis.fetch;
+      globalThis.fetch = async (url) => {
+        if (typeof url === 'string' && url.includes('legit-redirect.com/.well-known/webfinger')) {
+          return new Response('', { 
+            status: 302, 
+            headers: { 'location': 'https://example.com/.well-known/webfinger?resource=acct:user@legit-redirect.com' }
+          });
+        } else if (typeof url === 'string' && url.includes('example.com/.well-known/webfinger')) {
+          return new Response('{"error": "user not found"}', { status: 404 });
+        }
+        return originalFetch(url);
+      };
+      
+      try {
+        await expect(webfinger.lookup('user@legit-redirect.com'))
+          .rejects.toThrow('resource not found'); // Should follow redirect but get 404
+      } finally {
+        globalThis.fetch = originalFetch;
+      }
+    });
+
+    it('should allow redirect when private addresses are explicitly allowed', async () => {
+      const webfinger = new WebFinger({ 
+        allow_private_addresses: true,
+        request_timeout: 1000 
+      });
+      
+      const originalFetch = globalThis.fetch;
+      globalThis.fetch = async (url) => {
+        if (typeof url === 'string' && url.includes('redirect-to-localhost.com/.well-known/webfinger')) {
+          return new Response('', { 
+            status: 302, 
+            headers: { 'location': 'http://localhost:8080/.well-known/webfinger?resource=acct:user@redirect-to-localhost.com' }
+          });
+        } else if (typeof url === 'string' && url.includes('localhost:8080/.well-known/webfinger')) {
+          return new Response('{"error": "connection refused"}', { status: 500 });
+        }
+        return originalFetch(url);
+      };
+      
+      try {
+        await expect(webfinger.lookup('user@redirect-to-localhost.com'))
+          .rejects.toThrow('error during request'); // Should follow redirect but get connection error
+      } finally {
+        globalThis.fetch = originalFetch;
+      }
+    });
+  });
+
   describe('Regression Tests for SSRF Vulnerability', () => {
     it('should prevent the original SSRF vulnerability', async () => {
       const webfinger = new WebFinger();

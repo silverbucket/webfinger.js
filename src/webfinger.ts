@@ -188,14 +188,47 @@ export default class WebFinger {
 
   // make an HTTP request and look for JRD response, fails if request fails
   // or response not json.
-  private async fetchJRD(url: string): Promise<string> {
+  private async fetchJRD(url: string, redirectCount: number = 0): Promise<string> {
+    // Prevent redirect loops (max 3 redirects)
+    if (redirectCount > 3) {
+      throw new WebFingerError('too many redirects');
+    }
+
     const response = await fetch(url, {
       headers: {'Accept': 'application/jrd+json, application/json'},
+      redirect: 'manual' // Handle redirects manually for security validation
     });
+
+    // Handle redirect responses with security validation
+    if (response.status >= 300 && response.status < 400) {
+      const location = response.headers.get('location');
+      if (!location) {
+        throw new WebFingerError('redirect without location header');
+      }
+
+      // Parse and validate redirect URL
+      let redirectUrl: URL;
+      try {
+        redirectUrl = new URL(location, url); // Resolve relative URLs
+      } catch {
+        throw new WebFingerError('invalid redirect URL');
+      }
+
+      // Security: Validate redirect destination host
+      const redirectHost = WebFinger.validateHost(redirectUrl.hostname + (redirectUrl.port ? ':' + redirectUrl.port : ''));
+      
+      // Security: Check if redirect target is private/internal address
+      if (!this.config.allow_private_addresses && WebFinger.isPrivateAddress(redirectHost)) {
+        throw new WebFingerError('redirect to private or internal address blocked');
+      }
+
+      // Follow the redirect
+      return this.fetchJRD(redirectUrl.toString(), redirectCount + 1);
+    }
 
     if (response.status === 404) {
       throw new WebFingerError('resource not found', 404)
-    } else if (!response.ok) {   // other HTTP status (redirects are handled transparently)
+    } else if (!response.ok) {
       throw new WebFingerError('error during request', response.status);
     }
 
@@ -425,12 +458,14 @@ export default class WebFinger {
   };
 
   /**
-   * Performs a WebFinger lookup for the given address with SSRF protection.
+   * Performs a WebFinger lookup for the given address with comprehensive SSRF protection.
    * 
    * This method includes comprehensive security measures:
    * - Blocks private/internal IP addresses by default
    * - Validates host format to prevent path injection
+   * - Validates redirect destinations to prevent redirect-based SSRF attacks
    * - Follows ActivityPub security guidelines
+   * - Limits redirect chains to prevent redirect loops
    * 
    * @param address - Email-like address (user@domain.com) or full URI to look up
    * @returns Promise resolving to WebFinger result with indexed links and properties
@@ -447,12 +482,13 @@ export default class WebFinger {
    * }
    * ```
    * 
-   * @example Security - Blocked addresses
+   * @example Security - Blocked addresses and redirects
    * ```typescript
    * // These will throw WebFingerError due to SSRF protection:
-   * await webfinger.lookup('user@localhost');     // Blocked
-   * await webfinger.lookup('user@127.0.0.1');    // Blocked  
-   * await webfinger.lookup('user@192.168.1.1');  // Blocked
+   * await webfinger.lookup('user@localhost');     // Direct access blocked
+   * await webfinger.lookup('user@127.0.0.1');    // Direct access blocked  
+   * await webfinger.lookup('user@192.168.1.1');  // Direct access blocked
+   * // Redirects to private addresses are also blocked automatically
    * ```
    */
   async lookup(address: string): Promise<WebFingerResult> {

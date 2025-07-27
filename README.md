@@ -84,6 +84,7 @@ This library includes comprehensive protection against Server-Side Request Forge
 
 - **Private address blocking**: Prevents requests to localhost, private IP ranges, and internal networks
 - **Path injection prevention**: Validates host formats to prevent directory traversal attacks
+- **Redirect validation**: Prevents redirect-based SSRF attacks to private networks
 - **ActivityPub compliance**: Follows [ActivityPub security guidelines](https://www.w3.org/TR/activitypub/#security-considerations) (Section B.3)
 
 #### Blocked Addresses
