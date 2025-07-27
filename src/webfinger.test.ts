@@ -195,6 +195,45 @@ describe('WebFinger', () => {
       });
     });
 
+    describe('SSRF Prevention (CVE Advisory Tests)', () => {
+      it('should block the original PoC attack vector', async () => {
+        // Test the exact attack vector from GHSA-8xq3-w9fx-74rv
+        const maliciousAddress = 'user@localhost:1234/secret.txt?';
+        
+        await expect(webfinger.lookup(maliciousAddress))
+          .rejects.toThrow('private or internal addresses are not allowed');
+      });
+
+      it('should block localhost with port and path combinations', async () => {
+        const attackVectors = [
+          'user@localhost:8080/admin',
+          'user@127.0.0.1:3000/api/internal', 
+          'user@localhost:1234/secret.txt?',
+          'user@127.0.0.1:9000/config',
+          'user@localhost:7000/admin/restricted'
+        ];
+
+        for (const maliciousAddress of attackVectors) {
+          await expect(webfinger.lookup(maliciousAddress))
+            .rejects.toThrow('private or internal addresses are not allowed');
+        }
+      });
+
+      it('should block internal network probing attempts', async () => {
+        const internalProbes = [
+          'user@192.168.1.100:22/ssh',
+          'user@10.0.0.1:80/admin',
+          'user@172.16.0.1:443/internal',
+          'user@169.254.169.254:80/latest/meta-data'  // AWS metadata service
+        ];
+
+        for (const probe of internalProbes) {
+          await expect(webfinger.lookup(probe))
+            .rejects.toThrow('private or internal addresses are not allowed');
+        }
+      });
+    });
+
     describe('Security Configuration', () => {
       it('should have security features properly configured', () => {
         const testWf = new WebFinger({ 
