@@ -46,7 +46,7 @@
     "test:integration": "bun test test/integration/webfinger.integration.test.ts",
     "test:browser": "wtr --config web-test-runner.config.mjs",
     "test:unit": "bun run build && bun run test:ts && bun run test:js",
-    "test": "bun run test:unit && bun run test:integration && bun run test:browser"
+    "test": "bun run test:unit && bun run test:integration && bun run test:browser",
     "prepare-release": "./scripts/prepare-release.sh",
     "prepare-release:patch": "./scripts/prepare-release.sh patch",
     "prepare-release:minor": "./scripts/prepare-release.sh minor",
