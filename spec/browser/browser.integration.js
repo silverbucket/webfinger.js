@@ -69,7 +69,9 @@ describe('WebFinger Browser Tests', () => {
     });
 
     it('should work with browser globals', () => {
+      // eslint-disable-next-line @typescript-eslint/no-unused-expressions
       expect(window.location).to.exist;
+      // eslint-disable-next-line @typescript-eslint/no-unused-expressions
       expect(document).to.exist;
     });
   });

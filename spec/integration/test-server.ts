@@ -8,7 +8,6 @@ export interface WebFingerTestServer {
 }
 
 export function createWebFingerTestServer(port = 0): WebFingerTestServer {
-  let server: Server;
   let actualPort: number;
 
   const getMockResponse = (resource: string, port: number) => {
@@ -48,7 +47,7 @@ export function createWebFingerTestServer(port = 0): WebFingerTestServer {
     return null;
   };
 
-  server = createServer((req, res) => {
+  const server = createServer((req, res) => {
     // Set CORS headers
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
