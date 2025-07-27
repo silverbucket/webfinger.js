@@ -36,7 +36,7 @@
     "email": "nick@silverbucket.net"
   },
   "scripts": {
-    "build": "bun run tsc && bun scripts/build.js --output .tmp/webfinger.js",
+    "build": "bun run tsc --project tsconfig.dev.json && bun scripts/build.js --output .tmp/webfinger.js",
     "build:release": "bun run tsc && bun scripts/build.js --output dist/webfinger.js",
     "build:clean": "rm -rf dist && bun run build:release",
     "prepublishOnly": "bun run build:clean",
@@ -46,9 +46,7 @@
     "test:integration": "bun test test/integration/webfinger.integration.test.ts",
     "test:browser": "wtr --config web-test-runner.config.mjs",
     "test:unit": "bun run build && bun run test:ts && bun run test:js",
-    "test": "bun run test:unit; bun run test:integration; bun run test:browser",
-    "test:all": "bun run test:unit && bun run test:integration && bun run test:browser",
-    "test:ci": "bun run lint && bun run test",
+    "test": "bun run test:unit && bun run test:integration && bun run test:browser"
     "prepare-release": "./scripts/prepare-release.sh",
     "prepare-release:patch": "./scripts/prepare-release.sh patch",
     "prepare-release:minor": "./scripts/prepare-release.sh minor",
