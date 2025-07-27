@@ -1,7 +1,7 @@
 import { puppeteerLauncher } from '@web/test-runner-puppeteer';
 
 export default {
-  files: 'test/browser/**/*.test.js',
+  files: 'spec/browser/**/*.integration.js',
   nodeResolve: true,
   browsers: [
     puppeteerLauncher({
