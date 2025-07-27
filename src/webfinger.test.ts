@@ -127,4 +127,76 @@ describe('WebFinger', () => {
       }
     });
   });
+
+  describe('Content-Type Warnings', () => {
+    it('should warn when server returns non-JRD content type', async () => {
+      const originalFetch = globalThis.fetch;
+      const originalConsoleWarn = console.warn;
+      let warningMessage = '';
+
+      // Mock console.warn to capture warnings
+      console.warn = (message: string) => {
+        warningMessage = message;
+      };
+
+      // Mock fetch to return application/json instead of application/jrd+json
+      globalThis.fetch = async () => {
+        return new Response(JSON.stringify({
+          subject: 'acct:test@example.com',
+          links: []
+        }), {
+          status: 200,
+          headers: {
+            'content-type': 'application/json'
+          }
+        });
+      };
+
+      try {
+        const testWf = new WebFinger({ request_timeout: 1000 });
+        await testWf.lookup('test@example.com');
+        
+        expect(warningMessage).toContain('WebFinger: Server returned content-type "application/json"');
+        expect(warningMessage).toContain('application/jrd+json');
+        expect(warningMessage).toContain('RFC 7033');
+      } finally {
+        globalThis.fetch = originalFetch;
+        console.warn = originalConsoleWarn;
+      }
+    });
+
+    it('should not warn when server returns correct content type', async () => {
+      const originalFetch = globalThis.fetch;
+      const originalConsoleWarn = console.warn;
+      let warningCalled = false;
+
+      // Mock console.warn to detect if it's called
+      console.warn = () => {
+        warningCalled = true;
+      };
+
+      // Mock fetch to return correct application/jrd+json
+      globalThis.fetch = async () => {
+        return new Response(JSON.stringify({
+          subject: 'acct:test@example.com',
+          links: []
+        }), {
+          status: 200,
+          headers: {
+            'content-type': 'application/jrd+json'
+          }
+        });
+      };
+
+      try {
+        const testWf = new WebFinger({ request_timeout: 1000 });
+        await testWf.lookup('test@example.com');
+        
+        expect(warningCalled).toBe(false);
+      } finally {
+        globalThis.fetch = originalFetch;
+        console.warn = originalConsoleWarn;
+      }
+    });
+  });
 });
