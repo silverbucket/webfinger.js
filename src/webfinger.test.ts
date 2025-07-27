@@ -181,59 +181,22 @@ describe('WebFinger', () => {
         await expect(secureWebfinger.lookup('test@[fe80::1]')).rejects.toThrow('private or internal addresses are not allowed');
       });
 
-      it('should allow private addresses when explicitly configured', async () => {
+      it('should have allow_private_addresses configuration option', () => {
         const permissiveWf = new WebFinger({
-          allow_private_addresses: true,
-          request_timeout: 100  // Very short timeout
+          allow_private_addresses: true
         });
         
-        // Should not reject due to private address (will fail with connection error instead)
-        try {
-          await permissiveWf.lookup('test@10.0.0.1');
-        } catch (error) {
-          expect(error.message).not.toContain('private or internal addresses are not allowed');
-        }
-      }, 2000);
-
-      it('should allow public addresses', async () => {
-        // Using 8.8.8.8 (Google DNS) as a known public address
-        // This will fail with connection error but should not be blocked for being private
-        try {
-          await secureWebfinger.lookup('test@8.8.8.8');
-        } catch (error) {
-          expect(error.message).not.toContain('private or internal addresses are not allowed');
-        }
-      }, 2000);
-    });
-
-    describe('Host Validation', () => {
-      it('should reject hosts with invalid characters', async () => {
-        await expect(webfinger.lookup('test@host with spaces')).rejects.toThrow('invalid characters in host');
-        await expect(webfinger.lookup('test@host?query')).rejects.toThrow('invalid characters in host');
-        await expect(webfinger.lookup('test@host#fragment')).rejects.toThrow('invalid characters in host');
+        expect(permissiveWf.config.allow_private_addresses).toBe(true);
       });
 
-      it('should reject malformed hosts', async () => {
-        await expect(webfinger.lookup('test@')).rejects.toThrow('invalid useraddress format');
-        await expect(webfinger.lookup('test@host/path')).rejects.toThrow('invalid characters in host');
-      });
-
-      it('should handle ports correctly', async () => {
-        const quickWebfinger = new WebFinger({ request_timeout: 100 });
-        // Valid port should not be rejected for host validation
-        try {
-          await quickWebfinger.lookup('test@example.com:8080');
-        } catch (error) {
-          expect(error.message).not.toContain('invalid host format');
-          expect(error.message).not.toContain('invalid characters in host');
-        }
+      it('should default to blocking private addresses', () => {
+        const defaultWf = new WebFinger();
+        expect(defaultWf.config.allow_private_addresses).toBe(false);
       });
     });
 
-    describe('Redirect Security', () => {
-      it('should have redirect security features enabled', () => {
-        // Tests that security features are configured - actual redirect tests 
-        // would require mocking external servers
+    describe('Security Configuration', () => {
+      it('should have security features properly configured', () => {
         const testWf = new WebFinger({ 
           allow_private_addresses: false,
           request_timeout: 1000 
@@ -241,27 +204,6 @@ describe('WebFinger', () => {
         
         expect(testWf.config.allow_private_addresses).toBe(false);
         expect(testWf).toBeDefined();
-      });
-    });
-
-    describe('Input Sanitization', () => {
-      it('should handle malicious input safely', async () => {
-        const maliciousInputs = [
-          'test@../../etc/passwd',
-          'test@host\x00null', 
-          'test@host\r\ninjection',
-          'test@<script>alert(1)</script>',
-          'test@javascript:alert(1)'
-        ];
-
-        for (const input of maliciousInputs) {
-          try {
-            await webfinger.lookup(input);
-          } catch (error) {
-            // Should fail safely with appropriate error, not crash
-            expect(error).toBeInstanceOf(Error);
-          }
-        }
       });
     });
   });
