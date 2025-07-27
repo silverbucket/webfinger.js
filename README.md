@@ -78,36 +78,7 @@ const result = await webfinger.lookup('user@domain.com');
 
 ## Security
 
-### SSRF Protection
-
-This library includes comprehensive protection against Server-Side Request Forgery (SSRF) attacks by default:
-
-- **Private address blocking**: Prevents requests to localhost, private IP ranges, and internal networks
-- **Path injection prevention**: Validates host formats to prevent directory traversal attacks
-- **Redirect validation**: Prevents redirect-based SSRF attacks to private networks
-- **ActivityPub compliance**: Follows [ActivityPub security guidelines](https://www.w3.org/TR/activitypub/#security-considerations) (Section B.3)
-
-#### Blocked Addresses
-
-The following address ranges are blocked by default:
-
-- **Localhost**: `localhost`, `127.x.x.x`, `::1`, `localhost.localdomain`
-- **Private IPv4**: `10.x.x.x`, `172.16-31.x.x`, `192.168.x.x`
-- **Link-local**: `169.254.x.x`, `fe80::/10`
-- **Multicast**: `224.x.x.x-239.x.x.x`, `ff00::/8`
-
-#### Development Override
-
-⚠️ **CAUTION**: Only for development/testing environments!
-
-```typescript
-const webfinger = new WebFinger({
-  allow_private_addresses: true  // Disables SSRF protection - DANGEROUS in production!
-});
-
-// This will now work (but should never be used in production)
-await webfinger.lookup('user@localhost:3000');
-```
+webfinger.js includes comprehensive SSRF protection, blocking private networks and validating redirects by default. For detailed security information, see **[Security Documentation](docs/SECURITY.md)**.
 
 ## Contributing
 
