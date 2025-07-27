@@ -127,4 +127,142 @@ describe('WebFinger', () => {
       }
     });
   });
+
+  describe('Security Features', () => {
+    describe('Private Address Blocking', () => {
+      let secureWebfinger: WebFinger;
+
+      beforeAll(() => {
+        secureWebfinger = new WebFinger({
+          allow_private_addresses: false,
+          request_timeout: 1000
+        });
+      });
+
+      it('should block private IPv4 addresses (10.x.x.x)', async () => {
+        await expect(secureWebfinger.lookup('test@10.0.0.1')).rejects.toThrow('private or internal addresses are not allowed');
+      });
+
+      it('should block private IPv4 addresses (192.168.x.x)', async () => {
+        await expect(secureWebfinger.lookup('test@192.168.1.1')).rejects.toThrow('private or internal addresses are not allowed');
+      });
+
+      it('should block private IPv4 addresses (172.16-31.x.x)', async () => {
+        await expect(secureWebfinger.lookup('test@172.16.0.1')).rejects.toThrow('private or internal addresses are not allowed');
+        await expect(secureWebfinger.lookup('test@172.31.255.255')).rejects.toThrow('private or internal addresses are not allowed');
+      });
+
+      it('should block localhost addresses', async () => {
+        await expect(secureWebfinger.lookup('test@127.0.0.1')).rejects.toThrow('private or internal addresses are not allowed');
+        await expect(secureWebfinger.lookup('test@127.1.1.1')).rejects.toThrow('private or internal addresses are not allowed');
+      });
+
+      it('should block link-local addresses (169.254.x.x)', async () => {
+        await expect(secureWebfinger.lookup('test@169.254.169.254')).rejects.toThrow('private or internal addresses are not allowed');
+      });
+
+      it('should block multicast addresses (224-239.x.x.x)', async () => {
+        await expect(secureWebfinger.lookup('test@224.0.0.1')).rejects.toThrow('private or internal addresses are not allowed');
+        await expect(secureWebfinger.lookup('test@239.255.255.255')).rejects.toThrow('private or internal addresses are not allowed');
+      });
+
+      it('should block reserved addresses (240+.x.x.x)', async () => {
+        await expect(secureWebfinger.lookup('test@240.0.0.1')).rejects.toThrow('private or internal addresses are not allowed');
+        await expect(secureWebfinger.lookup('test@255.255.255.255')).rejects.toThrow('private or internal addresses are not allowed');
+      });
+
+      it('should block IPv6 localhost', async () => {
+        await expect(secureWebfinger.lookup('test@[::1]')).rejects.toThrow('private or internal addresses are not allowed');
+      });
+
+      it('should block IPv6 private addresses', async () => {
+        await expect(secureWebfinger.lookup('test@[fc00::1]')).rejects.toThrow('private or internal addresses are not allowed');
+        await expect(secureWebfinger.lookup('test@[fd12:3456:789a::1]')).rejects.toThrow('private or internal addresses are not allowed');
+        await expect(secureWebfinger.lookup('test@[fe80::1]')).rejects.toThrow('private or internal addresses are not allowed');
+      });
+
+      it('should allow private addresses when explicitly configured', async () => {
+        const permissiveWf = new WebFinger({
+          allow_private_addresses: true,
+          request_timeout: 100  // Very short timeout
+        });
+        
+        // Should not reject due to private address (will fail with connection error instead)
+        try {
+          await permissiveWf.lookup('test@10.0.0.1');
+        } catch (error) {
+          expect(error.message).not.toContain('private or internal addresses are not allowed');
+        }
+      }, 2000);
+
+      it('should allow public addresses', async () => {
+        // Using 8.8.8.8 (Google DNS) as a known public address
+        // This will fail with connection error but should not be blocked for being private
+        try {
+          await secureWebfinger.lookup('test@8.8.8.8');
+        } catch (error) {
+          expect(error.message).not.toContain('private or internal addresses are not allowed');
+        }
+      }, 2000);
+    });
+
+    describe('Host Validation', () => {
+      it('should reject hosts with invalid characters', async () => {
+        await expect(webfinger.lookup('test@host with spaces')).rejects.toThrow('invalid characters in host');
+        await expect(webfinger.lookup('test@host?query')).rejects.toThrow('invalid characters in host');
+        await expect(webfinger.lookup('test@host#fragment')).rejects.toThrow('invalid characters in host');
+      });
+
+      it('should reject malformed hosts', async () => {
+        await expect(webfinger.lookup('test@')).rejects.toThrow('invalid useraddress format');
+        await expect(webfinger.lookup('test@host/path')).rejects.toThrow('invalid characters in host');
+      });
+
+      it('should handle ports correctly', async () => {
+        const quickWebfinger = new WebFinger({ request_timeout: 100 });
+        // Valid port should not be rejected for host validation
+        try {
+          await quickWebfinger.lookup('test@example.com:8080');
+        } catch (error) {
+          expect(error.message).not.toContain('invalid host format');
+          expect(error.message).not.toContain('invalid characters in host');
+        }
+      });
+    });
+
+    describe('Redirect Security', () => {
+      it('should have redirect security features enabled', () => {
+        // Tests that security features are configured - actual redirect tests 
+        // would require mocking external servers
+        const testWf = new WebFinger({ 
+          allow_private_addresses: false,
+          request_timeout: 1000 
+        });
+        
+        expect(testWf.config.allow_private_addresses).toBe(false);
+        expect(testWf).toBeDefined();
+      });
+    });
+
+    describe('Input Sanitization', () => {
+      it('should handle malicious input safely', async () => {
+        const maliciousInputs = [
+          'test@../../etc/passwd',
+          'test@host\x00null', 
+          'test@host\r\ninjection',
+          'test@<script>alert(1)</script>',
+          'test@javascript:alert(1)'
+        ];
+
+        for (const input of maliciousInputs) {
+          try {
+            await webfinger.lookup(input);
+          } catch (error) {
+            // Should fail safely with appropriate error, not crash
+            expect(error).toBeInstanceOf(Error);
+          }
+        }
+      });
+    });
+  });
 });
