@@ -129,14 +129,14 @@ describe('WebFinger', () => {
   });
 
   describe('Content-Type Warnings', () => {
-    it('should warn when server returns non-JRD content type', async () => {
+    it('should debug log when server returns application/json', async () => {
       const originalFetch = globalThis.fetch;
-      const originalConsoleWarn = console.warn;
-      let warningMessage = '';
+      const originalConsoleDebug = console.debug;
+      let debugMessage = '';
 
-      // Mock console.warn to capture warnings
-      console.warn = (message: string) => {
-        warningMessage = message;
+      // Mock console.debug to capture debug messages
+      console.debug = (message: string) => {
+        debugMessage = message;
       };
 
       // Mock fetch to return application/json instead of application/jrd+json
@@ -156,8 +156,42 @@ describe('WebFinger', () => {
         const testWf = new WebFinger({ request_timeout: 1000 });
         await testWf.lookup('test@example.com');
         
-        expect(warningMessage).toContain('WebFinger: Server returned content-type "application/json"');
-        expect(warningMessage).toContain('application/jrd+json');
+        expect(debugMessage).toContain('WebFinger: Server uses "application/json"');
+        expect(debugMessage).toContain('RFC 7033 recommended "application/jrd+json"');
+      } finally {
+        globalThis.fetch = originalFetch;
+        console.debug = originalConsoleDebug;
+      }
+    });
+
+    it('should warn when server returns unexpected content type', async () => {
+      const originalFetch = globalThis.fetch;
+      const originalConsoleWarn = console.warn;
+      let warningMessage = '';
+
+      // Mock console.warn to capture warnings
+      console.warn = (message: string) => {
+        warningMessage = message;
+      };
+
+      // Mock fetch to return unexpected content type
+      globalThis.fetch = async () => {
+        return new Response(JSON.stringify({
+          subject: 'acct:test@example.com',
+          links: []
+        }), {
+          status: 200,
+          headers: {
+            'content-type': 'text/html'
+          }
+        });
+      };
+
+      try {
+        const testWf = new WebFinger({ request_timeout: 1000 });
+        await testWf.lookup('test@example.com');
+        
+        expect(warningMessage).toContain('WebFinger: Server returned unexpected content-type "text/html"');
         expect(warningMessage).toContain('RFC 7033');
       } finally {
         globalThis.fetch = originalFetch;
@@ -168,12 +202,13 @@ describe('WebFinger', () => {
     it('should not warn when server returns correct content type', async () => {
       const originalFetch = globalThis.fetch;
       const originalConsoleWarn = console.warn;
+      const originalConsoleDebug = console.debug;
       let warningCalled = false;
+      let debugCalled = false;
 
-      // Mock console.warn to detect if it's called
-      console.warn = () => {
-        warningCalled = true;
-      };
+      // Mock console functions to detect if they're called
+      console.warn = () => { warningCalled = true; };
+      console.debug = () => { debugCalled = true; };
 
       // Mock fetch to return correct application/jrd+json
       globalThis.fetch = async () => {
@@ -193,9 +228,44 @@ describe('WebFinger', () => {
         await testWf.lookup('test@example.com');
         
         expect(warningCalled).toBe(false);
+        expect(debugCalled).toBe(false);
       } finally {
         globalThis.fetch = originalFetch;
         console.warn = originalConsoleWarn;
+        console.debug = originalConsoleDebug;
+      }
+    });
+
+    it('should handle content-type with charset parameter', async () => {
+      const originalFetch = globalThis.fetch;
+      const originalConsoleDebug = console.debug;
+      let debugMessage = '';
+
+      console.debug = (message: string) => {
+        debugMessage = message;
+      };
+
+      // Mock fetch to return application/json with charset
+      globalThis.fetch = async () => {
+        return new Response(JSON.stringify({
+          subject: 'acct:test@example.com',
+          links: []
+        }), {
+          status: 200,
+          headers: {
+            'content-type': 'application/json; charset=utf-8'
+          }
+        });
+      };
+
+      try {
+        const testWf = new WebFinger({ request_timeout: 1000 });
+        await testWf.lookup('test@example.com');
+        
+        expect(debugMessage).toContain('WebFinger: Server uses "application/json"');
+      } finally {
+        globalThis.fetch = originalFetch;
+        console.debug = originalConsoleDebug;
       }
     });
   });
