@@ -33,40 +33,20 @@ yarn add webfinger.js
 
 ## Quick Start
 
-### TypeScript / ES6+
-
 ```typescript
 import WebFinger from 'webfinger.js';
 
 const webfinger = new WebFinger({
   webfist_fallback: true,
-  tls_only: true
+  tls_only: true  // Security-first: HTTPS only
 });
 
-// Lookup user information
 const result = await webfinger.lookup('nick@silverbucket.net');
 console.log('Name:', result.idx.properties.name);
 console.log('Avatar:', result.idx.links.avatar?.[0]?.href);
 ```
 
-### CommonJS / Node.js
-
-```javascript
-const WebFinger = require('webfinger.js').default;
-
-const webfinger = new WebFinger();
-const result = await webfinger.lookup('user@domain.com');
-```
-
-### Browser
-
-```html
-<script src="https://unpkg.com/webfinger.js/dist/webfinger.js"></script>
-<script>
-  const webfinger = new WebFinger();
-  const result = await webfinger.lookup('user@domain.com');
-</script>
-```
+See **[Usage Examples](docs/EXAMPLES.md)** for comprehensive examples including CommonJS, browser usage, TypeScript patterns, React hooks, and error handling.
 
 ## Documentation
 
@@ -77,23 +57,12 @@ const result = await webfinger.lookup('user@domain.com');
 
 ## Testing
 
-Run the complete test suite including unit, integration, and browser tests:
-
 ```bash
-bun run test        # Complete test suite (recommended)
+bun run test        # Run complete test suite
 bun run lint        # Code linting
 ```
 
-Individual test commands for development:
-
-```bash
-bun run test:unit        # Unit tests (TypeScript + JavaScript)
-bun run test:integration # Integration tests with real servers  
-bun run test:browser     # Browser environment tests
-bun run test:help        # Show all test commands
-```
-
-**Note**: `bun test` runs all tests directly but may have environment issues. Use `bun run test` for the orchestrated test suite.
+See the [Development Guide](docs/DEVELOPMENT.md) for detailed testing information and individual test commands.
 
 ## Contributing
 

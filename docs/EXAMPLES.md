@@ -12,7 +12,7 @@ import WebFinger from 'webfinger.js';
 const webfinger = new WebFinger({
   webfist_fallback: true,  // Enable WebFist fallback
   tls_only: true,         // HTTPS only (recommended)
-  uri_fallback: false,    // Enable host-meta fallback
+  uri_fallback: true,     // Enable host-meta fallback
   request_timeout: 10000  // 10 second timeout
 });
 

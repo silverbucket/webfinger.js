@@ -33,13 +33,13 @@ bun run build:release  # Build optimized release version
 bun run build:clean    # Clean build and rebuild
 
 # Testing
-bun run test           # Run all tests (TypeScript + JavaScript)
-bun run test:ts        # Run TypeScript tests only
-bun run test:js        # Run JavaScript tests only
+bun run test           # Run all tests (unit + integration + browser)
+bun run test:unit      # Unit tests (TypeScript + JavaScript)
+bun run test:integration # Integration tests with real servers
+bun run test:browser   # Browser environment tests
 
 # Code Quality
 bun run lint           # Run ESLint
-bun run test:ci        # Run linting + all tests (CI pipeline)
 
 # Documentation
 bun run docs:generate  # Generate API documentation
@@ -107,27 +107,24 @@ bun scripts/build.js           # Bundle creation with UMD wrapper
 
 ## Testing
 
-Tests are written using a custom testing framework and run against both TypeScript source and compiled JavaScript.
+Tests use Bun's testing framework and cover unit, integration, and browser environments.
 
 ```bash
-# Run all tests
+# Complete test suite (recommended for development)
 bun run test
 
-# Test development build
-bun run test:ts
-
-# Test production build  
-bun run test:js
-
-# Continuous integration tests
-bun run test:ci
+# Individual test types
+bun run test:unit        # Unit tests (TypeScript + JavaScript)
+bun run test:integration # Integration tests with real servers
+bun run test:browser     # Browser environment tests
 ```
 
 ### Test Structure
 
-- Tests are located in the `test/` directory
-- Tests run against both TypeScript source and compiled JavaScript
-- Bun testing framework (not Jest/Mocha)
+- **Unit tests**: `src/webfinger.test.ts` - Core functionality testing
+- **Integration tests**: `spec/integration/` - Real server and local server tests  
+- **Browser tests**: `spec/browser/` - Browser environment compatibility
+- Uses Bun testing framework with comprehensive test coverage
 
 ## Documentation System
 
@@ -245,7 +242,7 @@ Example: `release/v2.8.1`
 
 ### Pull Request Process
 
-1. Ensure all tests pass: `bun run test:ci`
+1. Ensure all tests pass: `bun run test`
 2. Update JSDoc comments for any API changes
 3. Add examples to `docs/EXAMPLES.md` if needed
 4. Create clear commit messages
