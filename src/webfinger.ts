@@ -160,7 +160,7 @@ export default class WebFinger {
 
     // Check Content-Type and warn if not application/jrd+json
     const contentType = response.headers.get('content-type') || '';
-    if (!contentType.includes('application/jrd+json')) {
+    if (!contentType.toLowerCase().startsWith('application/jrd+json')) {
       console.warn(
         `WebFinger: Server returned content-type "${contentType}" instead of "application/jrd+json". ` +
         'This server may not be fully compliant with the WebFinger specification (RFC 7033).'
