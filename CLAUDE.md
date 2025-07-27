@@ -84,6 +84,12 @@ The project features:
 - Build process adds version logging automatically
 - Demo references `dist/webfinger.js` directly
 
+## Dist Directory Policy
+- **CRITICAL**: The `dist/` directory should ONLY contain the latest RELEASED version
+- **NEVER update dist during development or testing** - it should only be updated during the official release process
+- **Do not modify build system** to update dist when tests run - this pollutes the repository with development artifacts
+- Tests should run against source TypeScript files, not compiled dist files (except for specific release validation)
+
 ## Release Process
 - **Prepare Release**: Creates release branch with version bump, build, docs generation
 - **Release Notes**: Managed in `CHANGELOG.md` with manual curation in PR
@@ -97,7 +103,8 @@ The project features:
 
 # Important Instructions
 - **ALWAYS USE BUN**: Never use npm or node commands, always use bun
-- **ALWAYS LINT AND TEST**: Run `bun run lint` and `bun run test` before any commits
+- **ALWAYS LINT AND TEST BEFORE COMMITS**: CRITICAL - Run `bun run lint` and `bun run test` before ANY commit or push. This is non-negotiable.
+- **NEVER UPDATE DIST DURING DEVELOPMENT**: The dist/ directory should only contain the latest released version
 - **Documentation**: API docs are auto-generated - update JSDoc in source code
 - **Never create files unless absolutely necessary**: Prefer editing existing files
 - **No proactive README/docs creation**: Only create documentation if explicitly requested

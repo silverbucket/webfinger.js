@@ -75,6 +75,26 @@ const result = await webfinger.lookup('user@domain.com');
 🛠️ **[Development Guide](docs/DEVELOPMENT.md)** - Contributing and development setup  
 🎮 **[Live Demo](https://silverbucket.github.io/webfinger.js/)** - Interactive WebFinger lookup
 
+## Testing
+
+Run the complete test suite including unit, integration, and browser tests:
+
+```bash
+bun run test        # Complete test suite (recommended)
+bun run lint        # Code linting
+```
+
+Individual test commands for development:
+
+```bash
+bun run test:unit        # Unit tests (TypeScript + JavaScript)
+bun run test:integration # Integration tests with real servers  
+bun run test:browser     # Browser environment tests
+bun run test:help        # Show all test commands
+```
+
+**Note**: `bun test` runs all tests directly but may have environment issues. Use `bun run test` for the orchestrated test suite.
+
 ## Contributing
 
 Contributions are welcome! Please see the [Development Guide](docs/DEVELOPMENT.md) for setup instructions, coding guidelines, and contribution workflow.

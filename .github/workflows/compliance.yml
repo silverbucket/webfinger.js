@@ -25,5 +25,11 @@ jobs:
       - name: Run Linting
         run: bun run lint
         
-      - name: Run Tests
-        run: bun run test
+      - name: Run Unit Tests
+        run: bun run test:unit
+        
+      - name: Run Integration Tests
+        run: bun run test:integration
+        
+      - name: Run Browser Tests
+        run: bun run test:browser
