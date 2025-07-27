@@ -1,0 +1,4 @@
+[test]
+# Configure bun test to run only unit tests by default
+# For complete testing (unit + integration + browser), use: bun run test
+preload = ["./test/test-info.ts"]
