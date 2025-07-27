@@ -162,15 +162,19 @@ export default class WebFinger {
     const contentType = response.headers.get('content-type') || '';
     const lowerContentType = contentType.toLowerCase();
     
-    if (!lowerContentType.includes('application/jrd+json') && !lowerContentType.includes('application/json')) {
+    // Parse main media type (before semicolon for charset/boundary params)
+    const mainType = lowerContentType.split(';')[0].trim();
+    
+    if (mainType === 'application/jrd+json') {
+      // Perfect - RFC 7033 compliant
+    } else if (mainType === 'application/json') {
+      console.debug(
+        `WebFinger: Server uses "application/json" instead of RFC 7033 recommended "application/jrd+json".`
+      );
+    } else {
       console.warn(
         `WebFinger: Server returned unexpected content-type "${contentType}". ` +
         'Expected "application/jrd+json" per RFC 7033.'
-      );
-    } else if (lowerContentType.includes('application/json') && !lowerContentType.includes('application/jrd+json')) {
-      // Use console.debug for less intrusive logging - many servers use application/json
-      console.debug(
-        `WebFinger: Server uses "application/json" instead of RFC 7033 recommended "application/jrd+json".`
       );
     }
 

@@ -202,12 +202,13 @@ describe('WebFinger', () => {
     it('should not warn when server returns correct content type', async () => {
       const originalFetch = globalThis.fetch;
       const originalConsoleWarn = console.warn;
+      const originalConsoleDebug = console.debug;
       let warningCalled = false;
+      let debugCalled = false;
 
-      // Mock console.warn to detect if it's called
-      console.warn = () => {
-        warningCalled = true;
-      };
+      // Mock console functions to detect if they're called
+      console.warn = () => { warningCalled = true; };
+      console.debug = () => { debugCalled = true; };
 
       // Mock fetch to return correct application/jrd+json
       globalThis.fetch = async () => {
@@ -227,9 +228,44 @@ describe('WebFinger', () => {
         await testWf.lookup('test@example.com');
         
         expect(warningCalled).toBe(false);
+        expect(debugCalled).toBe(false);
       } finally {
         globalThis.fetch = originalFetch;
         console.warn = originalConsoleWarn;
+        console.debug = originalConsoleDebug;
+      }
+    });
+
+    it('should handle content-type with charset parameter', async () => {
+      const originalFetch = globalThis.fetch;
+      const originalConsoleDebug = console.debug;
+      let debugMessage = '';
+
+      console.debug = (message: string) => {
+        debugMessage = message;
+      };
+
+      // Mock fetch to return application/json with charset
+      globalThis.fetch = async () => {
+        return new Response(JSON.stringify({
+          subject: 'acct:test@example.com',
+          links: []
+        }), {
+          status: 200,
+          headers: {
+            'content-type': 'application/json; charset=utf-8'
+          }
+        });
+      };
+
+      try {
+        const testWf = new WebFinger({ request_timeout: 1000 });
+        await testWf.lookup('test@example.com');
+        
+        expect(debugMessage).toContain('WebFinger: Server uses "application/json"');
+      } finally {
+        globalThis.fetch = originalFetch;
+        console.debug = originalConsoleDebug;
       }
     });
   });
