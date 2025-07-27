@@ -232,6 +232,15 @@ export default class WebFinger {
       throw new WebFingerError('error during request', response.status);
     }
 
+    // Check Content-Type and warn if not application/jrd+json
+    const contentType = response.headers.get('content-type') || '';
+    if (!contentType.toLowerCase().startsWith('application/jrd+json')) {
+      console.warn(
+        `WebFinger: Server returned content-type "${contentType}" instead of "application/jrd+json". ` +
+        'This server may not be fully compliant with the WebFinger specification (RFC 7033).'
+      );
+    }
+
     const responseText = await response.text();
 
     if (WebFinger.isValidJSON(responseText)) {
