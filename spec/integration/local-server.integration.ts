@@ -66,7 +66,15 @@ describe('WebFinger Controlled Tests', () => {
     });
 
     it('should return 404 for non-existent user', async () => {
-      await expect(webfinger.lookup(`nonexistent@localhost:${serverPort}`))
+      // Create a webfinger instance without fallbacks for this test
+      const noFallbackWebfinger = new WebFinger({
+        tls_only: false,
+        webfist_fallback: false,
+        uri_fallback: false, // Disable fallbacks to test direct 404
+        request_timeout: 5000
+      });
+      
+      await expect(noFallbackWebfinger.lookup(`nonexistent@localhost:${serverPort}`))
         .rejects.toThrow('resource not found');
     });
 
