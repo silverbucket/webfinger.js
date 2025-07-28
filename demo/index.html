@@ -318,6 +318,7 @@
   </div>
 
   <script src="webfinger.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/2.4.0/purify.min.js"></script>
   <script>
     const wf = new WebFinger({
       webfist_fallback: true,
@@ -385,7 +386,7 @@
       if (profile.idx.properties.name) {
         entry += profile.idx.properties.name + '<br>';
       }
-      entry += '<span style="font-size: 0.9em; color: #666;">' + emailAddress + '</span></h3>';
+      entry += '<span style="font-size: 0.9em; color: #666;">' + DOMPurify.sanitize(emailAddress) + '</span></h3>';
 
       // Display avatar if available
       if (profile.idx.links.avatar && profile.idx.links.avatar[0]) {
@@ -415,7 +416,7 @@
           const label = linkLabels[key] || key.charAt(0).toUpperCase() + key.slice(1);
           links.forEach((record, index) => {
             const displayLabel = index === 0 ? label : `${label} (${index + 1})`;
-            entry += `<p><strong>${displayLabel}:</strong> <a href="${record.href}" target="_blank">${record.href}</a></p>`;
+            entry += `<p><strong>${DOMPurify.sanitize(displayLabel)}:</strong> <a href="${DOMPurify.sanitize(record.href)}" target="_blank">${DOMPurify.sanitize(record.href)}</a></p>`;
           });
         }
       });
@@ -424,7 +425,7 @@
       entry += '</div>';
 
       const results = document.getElementById("results");
-      results.innerHTML = entry; // Replace previous results
+      results.innerHTML = DOMPurify.sanitize(entry); // Replace previous results
     }
 
     // Demo is ready - no auto-loading
