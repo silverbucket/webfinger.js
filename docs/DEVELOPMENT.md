@@ -45,10 +45,6 @@ bun run lint           # Run ESLint
 bun run docs:generate  # Generate API documentation
 bun run docs:watch     # Watch mode for documentation
 
-# Release Management
-bun run prepare-release:patch   # Prepare patch release
-bun run prepare-release:minor   # Prepare minor release  
-bun run prepare-release:major   # Prepare major release
 ```
 
 ### Development Commands
@@ -184,45 +180,7 @@ bun run lint
 
 ## Release Process
 
-The project uses an automated release process with manual preparation:
-
-### Preparing a Release
-
-```bash
-# Patch release (bug fixes)
-bun run prepare-release:patch
-
-# Minor release (new features)
-bun run prepare-release:minor
-
-# Major release (breaking changes)  
-bun run prepare-release:major
-```
-
-### Release Workflow
-
-1. **Prepare Release** (manual or GitHub Actions)
-   - Version bump in `package.json`
-   - Build optimized bundle
-   - Generate fresh API documentation
-   - Update demo page
-   - Create release branch and PR
-
-2. **Review and Edit**
-   - Review the release PR
-   - Edit `CHANGELOG.md` to curate release notes
-   - Test the demo deployment
-
-3. **Publish** (automatic on PR merge)
-   - Create git tag
-   - Create GitHub release
-   - Publish to NPM
-
-### Release Branch Structure
-
-Release branches follow the pattern: `release/v{version}`
-
-Example: `release/v2.8.1`
+For release instructions, see **[RELEASE.md](RELEASE.md)** - the complete guide to creating releases using GitHub Actions or manual methods.
 
 ## Contributing Guidelines
 
