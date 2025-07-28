@@ -149,9 +149,32 @@
       transition: all 0.2s;
     }
 
-    .lookup-btn:hover {
+    .lookup-btn:hover:not(:disabled) {
       background: #5a67d8;
       transform: translateY(-1px);
+    }
+
+    .lookup-btn:disabled {
+      background: #a0aec0;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .loading-spinner {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border: 2px solid #ffffff;
+      border-radius: 50%;
+      border-top-color: transparent;
+      animation: spin 1s ease-in-out infinite;
+      margin-right: 8px;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
     }
 
     .examples {
@@ -377,6 +400,22 @@
       errorDiv.appendChild(errorEl);
     }
 
+    function setLoadingState(isLoading) {
+      const exampleButtons = document.querySelectorAll('[data-example]');
+      
+      if (isLoading) {
+        lookupBtn.disabled = true;
+        lookupBtn.innerHTML = '<span class="loading-spinner"></span>Looking up...';
+        emailInput.disabled = true;
+        exampleButtons.forEach(btn => btn.disabled = true);
+      } else {
+        lookupBtn.disabled = false;
+        lookupBtn.textContent = 'Lookup';
+        emailInput.disabled = false;
+        exampleButtons.forEach(btn => btn.disabled = false);
+      }
+    }
+
     function tryExample(address) {
       emailInput.value = address;
       performLookup();
@@ -390,6 +429,7 @@
       }
 
       clearError();
+      setLoadingState(true);
       queryWebfinger(emailAddress);
     }
 
@@ -403,6 +443,8 @@
       } catch (err) {
         console.error('Error getting WebFinger data:', err.message);
         showError(err.message, emailAddress);
+      } finally {
+        setLoadingState(false);
       }
     }
 
