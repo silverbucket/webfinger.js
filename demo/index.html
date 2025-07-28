@@ -343,9 +343,24 @@
       document.getElementById('error').innerHTML = '';
     }
 
+    function escapeHTML(str) {
+      return str.replace(/[&<>"']/g, function (char) {
+        const escapeMap = {
+          '&': '&amp;',
+          '<': '&lt;',
+          '>': '&gt;',
+          '"': '&quot;',
+          "'": '&#39;'
+        };
+        return escapeMap[char];
+      });
+    }
+
     function showError(message, address) {
+      const sanitizedMessage = escapeHTML(message);
+      const sanitizedAddress = escapeHTML(address);
       document.getElementById('error').innerHTML =
-        `<div class="error">${message} for ${address}</div>`;
+        `<div class="error">${sanitizedMessage} for ${sanitizedAddress}</div>`;
     }
 
     function tryExample(address) {
