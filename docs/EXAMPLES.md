@@ -18,7 +18,7 @@ const webfinger = new WebFinger({
 
 // Using async/await (modern approach)
 try {
-  const result = await webfinger.lookup('nick@silverbucket.net');
+  const result = await webfinger.lookup('user@example.org');
   console.log('User info:', result.idx.properties);
   console.log('Avatar:', result.idx.links.avatar?.[0]?.href);
   console.log('Blog:', result.idx.links.blog?.[0]?.href);
@@ -28,7 +28,7 @@ try {
 
 // Look up specific link relations
 try {
-  const storage = await webfinger.lookupLink('nick@silverbucket.net', 'remotestorage');
+  const storage = await webfinger.lookupLink('user@example.org', 'remotestorage');
   console.log('Remote storage endpoint:', storage.href);
 } catch (error) {
   console.error('No remote storage found:', error.message);
@@ -48,7 +48,7 @@ const webfinger = new WebFinger({
 // Using async/await
 (async () => {
   try {
-    const result = await webfinger.lookup('nick@silverbucket.net');
+    const result = await webfinger.lookup('user@example.org');
     console.log('User info:', result.idx.properties);
     console.log('Links:', result.idx.links);
   } catch (error) {
@@ -104,7 +104,7 @@ async function getProfile(address: string) {
 }
 
 // Usage
-const profile = await getProfile('nick@silverbucket.net');
+const profile = await getProfile('user@example.org');
 console.log(profile);
 ```
 
@@ -176,7 +176,7 @@ interface UserProfile {
 
 // Usage
 const profileService = new ProfileService();
-const profile = await profileService.getUserProfile('nick@silverbucket.net');
+const profile = await profileService.getUserProfile('user@example.org');
 ```
 
 ### React Hook Example
