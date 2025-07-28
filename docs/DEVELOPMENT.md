@@ -26,29 +26,10 @@ bun install
 
 ### Available Scripts
 
+For a complete list of development commands with descriptions, run:
+
 ```bash
-# Development
-bun run build          # Build TypeScript for development
-bun run build:release  # Build optimized release version
-bun run build:clean    # Clean build and rebuild
-
-# Testing
-bun run test           # Run all tests (TypeScript + JavaScript)
-bun run test:ts        # Run TypeScript tests only
-bun run test:js        # Run JavaScript tests only
-
-# Code Quality
-bun run lint           # Run ESLint
-bun run test:ci        # Run linting + all tests (CI pipeline)
-
-# Documentation
-bun run docs:generate  # Generate API documentation
-bun run docs:watch     # Watch mode for documentation
-
-# Release Management
-bun run prepare-release:patch   # Prepare patch release
-bun run prepare-release:minor   # Prepare minor release  
-bun run prepare-release:major   # Prepare major release
+bun run help
 ```
 
 ### Development Commands
@@ -107,27 +88,24 @@ bun scripts/build.js           # Bundle creation with UMD wrapper
 
 ## Testing
 
-Tests are written using a custom testing framework and run against both TypeScript source and compiled JavaScript.
+Tests use Bun's testing framework and cover unit, integration, and browser environments.
 
 ```bash
-# Run all tests
+# Complete test suite (recommended for development)
 bun run test
 
-# Test development build
-bun run test:ts
-
-# Test production build  
-bun run test:js
-
-# Continuous integration tests
-bun run test:ci
+# Individual test types
+bun run test:unit        # Unit tests (TypeScript + JavaScript)
+bun run test:integration # Integration tests with real servers
+bun run test:browser     # Browser environment tests
 ```
 
 ### Test Structure
 
-- Tests are located in the `test/` directory
-- Tests run against both TypeScript source and compiled JavaScript
-- Bun testing framework (not Jest/Mocha)
+- **Unit tests**: `src/webfinger.test.ts` - Core functionality testing
+- **Integration tests**: `spec/integration/` - Real server and local server tests  
+- **Browser tests**: `spec/browser/` - Browser environment compatibility
+- Uses Bun testing framework with comprehensive test coverage
 
 ## Documentation System
 
@@ -187,45 +165,7 @@ bun run lint
 
 ## Release Process
 
-The project uses an automated release process with manual preparation:
-
-### Preparing a Release
-
-```bash
-# Patch release (bug fixes)
-bun run prepare-release:patch
-
-# Minor release (new features)
-bun run prepare-release:minor
-
-# Major release (breaking changes)  
-bun run prepare-release:major
-```
-
-### Release Workflow
-
-1. **Prepare Release** (manual or GitHub Actions)
-   - Version bump in `package.json`
-   - Build optimized bundle
-   - Generate fresh API documentation
-   - Update demo page
-   - Create release branch and PR
-
-2. **Review and Edit**
-   - Review the release PR
-   - Edit `CHANGELOG.md` to curate release notes
-   - Test the demo deployment
-
-3. **Publish** (automatic on PR merge)
-   - Create git tag
-   - Create GitHub release
-   - Publish to NPM
-
-### Release Branch Structure
-
-Release branches follow the pattern: `release/v{version}`
-
-Example: `release/v2.8.1`
+For release instructions, see **[RELEASE.md](RELEASE.md)** - the complete guide to creating releases using GitHub Actions or manual methods.
 
 ## Contributing Guidelines
 
@@ -245,7 +185,7 @@ Example: `release/v2.8.1`
 
 ### Pull Request Process
 
-1. Ensure all tests pass: `bun run test:ci`
+1. Ensure all tests pass: `bun run test`
 2. Update JSDoc comments for any API changes
 3. Add examples to `docs/EXAMPLES.md` if needed
 4. Create clear commit messages

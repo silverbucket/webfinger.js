@@ -149,9 +149,32 @@
       transition: all 0.2s;
     }
 
-    .lookup-btn:hover {
+    .lookup-btn:hover:not(:disabled) {
       background: #5a67d8;
       transform: translateY(-1px);
+    }
+
+    .lookup-btn:disabled {
+      background: #a0aec0;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .loading-spinner {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border: 2px solid #ffffff;
+      border-radius: 50%;
+      border-top-color: transparent;
+      animation: spin 1s ease-in-out infinite;
+      margin-right: 8px;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
     }
 
     .examples {
@@ -290,15 +313,16 @@
           Enter an email-like address to discover WebFinger information. The library will query the domain's WebFinger endpoint and return available profile links and metadata.
         </p>
 
-        <form name="webfinger">
+        <form id="webfinger-form">
           <div class="input-container">
             <input
+              id="email-input"
               name="email_address"
               placeholder="user@example.com"
               value=""
               autocomplete="off"
             />
-            <button type="button" class="lookup-btn" onclick="performLookup()">
+            <button type="button" id="lookup-btn" class="lookup-btn">
               Lookup
             </button>
           </div>
@@ -306,8 +330,8 @@
 
         <div class="examples">
           Try examples:
-          <button onclick="tryExample('nick@silverbucket.net')">nick@silverbucket.net</button>
-          <button onclick="tryExample('paulej@packetizer.com')">paulej@packetizer.com</button>
+          <button data-example="nick@silverbucket.net">nick@silverbucket.net</button>
+          <button data-example="paulej@packetizer.com">paulej@packetizer.com</button>
         </div>
 
         <div id="error"></div>
@@ -324,43 +348,88 @@
       uri_fallback: true
     });
 
-    // Handle form submission
-    document.webfinger.onkeydown = function (evt) {
-      const keyCode = evt ? (evt.which ? evt.which : evt.keyCode) : event.keyCode;
-      if (keyCode === 13) {
+    // Get DOM elements
+    const form = document.getElementById('webfinger-form');
+    const emailInput = document.getElementById('email-input');
+    const lookupBtn = document.getElementById('lookup-btn');
+    const errorDiv = document.getElementById('error');
+    const resultsDiv = document.getElementById('results');
+
+    // Initialize event listeners
+    document.addEventListener('DOMContentLoaded', function() {
+      // Form submission
+      form.addEventListener('submit', function(e) {
+        e.preventDefault();
         performLookup();
-        return false;
-      } else if (keyCode === 27) {
-        document.webfinger.email_address.value = '';
-        clearError();
-      } else {
-        clearError();
-        return true;
-      }
-    };
+      });
+
+      // Lookup button click
+      lookupBtn.addEventListener('click', performLookup);
+
+      // Keyboard handling
+      emailInput.addEventListener('keydown', function(evt) {
+        const keyCode = evt.keyCode || evt.which;
+        if (keyCode === 13) {
+          evt.preventDefault();
+          performLookup();
+        } else if (keyCode === 27) {
+          emailInput.value = '';
+          clearError();
+        } else {
+          clearError();
+        }
+      });
+
+      // Example buttons
+      document.querySelectorAll('[data-example]').forEach(button => {
+        button.addEventListener('click', function() {
+          tryExample(this.getAttribute('data-example'));
+        });
+      });
+    });
 
     function clearError() {
-      document.getElementById('error').innerHTML = '';
+      errorDiv.textContent = '';
     }
 
     function showError(message, address) {
-      document.getElementById('error').innerHTML =
-        `<div class="error">${message} for ${address}</div>`;
+      errorDiv.textContent = '';
+      const errorEl = document.createElement('div');
+      errorEl.className = 'error';
+      errorEl.textContent = `${message} for ${address}`;
+      errorDiv.appendChild(errorEl);
+    }
+
+    function setLoadingState(isLoading) {
+      const exampleButtons = document.querySelectorAll('[data-example]');
+      
+      if (isLoading) {
+        lookupBtn.disabled = true;
+        lookupBtn.innerHTML = '<span class="loading-spinner"></span>Looking up...';
+        emailInput.disabled = true;
+        exampleButtons.forEach(btn => btn.disabled = true);
+      } else {
+        lookupBtn.disabled = false;
+        lookupBtn.textContent = 'Lookup';
+        emailInput.disabled = false;
+        exampleButtons.forEach(btn => btn.disabled = false);
+      }
     }
 
     function tryExample(address) {
-      document.webfinger.email_address.value = address;
+      emailInput.value = address;
       performLookup();
     }
 
     function performLookup() {
-      const emailAddress = document.webfinger.email_address.value.trim();
+      const emailAddress = emailInput.value.trim();
       if (!emailAddress) {
         showError('Please enter an email address', '');
         return;
       }
 
       clearError();
+      setLoadingState(true);
       queryWebfinger(emailAddress);
     }
 
@@ -374,25 +443,40 @@
       } catch (err) {
         console.error('Error getting WebFinger data:', err.message);
         showError(err.message, emailAddress);
+      } finally {
+        setLoadingState(false);
       }
     }
 
     function displayResult(emailAddress, profile) {
-      let entry = '<div class="result">';
+      // Clear previous results
+      resultsDiv.textContent = '';
+      
+      // Create result container
+      const resultDiv = document.createElement('div');
+      resultDiv.className = 'result';
       
       // Header with name and address
-      entry += '<h3>';
+      const header = document.createElement('h3');
       if (profile.idx.properties.name) {
-        entry += profile.idx.properties.name + '<br>';
+        header.textContent = profile.idx.properties.name;
+        header.appendChild(document.createElement('br'));
       }
-      entry += '<span style="font-size: 0.9em; color: #666;">' + emailAddress + '</span></h3>';
+      const addressSpan = document.createElement('span');
+      addressSpan.style.fontSize = '0.9em';
+      addressSpan.style.color = '#666';
+      addressSpan.textContent = emailAddress;
+      header.appendChild(addressSpan);
+      resultDiv.appendChild(header);
 
       // Display avatar if available
       if (profile.idx.links.avatar && profile.idx.links.avatar[0]) {
-        entry += `<img src="${profile.idx.links.avatar[0].href}" alt="Avatar" style="float: right; margin-left: 1rem;">`;
+        const img = document.createElement('img');
+        img.src = profile.idx.links.avatar[0].href;
+        img.alt = 'Avatar';
+        img.style.cssText = 'float: right; margin-left: 1rem; max-width: 120px; height: auto; border-radius: 8px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);';
+        resultDiv.appendChild(img);
       }
-
-      // Show basic info (name and address already in header)
 
       // Display links with better formatting
       const linkLabels = {
@@ -414,17 +498,29 @@
         if (Array.isArray(links) && links.length > 0) {
           const label = linkLabels[key] || key.charAt(0).toUpperCase() + key.slice(1);
           links.forEach((record, index) => {
+            const p = document.createElement('p');
+            const strong = document.createElement('strong');
             const displayLabel = index === 0 ? label : `${label} (${index + 1})`;
-            entry += `<p><strong>${displayLabel}:</strong> <a href="${record.href}" target="_blank">${record.href}</a></p>`;
+            strong.textContent = `${displayLabel}: `;
+            
+            const link = document.createElement('a');
+            link.href = record.href;
+            link.target = '_blank';
+            link.textContent = record.href;
+            
+            p.appendChild(strong);
+            p.appendChild(link);
+            resultDiv.appendChild(p);
           });
         }
       });
 
-      entry += '<div style="clear: both;"></div>'; // Clear the float
-      entry += '</div>';
+      // Clear float
+      const clearDiv = document.createElement('div');
+      clearDiv.style.clear = 'both';
+      resultDiv.appendChild(clearDiv);
 
-      const results = document.getElementById("results");
-      results.innerHTML = entry; // Replace previous results
+      resultsDiv.appendChild(resultDiv);
     }
 
     // Demo is ready - no auto-loading

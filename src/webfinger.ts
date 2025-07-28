@@ -78,6 +78,7 @@ export type WebFingerConfig = {
  * JSON Resource Descriptor - Raw WebFinger response format
  */
 export type JRD = {
+  subject?: string,
   links: Array<Record<string, unknown>>,
   properties?: Record<string, unknown>,
   error?: string,
@@ -232,12 +233,23 @@ export default class WebFinger {
       throw new WebFingerError('error during request', response.status);
     }
 
-    // Check Content-Type and warn if not application/jrd+json
+    // Check Content-Type for RFC 7033 compliance (informational only)
     const contentType = response.headers.get('content-type') || '';
-    if (!contentType.toLowerCase().startsWith('application/jrd+json')) {
+    const lowerContentType = contentType.toLowerCase();
+    
+    // Parse main media type (before semicolon for charset/boundary params)
+    const mainType = lowerContentType.split(';')[0].trim();
+    
+    if (mainType === 'application/jrd+json') {
+      // Perfect - RFC 7033 compliant
+    } else if (mainType === 'application/json') {
+      console.debug(
+        `WebFinger: Server uses "application/json" instead of RFC 7033 recommended "application/jrd+json".`
+      );
+    } else {
       console.warn(
-        `WebFinger: Server returned content-type "${contentType}" instead of "application/jrd+json". ` +
-        'This server may not be fully compliant with the WebFinger specification (RFC 7033).'
+        `WebFinger: Server returned unexpected content-type "${contentType}". ` +
+        'Expected "application/jrd+json" per RFC 7033.'
       );
     }
 
