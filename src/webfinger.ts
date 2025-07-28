@@ -65,6 +65,7 @@ export type WebFingerConfig = {
  * JSON Resource Descriptor - Raw WebFinger response format
  */
 export type JRD = {
+  subject?: string,
   links: Array<Record<string, unknown>>,
   properties?: Record<string, unknown>,
   error?: string,
