@@ -26,25 +26,10 @@ bun install
 
 ### Available Scripts
 
+For a complete list of development commands with descriptions, run:
+
 ```bash
-# Development
-bun run build          # Build TypeScript for development
-bun run build:release  # Build optimized release version
-bun run build:clean    # Clean build and rebuild
-
-# Testing
-bun run test           # Run all tests (unit + integration + browser)
-bun run test:unit      # Unit tests (TypeScript + JavaScript)
-bun run test:integration # Integration tests with real servers
-bun run test:browser   # Browser environment tests
-
-# Code Quality
-bun run lint           # Run ESLint
-
-# Documentation
-bun run docs:generate  # Generate API documentation
-bun run docs:watch     # Watch mode for documentation
-
+bun run help
 ```
 
 ### Development Commands

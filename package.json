@@ -47,13 +47,14 @@
     "test:browser": "wtr --config web-test-runner.config.mjs",
     "test:unit": "bun run build && bun run test:ts && bun run test:js",
     "test": "bun run test:unit && bun run test:integration && bun run test:browser",
-    "test:help": "echo '🧪 WebFinger.js Test Commands:\n\n✅ bun run test        - Complete test suite (unit + integration + browser)\n📋 bun run test:unit   - Unit tests only (TypeScript + JavaScript)\n🌐 bun run test:browser - Browser tests only\n🔗 bun run test:integration - Integration tests only\n🧹 bun run lint       - Code linting\n\n⚠️  IMPORTANT: \"bun test\" only runs unit tests by design.\n   For complete testing, always use \"bun run test\".\n\n📁 DIST POLICY: Never update dist/ during development.\n   The dist/ directory should only contain the latest RELEASED version.'",
+    "help": "bun scripts/help.js",
     "prepare-release": "./scripts/prepare-release.sh",
     "prepare-release:patch": "./scripts/prepare-release.sh patch",
     "prepare-release:minor": "./scripts/prepare-release.sh minor",
     "prepare-release:major": "./scripts/prepare-release.sh major",
     "docs:generate": "typedoc",
-    "docs:watch": "typedoc --watch"
+    "docs:watch": "typedoc --watch",
+    "demo:serve": "bun run build && bun scripts/serve-demo.js"
   },
   "repository": {
     "type": "git",
