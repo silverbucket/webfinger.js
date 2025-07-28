@@ -41,7 +41,7 @@ const webfinger = new WebFinger({
   tls_only: true  // Security-first: HTTPS only
 });
 
-const result = await webfinger.lookup('nick@silverbucket.net');
+const result = await webfinger.lookup('user@example.org');
 console.log('Name:', result.idx.properties.name);
 console.log('Avatar:', result.idx.links.avatar?.[0]?.href);
 ```
