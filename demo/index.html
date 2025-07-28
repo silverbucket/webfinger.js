@@ -340,12 +340,16 @@
     };
 
     function clearError() {
-      document.getElementById('error').innerHTML = '';
+      const errorElement = document.getElementById('error');
+      errorElement.textContent = '';
     }
 
     function showError(message, address) {
-      document.getElementById('error').innerHTML =
-        `<div class="error">${message} for ${address}</div>`;
+      const errorElement = document.getElementById('error');
+      const errorDiv = document.createElement('div');
+      errorDiv.className = 'error';
+      errorDiv.textContent = `${message} for ${address}`;
+      errorElement.appendChild(errorDiv);
     }
 
     function tryExample(address) {
