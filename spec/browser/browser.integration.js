@@ -26,7 +26,8 @@ describe('WebFinger Browser Tests', () => {
     webfinger = new WebFinger({
       webfist_fallback: true,
       uri_fallback: true,
-      request_timeout: 5000
+      request_timeout: 5000,
+      allow_private_addresses: true // Allow localhost for browser tests
     });
   });
 
@@ -107,7 +108,8 @@ describe('WebFinger Browser Tests', () => {
     it('should perform successful WebFinger lookup with mock server', async () => {
       const wf = new WebFinger({
         tls_only: false,
-        request_timeout: 5000
+        request_timeout: 5000,
+        allow_private_addresses: true
       });
 
       const result = await wf.lookup(`test@localhost:${serverPort}`);
@@ -120,7 +122,8 @@ describe('WebFinger Browser Tests', () => {
     it('should handle server errors gracefully', async () => {
       const wf = new WebFinger({
         tls_only: false,
-        request_timeout: 5000
+        request_timeout: 5000,
+        allow_private_addresses: true
       });
 
       try {
@@ -150,7 +153,8 @@ describe('WebFinger Browser Tests', () => {
     it('should return properly structured JRD response', async () => {
       const wf = new WebFinger({
         tls_only: false,
-        request_timeout: 5000
+        request_timeout: 5000,
+        allow_private_addresses: true
       });
 
       const result = await wf.lookup(`test@localhost:${serverPort}`);
@@ -170,7 +174,8 @@ describe('WebFinger Browser Tests', () => {
     it('should handle JRD with properties', async () => {
       const wf = new WebFinger({
         tls_only: false,
-        request_timeout: 5000
+        request_timeout: 5000,
+        allow_private_addresses: true
       });
 
       const result = await wf.lookup(`user@localhost:${serverPort}`);
@@ -198,7 +203,8 @@ describe('WebFinger Browser Tests', () => {
     it('should find specific link relations', async () => {
       const wf = new WebFinger({
         tls_only: false,
-        request_timeout: 5000
+        request_timeout: 5000,
+        allow_private_addresses: true
       });
 
       const profileLink = await wf.lookupLink(`test@localhost:${serverPort}`, 'profile');
@@ -211,7 +217,8 @@ describe('WebFinger Browser Tests', () => {
     it('should return null for non-existent link relations', async () => {
       const wf = new WebFinger({
         tls_only: false,
-        request_timeout: 5000
+        request_timeout: 5000,
+        allow_private_addresses: true
       });
 
       try {
@@ -242,7 +249,8 @@ describe('WebFinger Browser Tests', () => {
       const wf = new WebFinger({
         tls_only: false,
         uri_fallback: true,
-        request_timeout: 5000
+        request_timeout: 5000,
+        allow_private_addresses: true
       });
 
       const result = await wf.lookup(`test@localhost:${serverPort}`);
@@ -256,7 +264,8 @@ describe('WebFinger Browser Tests', () => {
       
       const wf = new WebFinger({
         tls_only: false,
-        request_timeout: 1000
+        request_timeout: 1000,
+        allow_private_addresses: true
       });
 
       try {
@@ -264,6 +273,37 @@ describe('WebFinger Browser Tests', () => {
         throw new Error('Should have thrown');
       } catch (err) {
         expect(err.message).to.match(/(failed.*fetch|network)/i);
+      }
+    });
+  });
+
+  describe('Security Features', () => {
+    it('should block private addresses when allow_private_addresses is false', async () => {
+      const secureWf = new WebFinger({
+        tls_only: false,
+        allow_private_addresses: false, // Security enabled
+        request_timeout: 1000
+      });
+
+      try {
+        await secureWf.lookup('test@localhost:8080');
+        throw new Error('Should have thrown');
+      } catch (err) {
+        expect(err.message).to.include('private or internal addresses are not allowed');
+      }
+    });
+
+    it('should block private IPv4 addresses', async () => {
+      const secureWf = new WebFinger({
+        allow_private_addresses: false,
+        request_timeout: 1000
+      });
+
+      try {
+        await secureWf.lookup('test@192.168.1.1');
+        throw new Error('Should have thrown');
+      } catch (err) {
+        expect(err.message).to.include('private or internal addresses are not allowed');
       }
     });
   });
