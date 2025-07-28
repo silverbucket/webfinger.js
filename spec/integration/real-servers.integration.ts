@@ -1,6 +1,9 @@
 import { describe, it, expect, beforeAll } from 'bun:test';
 import WebFinger from '../../src/webfinger';
 
+const getErrorMessage = (error: unknown): string => 
+  error instanceof Error ? error.message : String(error);
+
 describe('WebFinger Integration Tests', () => {
   let webfinger: WebFinger;
 
@@ -22,7 +25,7 @@ describe('WebFinger Integration Tests', () => {
         expect(result.idx.links).toBeDefined();
       } catch (error) {
         // If the server is down, skip this test
-        console.warn('Skipping integration test - server may be down:', error.message);
+        console.warn('Skipping integration test - server may be down:', getErrorMessage(error));
       }
     }, 15000);
 
@@ -32,12 +35,13 @@ describe('WebFinger Integration Tests', () => {
         expect(result).toBeDefined();
         expect(result.href).toBeDefined();
       } catch (error) {
-        if (error.message.includes('no links found')) {
+        const errorMessage = getErrorMessage(error);
+        if (errorMessage.includes('no links found')) {
           // This is acceptable - the address may not have this link type
-          expect(error.message).toContain('no links found');
+          expect(errorMessage).toContain('no links found');
         } else {
           // Server may be down, skip
-          console.warn('Skipping integration test - server may be down:', error.message);
+          console.warn('Skipping integration test - server may be down:', getErrorMessage(error));
         }
       }
     }, 15000);
@@ -49,7 +53,7 @@ describe('WebFinger Integration Tests', () => {
         expect(result.object).toBeDefined();
         expect(result.idx).toBeDefined();
       } catch (error) {
-        console.warn('Skipping integration test - server may be down:', error.message);
+        console.warn('Skipping integration test - server may be down:', getErrorMessage(error));
       }
     }, 15000);
   });
@@ -147,7 +151,7 @@ describe('WebFinger Integration Tests', () => {
         });
         
       } catch (error) {
-        console.warn('Skipping validation test - server may be down:', error.message);
+        console.warn('Skipping validation test - server may be down:', getErrorMessage(error));
       }
     }, 10000);
   });
