@@ -27,9 +27,6 @@ console.log(`
    bun run docs:watch     - Watch mode for documentation generation
    
 🎁 Release (see docs/RELEASE.md):
-   bun run prepare-release:patch  - Prepare patch release (manual fallback)
-   bun run prepare-release:minor  - Prepare minor release (manual fallback)
-   bun run prepare-release:major  - Prepare major release (manual fallback)
 
 ⚠️  IMPORTANT NOTES:
 

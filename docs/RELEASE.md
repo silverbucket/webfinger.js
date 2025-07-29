@@ -1,8 +1,8 @@
 # Release Guide
 
-## Standard CI-Based Release Process (Recommended)
+## GitHub Actions Release Process
 
-**The standard release process uses GitHub Actions and is fully automated from initiation to publication:**
+**All releases are handled through GitHub Actions and are fully automated from initiation to publication:**
 
 ### 1. Initiate Release
 
@@ -50,18 +50,6 @@ After merge, verify:
 - ✅ [Demo page](https://silverbucket.github.io/webfinger.js/) shows new version
 - ✅ Demo functionality works correctly
 
-## Manual Prepare Release (Fallback)
-
-If GitHub Actions is unavailable:
-
-```bash
-# Patch release (recommended)
-bun run prepare-release:patch
-
-# Or minor/major
-bun run prepare-release:minor
-bun run prepare-release:major
-```
 
 ## Setup Requirements
 
@@ -92,7 +80,3 @@ After merging the release PR and NPM publish completes, check:
 - GitHub Pages may take a few minutes to deploy
 - Check the gh-pages branch was updated
 
-**Manual prepare release needed?**
-- Use local prepare release scripts as fallback
-- All the same automation runs locally
-- Still creates PR for review (no auto-publish)

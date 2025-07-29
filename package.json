@@ -48,10 +48,6 @@
     "test:imports": "cd spec/imports/node && ./run-test.sh",
     "test": "bun run test:unit && bun run test:integration && bun run test:browser",
     "help": "bun scripts/help.js",
-    "prepare-release": "./scripts/prepare-release.sh",
-    "prepare-release:patch": "./scripts/prepare-release.sh patch",
-    "prepare-release:minor": "./scripts/prepare-release.sh minor",
-    "prepare-release:major": "./scripts/prepare-release.sh major",
     "docs:generate": "typedoc",
     "docs:watch": "typedoc --watch",
     "demo:serve": "bun run build && bun scripts/serve-demo.js"
