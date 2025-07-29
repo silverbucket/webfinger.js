@@ -73,10 +73,11 @@ jobs:
         with:
           node-version: '18'
 
-      - name: Test Node.js ES module imports (GitHub #106 regression test)
-        run: |
-          cd spec/imports/node
-          ./run-test.sh
+      - name: Test Node.js ES module imports
+        run: bun run test:imports:node
+
+      - name: Test Bun ES module imports
+        run: bun run test:imports:bun
 
       - name: Generate API documentation
         run: bun run docs:generate

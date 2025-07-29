@@ -12,7 +12,7 @@ if [ "$SCRIPT_DIR" != "$CURRENT_DIR" ]; then
     exit 1
 fi
 
-echo "=== Testing Node.js ES Module Import Issue (GitHub #106) ==="
+echo "=== Testing Node.js ES Module Import ==="
 echo ""
 
 echo "📁 Working directory: $(pwd)"
@@ -20,13 +20,13 @@ echo ""
 
 # Check if Node.js is available
 if ! command -v node &> /dev/null; then
-    echo "❌ Node.js is not installed. This test requires Node.js to reproduce the import issue."
+    echo "❌ Node.js is not installed."
     exit 1
 fi
 
 # Check if npm is available
 if ! command -v npm &> /dev/null; then
-    echo "❌ npm is not installed. This test requires npm to install dependencies."
+    echo "❌ npm is not installed."
     exit 1
 fi
 
@@ -56,17 +56,9 @@ NODE_RESULT=$?
 echo ""
 
 if [ $NODE_RESULT -eq 0 ]; then
-    echo "✅ Node.js execution succeeded - Import issue is FIXED!"
-    echo ""
-    echo "This confirms that the ES module import issue from GitHub #106 has been resolved:"
-    echo "- TypeScript compiles successfully with moduleResolution: NodeNext" 
-    echo "- Node.js runtime succeeds with proper ES module exports"
+    echo "✅ Node.js execution succeeded"
     exit 0
 else
-    echo "🔍 Node.js execution failed - Import issue reproduced!"
-    echo ""
-    echo "This demonstrates the bug from GitHub issue #106:"
-    echo "- TypeScript compiles successfully with moduleResolution: NodeNext" 
-    echo "- Node.js runtime fails due to ES module import incompatibility"
+    echo "🔍 Node.js execution failed"
     exit 1
 fi
