@@ -7,8 +7,8 @@ const { execSync } = require('child_process');
 // Parse command line arguments
 const args = process.argv.slice(2);
 const outputIndex = args.indexOf('--output');
-const outputPath = outputIndex !== -1 && args[outputIndex + 1] 
-  ? args[outputIndex + 1] 
+const outputPath = outputIndex !== -1 && args[outputIndex + 1]
+  ? args[outputIndex + 1]
   : 'dist/webfinger.js';
 
 // Read package.json to get version
@@ -17,11 +17,10 @@ const version = pkg.version;
 
 console.log(`Building ${outputPath} with version ${version}...`);
 
-// Ensure output directory exists
+// Ensure the output directory exists and is empty
 const outputDir = path.dirname(outputPath);
-if (!fs.existsSync(outputDir)) {
-  fs.mkdirSync(outputDir, { recursive: true });
-}
+fs.rmdirSync(outputDir, { recursive: true });
+fs.mkdirSync(outputDir, { recursive: false });
 
 // Build ESM version
 const esmFile = outputPath.replace('.js', '.mjs');
