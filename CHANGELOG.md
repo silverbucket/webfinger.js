@@ -4,6 +4,35 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+
+- Add bun import tests (#114)
+- Demo: Add ability to view JSON payload in demo page results (#113)
+- remove manual release process functionality (#112)
+- Fix TypeScript NodeNext module resolution import issue (GitHub #106) (#110)
+- WebFist Deprecated (#109)
+- Security Fix Blind SSRF (#82)
+- update examples
+- Update README.md
+- Improvements to demo page (#105)
+- CI: Workflow does not contain permissions (#104)
+- update documentation
+- Browser test additions (#99)
+- more permissive jrd, add possible subject prop (#100)
+- updated docs
+- Refine content-type checking to be less strict (#98)
+- Add content-type warning for WebFinger spec compliance (#97)
+- Enhance testing infrastructure with integration and browser testing (#95)
+- Improve build system to separate development and release builds (#96)
+- update documentation
+- Enhance TypeScript documentation and API reference (#94)
+- feat: modernize package.json with ES module exports (#93)
+- Migrate config .github/renovate.json (#92)
+- update changelog
+- update changelog
+- Update RELEASE_NOTES.md
+
+
+
 ## v2.8.0 - (2025-07-25)
 
 - Migrated to TypeScript (#79) @silverbucket

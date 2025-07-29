@@ -1,19 +1,3 @@
-(function (root, factory) {
-  if (typeof exports === 'object' && typeof module !== 'undefined') {
-    // CommonJS/Node.js environment
-    const result = factory();
-    module.exports = result;
-    module.exports.default = result;
-  } else if (typeof define === 'function' && define.amd) {
-    // AMD environment
-    define([], factory);
-  } else {
-    // Browser environment
-    root.WebFinger = factory();
-  }
-}(typeof self !== 'undefined' ? self : this, function () {
-'use strict';
-
 console.log('webfinger.js v2.8.1 loaded');
 // src/webfinger.ts
 /*!
@@ -384,8 +368,7 @@ class WebFinger {
   }
 }
 WebFinger.default = WebFinger;
-
-// Return the WebFinger class (defined above)
-return WebFinger;
-
-}));
+export {
+  WebFinger as default,
+  WebFingerError
+};
