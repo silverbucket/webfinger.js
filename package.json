@@ -36,7 +36,7 @@
   },
   "scripts": {
     "build": "bun run tsc --project tsconfig.dev.json && bun scripts/build.js --output .tmp/webfinger.js",
-    "build:release": "bun run tsc && bun scripts/build.js --output dist/webfinger.js",
+    "build:release": "bun scripts/build.js --output dist/webfinger.js",
     "build:clean": "rm -rf dist && bun run build:release",
     "prepublishOnly": "bun run build:clean",
     "lint": "eslint .",
@@ -45,6 +45,7 @@
     "test:integration": "bun test ./spec/integration/local-server.integration.ts ./spec/integration/real-servers.integration.ts",
     "test:browser": "wtr --config web-test-runner.config.mjs",
     "test:unit": "bun run build && bun run test:ts && bun run test:js",
+    "test:imports": "cd spec/imports/node && ./run-test.sh",
     "test": "bun run test:unit && bun run test:integration && bun run test:browser",
     "help": "bun scripts/help.js",
     "prepare-release": "./scripts/prepare-release.sh",

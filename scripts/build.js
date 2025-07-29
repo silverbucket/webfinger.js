@@ -19,8 +19,14 @@ console.log(`Building ${outputPath} with version ${version}...`);
 
 // Ensure the output directory exists and is empty
 const outputDir = path.dirname(outputPath);
-fs.rmdirSync(outputDir, { recursive: true });
-fs.mkdirSync(outputDir, { recursive: false });
+if (fs.existsSync(outputDir)) {
+  fs.rmSync(outputDir, { recursive: true });
+}
+fs.mkdirSync(outputDir, { recursive: true });
+
+// Generate TypeScript declarations first
+console.log('Generating TypeScript declarations...');
+execSync('bun run tsc', { stdio: 'inherit' });
 
 // Build ESM version
 const esmFile = outputPath.replace('.js', '.mjs');
