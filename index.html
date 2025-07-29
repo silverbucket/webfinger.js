@@ -518,6 +518,46 @@
       clearDiv.style.clear = 'both';
       resultDiv.appendChild(clearDiv);
 
+      // Add raw JSON expand feature
+      const expandContainer = document.createElement('div');
+      expandContainer.style.cssText = 'margin-top: 1rem; border-top: 1px solid #eee; padding-top: 1rem;';
+      
+      const expandButton = document.createElement('button');
+      expandButton.textContent = '📄 View Raw JSON';
+      expandButton.style.cssText = 'background: none; border: 1px solid #ddd; color: #666; font-size: 0.85em; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; transition: all 0.2s ease;';
+      expandButton.onmouseover = () => {
+        expandButton.style.backgroundColor = '#f5f5f5';
+        expandButton.style.borderColor = '#999';
+      };
+      expandButton.onmouseout = () => {
+        expandButton.style.backgroundColor = 'transparent';
+        expandButton.style.borderColor = '#ddd';
+      };
+
+      const jsonContainer = document.createElement('div');
+      jsonContainer.style.cssText = 'display: none; margin-top: 1rem; background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 4px; padding: 1rem; font-family: "Monaco", "Menlo", "Ubuntu Mono", monospace; font-size: 0.8em; overflow-x: auto; max-height: 400px; overflow-y: auto;';
+      
+      const jsonPre = document.createElement('pre');
+      jsonPre.style.cssText = 'margin: 0; white-space: pre-wrap; word-wrap: break-word;';
+      jsonPre.textContent = JSON.stringify(profile, null, 2);
+      jsonContainer.appendChild(jsonPre);
+
+      let isExpanded = false;
+      expandButton.addEventListener('click', () => {
+        isExpanded = !isExpanded;
+        if (isExpanded) {
+          jsonContainer.style.display = 'block';
+          expandButton.textContent = '🔼 Hide Raw JSON';
+        } else {
+          jsonContainer.style.display = 'none';
+          expandButton.textContent = '📄 View Raw JSON';
+        }
+      });
+
+      expandContainer.appendChild(expandButton);
+      expandContainer.appendChild(jsonContainer);
+      resultDiv.appendChild(expandContainer);
+
       resultsDiv.appendChild(resultDiv);
     }
 
