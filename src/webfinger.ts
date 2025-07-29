@@ -168,6 +168,7 @@ export class WebFingerError extends Error {
  * ```
  */
 export default class WebFinger {
+  static default: typeof WebFinger;
   private config: WebFingerConfig;
 
   /**
@@ -726,3 +727,6 @@ export default class WebFinger {
     }
   };
 }
+
+// Add .default property for TypeScript NodeNext compatibility
+WebFinger.default = WebFinger;

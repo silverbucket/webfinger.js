@@ -4,3 +4,6 @@ node_modules/
 .idea/
 .claude/
 coverage/
+spec/imports/node/index.d.ts
+spec/imports/node/index.js
+spec/imports/node/package-lock.json
