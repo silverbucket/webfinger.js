@@ -1,14 +1,20 @@
 (function (root, factory) {
   if (typeof exports === 'object' && typeof module !== 'undefined') {
-    module.exports = factory();
+    // CommonJS/Node.js environment
+    const result = factory();
+    module.exports = result;
+    module.exports.default = result;
   } else if (typeof define === 'function' && define.amd) {
+    // AMD environment
     define([], factory);
   } else {
+    // Browser environment
     root.WebFinger = factory();
   }
 }(typeof self !== 'undefined' ? self : this, function () {
+'use strict';
 
-console.log('webfinger.js v2.8.0 loaded');
+console.log('webfinger.js v2.8.1 loaded');
 // src/webfinger.ts
 /*!
  * webfinger.js
@@ -53,6 +59,13 @@ var LINK_PROPERTIES = {
   camlistore: []
 };
 var URIS = ["webfinger", "host-meta", "host-meta.json"];
+var IPV4_OCTET = "(?:25[0-5]|2[0-4]\\d|1\\d{2}|[1-9]?\\d)";
+var IPV4_REGEX = new RegExp(`^(?:${IPV4_OCTET}\\.){3}${IPV4_OCTET}$`);
+var IPV4_CAPTURE_REGEX = new RegExp(`^(${IPV4_OCTET})\\.(${IPV4_OCTET})\\.(${IPV4_OCTET})\\.(${IPV4_OCTET})$`);
+var LOCALHOST_REGEX = /^localhost(?:\.localdomain)?(?::\d+)?$/;
+var NUMERIC_PORT_REGEX = /^\d+$/;
+var HOSTNAME_REGEX = /^[a-zA-Z0-9.-]+$/;
+var LOCALHOST_127_REGEX = /^127\.(?:\d{1,3}\.){2}\d{1,3}$/;
 
 class WebFingerError extends Error {
   status;
@@ -64,23 +77,57 @@ class WebFingerError extends Error {
 }
 
 class WebFinger {
+  static default;
   config;
   constructor(cfg = {}) {
     this.config = {
       tls_only: typeof cfg.tls_only !== "undefined" ? cfg.tls_only : true,
-      webfist_fallback: typeof cfg.webfist_fallback !== "undefined" ? cfg.webfist_fallback : false,
       uri_fallback: typeof cfg.uri_fallback !== "undefined" ? cfg.uri_fallback : false,
-      request_timeout: typeof cfg.request_timeout !== "undefined" ? cfg.request_timeout : 1e4
+      webfist_fallback: typeof cfg.webfist_fallback !== "undefined" ? cfg.webfist_fallback : false,
+      request_timeout: typeof cfg.request_timeout !== "undefined" ? cfg.request_timeout : 1e4,
+      allow_private_addresses: typeof cfg.allow_private_addresses !== "undefined" ? cfg.allow_private_addresses : false
     };
+    if (this.config.webfist_fallback) {
+      console.warn("⚠️  WebFinger: webfist_fallback is deprecated and will be removed in v3.0.0. WebFist service is discontinued. Use standard WebFinger discovery instead.");
+    }
   }
-  async fetchJRD(url) {
+  async fetchJRD(url, redirectCount = 0) {
+    if (redirectCount > 3) {
+      throw new WebFingerError("too many redirects");
+    }
     const response = await fetch(url, {
-      headers: { Accept: "application/jrd+json, application/json" }
+      headers: { Accept: "application/jrd+json, application/json" },
+      redirect: "manual"
     });
+    if (response.status >= 300 && response.status < 400) {
+      const location = response.headers.get("location");
+      if (!location) {
+        throw new WebFingerError("redirect without location header");
+      }
+      let redirectUrl;
+      try {
+        redirectUrl = new URL(location, url);
+      } catch {
+        throw new WebFingerError("invalid redirect URL");
+      }
+      const redirectHost = WebFinger.validateHost(redirectUrl.hostname + (redirectUrl.port ? ":" + redirectUrl.port : ""));
+      if (!this.config.allow_private_addresses && WebFinger.isPrivateAddress(redirectHost)) {
+        throw new WebFingerError("redirect to private or internal address blocked");
+      }
+      return this.fetchJRD(redirectUrl.toString(), redirectCount + 1);
+    }
     if (response.status === 404) {
       throw new WebFingerError("resource not found", 404);
     } else if (!response.ok) {
       throw new WebFingerError("error during request", response.status);
+    }
+    const contentType = response.headers.get("content-type") || "";
+    const lowerContentType = contentType.toLowerCase();
+    const mainType = lowerContentType.split(";")[0].trim();
+    if (mainType === "application/jrd+json") {} else if (mainType === "application/json") {
+      console.debug(`WebFinger: Server uses "application/json" instead of RFC 7033 recommended "application/jrd+json".`);
+    } else {
+      console.warn(`WebFinger: Server returned unexpected content-type "${contentType}". ` + 'Expected "application/jrd+json" per RFC 7033.');
     }
     const responseText = await response.text();
     if (WebFinger.isValidJSON(responseText)) {
@@ -98,10 +145,76 @@ class WebFinger {
     return true;
   }
   static isLocalhost(host) {
-    const local = /^localhost(\.localdomain)?(:[0-9]+)?$/;
-    return local.test(host);
+    return LOCALHOST_REGEX.test(host);
   }
-  static async processJRD(URL, JRDstring) {
+  static isPrivateAddress(host) {
+    let cleanHost = host;
+    if (cleanHost.startsWith("[") && cleanHost.includes("]:")) {
+      cleanHost = cleanHost.substring(1, cleanHost.lastIndexOf("]:"));
+    } else if (cleanHost.startsWith("[") && cleanHost.endsWith("]")) {
+      cleanHost = cleanHost.substring(1, cleanHost.length - 1);
+    } else if (cleanHost.includes(":")) {
+      const colonCount = (cleanHost.match(/:/g) || []).length;
+      if (colonCount === 1) {
+        const parts = cleanHost.split(":");
+        const hostPart = parts[0];
+        const portPart = parts[1];
+        if (portPart && !NUMERIC_PORT_REGEX.test(portPart)) {
+          throw new WebFingerError("invalid host format");
+        }
+        if (hostPart.match(IPV4_REGEX) || hostPart.match(HOSTNAME_REGEX)) {
+          cleanHost = hostPart;
+        }
+      }
+    }
+    if (cleanHost === "localhost" || cleanHost === "127.0.0.1" || cleanHost.match(LOCALHOST_127_REGEX) || cleanHost === "::1" || cleanHost === "localhost.localdomain") {
+      return true;
+    }
+    const ipv4Match = cleanHost.match(IPV4_CAPTURE_REGEX);
+    if (ipv4Match) {
+      const [, aStr, bStr, cStr, dStr] = ipv4Match;
+      const a = Number(aStr);
+      const b = Number(bStr);
+      const c = Number(cStr);
+      const d = Number(dStr);
+      if (isNaN(a) || isNaN(b) || isNaN(c) || isNaN(d)) {
+        return true;
+      }
+      if (a === 10)
+        return true;
+      if (a === 172 && b >= 16 && b <= 31)
+        return true;
+      if (a === 192 && b === 168)
+        return true;
+      if (a === 169 && b === 254)
+        return true;
+      if (a >= 224 && a <= 239)
+        return true;
+      if (a >= 240)
+        return true;
+    }
+    if (cleanHost.includes(":")) {
+      const colonCount = (cleanHost.match(/:/g) || []).length;
+      if (colonCount > 1 || colonCount === 1 && !cleanHost.match(/^[a-zA-Z0-9.-]+:\d+$/)) {
+        if (cleanHost.match(/^(fc|fd)[0-9a-f]{2}:/i) || cleanHost.match(/^fe80:/i) || cleanHost.match(/^ff[0-9a-f]{2}:/i)) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+  static validateHost(host) {
+    const hostParts = host.split("/");
+    const cleanHost = hostParts[0];
+    if (!cleanHost || cleanHost.length === 0) {
+      throw new WebFingerError("invalid host format");
+    }
+    if (cleanHost.includes("?") || cleanHost.includes("#") || cleanHost.includes(" ")) {
+      throw new WebFingerError("invalid characters in host");
+    }
+    return cleanHost;
+  }
+  static async processJRD(URL2, JRDstring) {
     const parsedJRD = JSON.parse(JRDstring);
     if (typeof parsedJRD !== "object" || typeof parsedJRD.links !== "object") {
       if (typeof parsedJRD.error !== "undefined") {
@@ -124,7 +237,10 @@ class WebFinger {
       if (Object.prototype.hasOwnProperty.call(LINK_URI_MAPS, String(link.rel))) {
         const mappedKey = LINK_URI_MAPS[String(link.rel)];
         if (result.idx.links[mappedKey]) {
-          const entry = {};
+          const entry = {
+            href: String(link.href || ""),
+            rel: String(link.rel || "")
+          };
           Object.keys(link).map(function(item) {
             entry[item] = String(link[item]);
           });
@@ -141,6 +257,41 @@ class WebFinger {
       }
     }
     return result;
+  }
+  async validateDNSResolution(hostname) {
+    if (hostname.match(IPV4_REGEX) || hostname.includes(":") || hostname === "localhost") {
+      return;
+    }
+    const isNodeJS = typeof process !== "undefined" && process.versions?.node;
+    if (isNodeJS) {
+      try {
+        const dnsImport = eval('import("dns")');
+        const dns = await dnsImport.then((m) => m.promises).catch(() => null);
+        if (dns) {
+          try {
+            const [ipv4Results, ipv6Results] = await Promise.allSettled([
+              dns.resolve4(hostname).catch(() => []),
+              dns.resolve6(hostname).catch(() => [])
+            ]);
+            const ipv4Addresses = ipv4Results.status === "fulfilled" ? ipv4Results.value : [];
+            const ipv6Addresses = ipv6Results.status === "fulfilled" ? ipv6Results.value : [];
+            for (const ip of [...ipv4Addresses, ...ipv6Addresses]) {
+              if (WebFinger.isPrivateAddress(ip)) {
+                throw new WebFingerError(`hostname ${hostname} resolves to private address ${ip}`);
+              }
+            }
+          } catch (error) {
+            if (error instanceof WebFingerError) {
+              throw error;
+            }
+          }
+        }
+      } catch (outerError) {
+        if (outerError instanceof WebFingerError) {
+          throw outerError;
+        }
+      }
+    }
   }
   async lookup(address) {
     if (!address) {
@@ -163,6 +314,14 @@ class WebFinger {
     if (!host) {
       throw new WebFingerError("could not determine host from address");
     }
+    host = WebFinger.validateHost(host);
+    if (!this.config.allow_private_addresses && WebFinger.isPrivateAddress(host)) {
+      throw new WebFingerError("private or internal addresses are not allowed");
+    }
+    if (!this.config.allow_private_addresses) {
+      const hostname2 = host.includes(":") ? host.split(":")[0] : host;
+      await this.validateDNSResolution(hostname2);
+    }
     let uri_index = 0;
     let protocol = "https";
     if (WebFinger.isLocalhost(host)) {
@@ -184,25 +343,26 @@ class WebFinger {
         protocol = "http";
         return __call();
       } else if (this.config.webfist_fallback && host !== "webfist.org") {
+        console.warn("⚠️  WebFinger: Using deprecated WebFist fallback. WebFist service is discontinued and this feature will be removed in v3.0.0.");
         uri_index = 0;
         protocol = "http";
         host = "webfist.org";
-        const URL = __buildURL();
-        const data = await this.fetchJRD(URL);
-        const result = await WebFinger.processJRD(URL, data);
+        const URL2 = __buildURL();
+        const data = await this.fetchJRD(URL2);
+        const result = await WebFinger.processJRD(URL2, data);
         if (typeof result.idx.links.webfist === "object") {
           const JRD = await this.fetchJRD(result.idx.links.webfist[0].href);
-          return await WebFinger.processJRD(URL, JRD);
+          return await WebFinger.processJRD(URL2, JRD);
         }
       } else {
         throw err instanceof Error ? err : new WebFingerError(String(err));
       }
     };
     const __call = async () => {
-      const URL = __buildURL();
-      const JRD = await this.fetchJRD(URL).catch(__fallbackChecks);
+      const URL2 = __buildURL();
+      const JRD = await this.fetchJRD(URL2).catch(__fallbackChecks);
       if (typeof JRD === "string") {
-        return WebFinger.processJRD(URL, JRD);
+        return WebFinger.processJRD(URL2, JRD);
       } else {
         throw new WebFingerError("unknown error");
       }
@@ -223,8 +383,9 @@ class WebFinger {
     }
   }
 }
+WebFinger.default = WebFinger;
 
-
+// Return the WebFinger class (defined above)
 return WebFinger;
 
 }));
