@@ -263,8 +263,7 @@ describe('WebFinger Integration Tests', () => {
         const secureWebfinger = new WebFinger({
           allow_private_addresses: false,
           request_timeout: 1000,
-          uri_fallback: false,
-          webfist_fallback: false
+          uri_fallback: false
         });
 
         await expect(secureWebfinger.lookup('test@malicious.example'))
@@ -311,8 +310,7 @@ describe('WebFinger Integration Tests', () => {
         const secureWebfinger = new WebFinger({
           allow_private_addresses: false,
           request_timeout: 1000,
-          uri_fallback: false,
-          webfist_fallback: false
+          uri_fallback: false
         });
 
         // Should fail with network error, not DNS security error

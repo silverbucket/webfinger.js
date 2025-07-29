@@ -2,6 +2,8 @@
 
 Comprehensive examples for using webfinger.js in various scenarios.
 
+> **⚠️ Deprecation Notice:** `webfist_fallback` is deprecated as WebFist service is discontinued. This option will be removed in v3.0.0. Use standard WebFinger discovery instead.
+
 ## Basic Usage Examples
 
 ### ES6+ / TypeScript (Recommended)
@@ -10,7 +12,6 @@ Comprehensive examples for using webfinger.js in various scenarios.
 import WebFinger from 'webfinger.js';
 
 const webfinger = new WebFinger({
-  webfist_fallback: true,  // Enable WebFist fallback
   tls_only: true,         // HTTPS only (recommended)
   uri_fallback: true,     // Enable host-meta fallback
   request_timeout: 10000  // 10 second timeout

@@ -12,7 +12,7 @@ A modern, TypeScript-based WebFinger client that runs in both browsers and Node.
 ✨ **Modern ES6+ support** - Built with TypeScript, works with modern JavaScript  
 🔒 **Security-first** - SSRF protection, blocks private/internal addresses by default  
 🛡️ **Production-ready** - Prevents localhost/LAN access per ActivityPub security guidelines  
-🔄 **Flexible fallbacks** - Supports host-meta and WebFist fallback mechanisms  
+🔄 **Flexible fallbacks** - Supports host-meta fallback mechanisms  
 🌐 **Universal** - Works in browsers and Node.js  
 📦 **Zero dependencies** - Lightweight and self-contained  
 ⚡ **Fast** - Efficient WebFinger discovery and caching
@@ -38,7 +38,6 @@ yarn add webfinger.js
 import WebFinger from 'webfinger.js';
 
 const webfinger = new WebFinger({
-  webfist_fallback: true,
   tls_only: true  // Security-first: HTTPS only
 });
 

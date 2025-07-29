@@ -13,7 +13,6 @@ describe('WebFinger', () => {
 
   beforeAll(() => {
     webfinger = new WebFinger({
-      webfist_fallback: true,
       uri_fallback: true,
       request_timeout: 5000
     });

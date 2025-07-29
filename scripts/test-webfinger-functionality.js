@@ -83,7 +83,6 @@ try {
   
   // Try to create an instance
   new WebFinger({
-    webfist_fallback: true,
     uri_fallback: true
   });
   

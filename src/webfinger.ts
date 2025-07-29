@@ -65,10 +65,13 @@ const LOCALHOST_127_REGEX = /^127\.(?:\d{1,3}\.){2}\d{1,3}$/;
 export type WebFingerConfig = {
   /** Use HTTPS only. When false, allows HTTP fallback for localhost. */
   tls_only: boolean,
-  /** Enable WebFist fallback service for discovering WebFinger endpoints. */
-  webfist_fallback: boolean,
   /** Enable host-meta and host-meta.json fallback endpoints. */
   uri_fallback: boolean,
+  /** 
+   * @deprecated WebFist is discontinued and will be removed in v3.0.0. Use standard WebFinger discovery instead.
+   * Enable WebFist fallback service for discovering WebFinger endpoints. 
+   */
+  webfist_fallback: boolean,
   /** Request timeout in milliseconds. */
   request_timeout: number,
   /** Allow private/internal addresses (DANGEROUS - only for development). */
@@ -157,7 +160,6 @@ export class WebFingerError extends Error {
  * @example
  * ```typescript
  * const webfinger = new WebFinger({
- *   webfist_fallback: true,
  *   tls_only: true
  * });
  *
@@ -173,19 +175,24 @@ export default class WebFinger {
    *
    * @param cfg - Configuration options for the WebFinger client
    * @param cfg.tls_only - Use HTTPS only (default: true)
-   * @param cfg.webfist_fallback - Enable WebFist fallback (default: false)
    * @param cfg.uri_fallback - Enable host-meta fallback (default: false)
+   * @param cfg.webfist_fallback - @deprecated Enable WebFist fallback (default: false)
    * @param cfg.request_timeout - Request timeout in milliseconds (default: 10000)
    * @param cfg.allow_private_addresses - Allow private/internal addresses (default: false, DANGEROUS)
    */
   constructor(cfg: Partial<WebFingerConfig> = {}) {
     this.config = {
       tls_only: (typeof cfg.tls_only !== 'undefined') ? cfg.tls_only : true,
-      webfist_fallback: (typeof cfg.webfist_fallback !== 'undefined') ? cfg.webfist_fallback : false,
       uri_fallback: (typeof cfg.uri_fallback !== 'undefined') ? cfg.uri_fallback : false,
+      webfist_fallback: (typeof cfg.webfist_fallback !== 'undefined') ? cfg.webfist_fallback : false,
       request_timeout: (typeof cfg.request_timeout !== 'undefined') ? cfg.request_timeout : 10000,
       allow_private_addresses: (typeof cfg.allow_private_addresses !== 'undefined') ? cfg.allow_private_addresses : false
     };
+    
+    // Deprecation warning for WebFist
+    if (this.config.webfist_fallback) {
+      console.warn('⚠️  WebFinger: webfist_fallback is deprecated and will be removed in v3.0.0. WebFist service is discontinued. Use standard WebFinger discovery instead.');
+    }
   }
 
   // make an HTTP request and look for JRD response, fails if request fails
@@ -649,7 +656,8 @@ export default class WebFinger {
         uri_index = 0;
         protocol = 'http';
         return __call();
-      } else if ((this.config.webfist_fallback) && (host !== 'webfist.org')) { // webfist attempt
+      } else if ((this.config.webfist_fallback) && (host !== 'webfist.org')) { // webfist attempt (DEPRECATED)
+        console.warn('⚠️  WebFinger: Using deprecated WebFist fallback. WebFist service is discontinued and this feature will be removed in v3.0.0.');
         uri_index = 0;
         protocol = 'http';
         host = 'webfist.org';
