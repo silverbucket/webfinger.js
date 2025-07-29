@@ -7,6 +7,7 @@ webfinger.js prioritizes security and includes comprehensive protection against 
 This library includes robust protection against Server-Side Request Forgery (SSRF) attacks by default:
 
 - **Private address blocking**: Prevents requests to localhost, private IP ranges, and internal networks
+- **DNS resolution protection**: Resolves domain names in Node.js environments to block domains that resolve to private IPs
 - **Path injection prevention**: Validates host formats to prevent directory traversal attacks  
 - **Redirect validation**: Prevents redirect-based SSRF attacks to private networks
 - **ActivityPub compliance**: Follows [ActivityPub security guidelines](https://www.w3.org/TR/activitypub/#security-considerations) (Section B.3)
@@ -32,6 +33,22 @@ The following address ranges are blocked by default to prevent SSRF attacks:
 #### Multicast Addresses
 - `224.x.x.x` - `239.x.x.x` (IPv4 multicast)
 - `ff00::/8` (IPv6 multicast)
+
+### DNS Resolution Protection
+
+In Node.js environments, the library performs DNS resolution to prevent attacks using domains that resolve to private IP addresses:
+
+- **Domain resolution**: All domain names are resolved to IP addresses before making requests
+- **Private IP detection**: Resolved IPs are checked against the private address blacklist
+- **Attack prevention**: Blocks requests to public domains like `localtest.me` that resolve to `127.0.0.1`
+- **Browser compatibility**: DNS resolution is skipped in browser environments where it's not available
+
+**Example blocked domains:**
+- `localtest.me` → `127.0.0.1` (blocked)
+- `10.0.0.1.nip.io` → `10.0.0.1` (blocked)
+- Custom domains configured to resolve to private networks
+
+**Note**: This protection only applies in Node.js environments. Browser environments rely on the browser's built-in protections against private network access.
 
 ### Redirect Protection
 

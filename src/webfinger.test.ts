@@ -427,6 +427,60 @@ describe('WebFinger', () => {
           expect(error.message).not.toContain('private or internal addresses are not allowed');
         }
       });
+
+      it('should skip DNS resolution when allow_private_addresses is true', async () => {
+        const originalEval = global.eval;
+        const originalProcess = global.process;
+        const originalFetch = globalThis.fetch;
+        
+        // Set up Node.js environment simulation
+        global.process = { versions: { node: '18.0.0' } } as MockProcess;
+        
+        let dnsResolveCalled = false;
+        const mockDns = {
+          resolve4: async () => {
+            dnsResolveCalled = true;
+            return ['127.0.0.1']; // This would normally trigger SSRF protection
+          },
+          resolve6: async () => []
+        };
+        
+        // Mock eval to return our mock DNS module
+        global.eval = (code: string) => {
+          if (code.includes('import("dns")')) {
+            return Promise.resolve({ promises: mockDns });
+          }
+          return originalEval(code);
+        };
+        
+        // Mock fetch to prevent real network requests
+        globalThis.fetch = async () => {
+          throw new Error('Network error - should not reach here');
+        };
+        
+        try {
+          const permissiveWf = new WebFinger({
+            allow_private_addresses: true,
+            request_timeout: 100
+          });
+          
+          // Try to lookup a domain that would normally trigger DNS resolution
+          try {
+            await permissiveWf.lookup('test@malicious-domain.example');
+          } catch (error) {
+            // Should fail with network error, not DNS validation error
+            expect(error.message).toBe('Network error - should not reach here');
+          }
+          
+          // Verify DNS resolution was NOT called when allow_private_addresses is true
+          expect(dnsResolveCalled).toBe(false);
+        } finally {
+          // Restore original functions
+          global.eval = originalEval;
+          global.process = originalProcess;
+          globalThis.fetch = originalFetch;
+        }
+      });
     });
 
     describe('Security Configuration', () => {
