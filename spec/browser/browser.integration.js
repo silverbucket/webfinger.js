@@ -24,7 +24,6 @@ describe('WebFinger Browser Tests', () => {
 
   beforeEach(() => {
     webfinger = new WebFinger({
-      webfist_fallback: true,
       uri_fallback: true,
       request_timeout: 5000,
       allow_private_addresses: true // Allow localhost for browser tests
@@ -81,8 +80,7 @@ describe('WebFinger Browser Tests', () => {
     it('should create instance with custom configuration', () => {
       const customWf = new WebFinger({
         tls_only: false,
-        webfist_fallback: true,
-        uri_fallback: true,
+          uri_fallback: true,
         request_timeout: 15000
       });
       expect(customWf).to.be.instanceOf(WebFinger);

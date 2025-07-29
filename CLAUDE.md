@@ -56,7 +56,6 @@ The main `WebFinger` class in `src/webfinger.ts` implements:
 - **Fallback Chain**: Supports multiple fallback mechanisms:
   1. Different URI endpoints (`webfinger`, `host-meta`, `host-meta.json`)
   2. HTTP fallback from HTTPS
-  3. WebFist fallback service
 
 ### Key Constants
 - `LINK_URI_MAPS`: Maps WebFinger relation URIs to property names

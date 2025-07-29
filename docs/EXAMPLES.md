@@ -10,7 +10,6 @@ Comprehensive examples for using webfinger.js in various scenarios.
 import WebFinger from 'webfinger.js';
 
 const webfinger = new WebFinger({
-  webfist_fallback: true,  // Enable WebFist fallback
   tls_only: true,         // HTTPS only (recommended)
   uri_fallback: true,     // Enable host-meta fallback
   request_timeout: 10000  // 10 second timeout
@@ -41,7 +40,6 @@ try {
 const WebFinger = require('webfinger.js').default;
 
 const webfinger = new WebFinger({
-  webfist_fallback: true,
   tls_only: true
 });
 
@@ -63,7 +61,6 @@ const webfinger = new WebFinger({
 <script src="https://unpkg.com/webfinger.js/dist/webfinger.js"></script>
 <script>
   const webfinger = new WebFinger({
-    webfist_fallback: true,
     tls_only: true
   });
 
@@ -137,7 +134,6 @@ class ProfileService {
 
   constructor() {
     this.webfinger = new WebFinger({
-      webfist_fallback: true,
       uri_fallback: true
     });
   }
@@ -235,7 +231,6 @@ import WebFinger, { WebFingerError } from 'webfinger.js';
 
 async function robustLookup(address: string) {
   const webfinger = new WebFinger({
-    webfist_fallback: true,
     uri_fallback: true,
     request_timeout: 15000
   });

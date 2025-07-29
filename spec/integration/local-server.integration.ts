@@ -14,7 +14,6 @@ describe('WebFinger Controlled Tests', () => {
     
     webfinger = new WebFinger({
       tls_only: false, // Use HTTP for test server
-      webfist_fallback: false,
       uri_fallback: true,
       request_timeout: 5000,
       allow_private_addresses: true // Allow localhost for integration tests
@@ -70,7 +69,6 @@ describe('WebFinger Controlled Tests', () => {
       // Create a webfinger instance without fallbacks for this test
       const noFallbackWebfinger = new WebFinger({
         tls_only: false,
-        webfist_fallback: false,
         uri_fallback: false, // Disable fallbacks to test direct 404
         request_timeout: 5000,
         allow_private_addresses: true // Allow localhost for integration tests
@@ -96,7 +94,6 @@ describe('WebFinger Controlled Tests', () => {
       const fallbackWf = new WebFinger({
         tls_only: false,
         uri_fallback: true,
-        webfist_fallback: false,
         request_timeout: 3000,
         allow_private_addresses: true // Allow localhost for integration tests
       });
@@ -110,7 +107,6 @@ describe('WebFinger Controlled Tests', () => {
       const noFallbackWf = new WebFinger({
         tls_only: false,
         uri_fallback: false,
-        webfist_fallback: false,
         request_timeout: 3000,
         allow_private_addresses: true // Allow localhost for integration tests
       });
