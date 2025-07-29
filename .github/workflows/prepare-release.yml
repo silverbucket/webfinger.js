@@ -73,7 +73,7 @@ jobs:
 
       - name: Test Node.js ES module imports (GitHub #106 regression test)
         run: |
-          cd spec/integration/test-imports/node-next
+          cd spec/imports/node-next
           ./run-test.sh
 
       - name: Generate API documentation
