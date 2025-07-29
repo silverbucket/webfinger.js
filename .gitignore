@@ -4,3 +4,6 @@ node_modules/
 .idea/
 .claude/
 coverage/
+spec/integration/test-imports/node-next/index.d.ts
+spec/integration/test-imports/node-next/index.js
+spec/integration/test-imports/node-next/package-lock.json
