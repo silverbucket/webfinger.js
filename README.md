@@ -10,7 +10,8 @@ A modern, TypeScript-based WebFinger client that runs in both browsers and Node.
 ## Features
 
 ✨ **Modern ES6+ support** - Built with TypeScript, works with modern JavaScript  
-🔒 **Security-first** - Defaults to TLS-only connections  
+🔒 **Security-first** - SSRF protection, blocks private/internal addresses by default  
+🛡️ **Production-ready** - Prevents localhost/LAN access per ActivityPub security guidelines  
 🔄 **Flexible fallbacks** - Supports host-meta and WebFist fallback mechanisms  
 🌐 **Universal** - Works in browsers and Node.js  
 📦 **Zero dependencies** - Lightweight and self-contained  
@@ -63,6 +64,11 @@ bun run lint        # Code linting
 ```
 
 See the [Development Guide](docs/DEVELOPMENT.md) for detailed testing information and individual test commands.
+
+## Security
+
+webfinger.js includes comprehensive SSRF protection, blocking private networks and validating redirects by default. For detailed security information, see **[Security Documentation](docs/SECURITY.md)**.
+
 
 ## Contributing
 

@@ -16,7 +16,8 @@ describe('WebFinger Controlled Tests', () => {
       tls_only: false, // Use HTTP for test server
       webfist_fallback: false,
       uri_fallback: true,
-      request_timeout: 5000
+      request_timeout: 5000,
+      allow_private_addresses: true // Allow localhost for integration tests
     });
   });
 
@@ -71,7 +72,8 @@ describe('WebFinger Controlled Tests', () => {
         tls_only: false,
         webfist_fallback: false,
         uri_fallback: false, // Disable fallbacks to test direct 404
-        request_timeout: 5000
+        request_timeout: 5000,
+        allow_private_addresses: true // Allow localhost for integration tests
       });
       
       await expect(noFallbackWebfinger.lookup(`nonexistent@localhost:${serverPort}`))
@@ -95,7 +97,8 @@ describe('WebFinger Controlled Tests', () => {
         tls_only: false,
         uri_fallback: true,
         webfist_fallback: false,
-        request_timeout: 3000
+        request_timeout: 3000,
+        allow_private_addresses: true // Allow localhost for integration tests
       });
 
       // Should work even if first endpoint fails
@@ -108,7 +111,8 @@ describe('WebFinger Controlled Tests', () => {
         tls_only: false,
         uri_fallback: false,
         webfist_fallback: false,
-        request_timeout: 3000
+        request_timeout: 3000,
+        allow_private_addresses: true // Allow localhost for integration tests
       });
 
       const result = await noFallbackWf.lookup(`test@localhost:${serverPort}`);
