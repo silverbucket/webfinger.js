@@ -63,7 +63,9 @@ jobs:
         run: |
           bun run build:release
           # Update demo page with new version
+          cat demo.index.html
           sed -i 's/{{VERSION}}/${{ steps.version_bump.outputs.new_version }}/g' demo/index.html
+          cat demo.index.html
           grep "\>v{{ steps.version_bump_outputs.new_version }}\<" demo/index.html
 
       - name: Setup Node.js for ES module import test
