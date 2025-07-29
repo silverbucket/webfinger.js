@@ -33,14 +33,14 @@ execSync(`bun build src/webfinger.ts --target=browser --format=esm --outfile=${t
 
 // Read the ESM output and wrap for CommonJS/UMD compatibility
 const esmCode = fs.readFileSync(tempFile, 'utf8');
-const cleanCode = esmCode.replace(/export \{[\s\S]*?\};?\s*$/m, '');
+const cleanCode = esmCode.replace(/export \{[\s\S]*?\};?\s*$/m, '').trim();
 
 const umdWrapper = `(function (root, factory) {
   if (typeof exports === 'object' && typeof module !== 'undefined') {
     // CommonJS/Node.js environment
-    const WebFinger = factory();
-    module.exports = WebFinger;
-    module.exports.default = WebFinger;
+    const result = factory();
+    module.exports = result;
+    module.exports.default = result;
   } else if (typeof define === 'function' && define.amd) {
     // AMD environment
     define([], factory);
@@ -49,9 +49,11 @@ const umdWrapper = `(function (root, factory) {
     root.WebFinger = factory();
   }
 }(typeof self !== 'undefined' ? self : this, function () {
+'use strict';
 
 ${cleanCode}
 
+// Return the WebFinger class (defined above)
 return WebFinger;
 
 }));`;

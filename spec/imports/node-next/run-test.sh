@@ -51,7 +51,7 @@ else
 fi
 
 echo "🚀 Running compiled JavaScript with Node.js..."
-node dist/index.js
+node index.js
 NODE_RESULT=$?
 echo ""
 
