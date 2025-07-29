@@ -20,9 +20,9 @@
   "exports": {
     ".": {
       "types": "./dist/webfinger.d.ts",
-      "import": "./dist/webfinger.js",
+      "import": "./dist/webfinger.mjs",
       "require": "./dist/webfinger.js",
-      "default": "./dist/webfinger.js"
+      "default": "./dist/webfinger.mjs"
     }
   },
   "files": [

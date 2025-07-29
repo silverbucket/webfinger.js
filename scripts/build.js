@@ -23,20 +23,29 @@ if (!fs.existsSync(outputDir)) {
   fs.mkdirSync(outputDir, { recursive: true });
 }
 
-// Use bun build to create ESM bundle
+// Build ESM version
+const esmFile = outputPath.replace('.js', '.mjs');
+execSync(`bun build src/webfinger.ts --target=browser --format=esm --outfile=${esmFile} --banner="console.log('webfinger.js v${version} loaded');"`, { stdio: 'inherit' });
+
+// Build CommonJS/UMD version
 const tempFile = outputPath + '.tmp';
 execSync(`bun build src/webfinger.ts --target=browser --format=esm --outfile=${tempFile} --banner="console.log('webfinger.js v${version} loaded');"`, { stdio: 'inherit' });
 
-// Read the ESM output and wrap for browser compatibility
+// Read the ESM output and wrap for CommonJS/UMD compatibility
 const esmCode = fs.readFileSync(tempFile, 'utf8');
 const cleanCode = esmCode.replace(/export \{[\s\S]*?\};?\s*$/m, '');
 
 const umdWrapper = `(function (root, factory) {
   if (typeof exports === 'object' && typeof module !== 'undefined') {
-    module.exports = factory();
+    // CommonJS/Node.js environment
+    const WebFinger = factory();
+    module.exports = WebFinger;
+    module.exports.default = WebFinger;
   } else if (typeof define === 'function' && define.amd) {
+    // AMD environment
     define([], factory);
   } else {
+    // Browser environment
     root.WebFinger = factory();
   }
 }(typeof self !== 'undefined' ? self : this, function () {
@@ -47,7 +56,7 @@ return WebFinger;
 
 }));`;
 
-// Write the final bundle
+// Write the CommonJS/UMD bundle
 fs.writeFileSync(outputPath, umdWrapper);
 
 // Clean up temp file
