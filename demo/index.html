@@ -289,7 +289,7 @@
   <div class="container">
     <header>
       <h1>webfinger.js</h1>
-      <div class="version">v2.8.0</div>
+      <div class="version">v2.8.1</div>
       <p class="description">
         Interactive demo of the WebFinger protocol client. WebFinger allows you to discover information about users across different domains using email-like addresses.
       </p>
@@ -401,7 +401,7 @@
 
     function setLoadingState(isLoading) {
       const exampleButtons = document.querySelectorAll('[data-example]');
-      
+
       if (isLoading) {
         lookupBtn.disabled = true;
         lookupBtn.innerHTML = '<span class="loading-spinner"></span>Looking up...';
@@ -450,11 +450,11 @@
     function displayResult(emailAddress, profile) {
       // Clear previous results
       resultsDiv.textContent = '';
-      
+
       // Create result container
       const resultDiv = document.createElement('div');
       resultDiv.className = 'result';
-      
+
       // Header with name and address
       const header = document.createElement('h3');
       if (profile.idx.properties.name) {
@@ -500,12 +500,12 @@
             const strong = document.createElement('strong');
             const displayLabel = index === 0 ? label : `${label} (${index + 1})`;
             strong.textContent = `${displayLabel}: `;
-            
+
             const link = document.createElement('a');
             link.href = record.href;
             link.target = '_blank';
             link.textContent = record.href;
-            
+
             p.appendChild(strong);
             p.appendChild(link);
             resultDiv.appendChild(p);
