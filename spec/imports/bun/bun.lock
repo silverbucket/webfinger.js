@@ -1,0 +1,13 @@
+{
+  "lockfileVersion": 1,
+  "workspaces": {
+    "": {
+      "dependencies": {
+        "webfinger.js": "link:webfinger.js",
+      },
+    },
+  },
+  "packages": {
+    "webfinger.js": ["webfinger.js@link:webfinger.js", {}],
+  }
+}
