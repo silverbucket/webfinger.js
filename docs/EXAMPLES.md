@@ -2,8 +2,6 @@
 
 Comprehensive examples for using webfinger.js in various scenarios.
 
-> **⚠️ Deprecation Notice:** `webfist_fallback` is deprecated as WebFist service is discontinued. This option will be removed in v3.0.0. Use standard WebFinger discovery instead.
-
 ## Basic Usage Examples
 
 ### ES6+ / TypeScript (Recommended)
@@ -42,7 +40,6 @@ try {
 const WebFinger = require('webfinger.js').default;
 
 const webfinger = new WebFinger({
-  webfist_fallback: true,
   tls_only: true
 });
 
@@ -64,7 +61,6 @@ const webfinger = new WebFinger({
 <script src="https://unpkg.com/webfinger.js/dist/webfinger.js"></script>
 <script>
   const webfinger = new WebFinger({
-    webfist_fallback: true,
     tls_only: true
   });
 
@@ -138,7 +134,6 @@ class ProfileService {
 
   constructor() {
     this.webfinger = new WebFinger({
-      webfist_fallback: true,
       uri_fallback: true
     });
   }
@@ -236,7 +231,6 @@ import WebFinger, { WebFingerError } from 'webfinger.js';
 
 async function robustLookup(address: string) {
   const webfinger = new WebFinger({
-    webfist_fallback: true,
     uri_fallback: true,
     request_timeout: 15000
   });
