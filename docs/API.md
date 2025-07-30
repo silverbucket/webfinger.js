@@ -1,8 +1,8 @@
-**webfinger.js v2.8.1**
+**webfinger.js v2.8.2**
 
 ***
 
-# webfinger.js v2.8.1
+# webfinger.js v2.8.2
 
 ## Classes
 
@@ -110,7 +110,7 @@ await webfinger.lookup('user@192.168.1.1');  // Direct access blocked
 
 > **lookupLink**(`address`, `rel`): `Promise`\<[`LinkObject`](#linkobject)\>
 
-Defined in: [src/webfinger.ts:716](https://github.com/silverbucket/webfinger.js/blob/master/src/webfinger.ts#L716)
+Defined in: [src/webfinger.ts:717](https://github.com/silverbucket/webfinger.js/blob/master/src/webfinger.ts#L717)
 
 Looks up a specific link relation for the given address.
 

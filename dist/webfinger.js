@@ -14,7 +14,7 @@
 }(typeof self !== 'undefined' ? self : this, function () {
 'use strict';
 
-console.log('webfinger.js v2.8.1 loaded');
+console.log('webfinger.js v2.8.2 loaded');
 // src/webfinger.ts
 /*!
  * webfinger.js
@@ -354,17 +354,18 @@ class WebFinger {
           const JRD = await this.fetchJRD(result.idx.links.webfist[0].href);
           return await WebFinger.processJRD(URL2, JRD);
         }
+        throw new WebFingerError("webfist fallback failed");
       } else {
         throw err instanceof Error ? err : new WebFingerError(String(err));
       }
     };
     const __call = async () => {
       const URL2 = __buildURL();
-      const JRD = await this.fetchJRD(URL2).catch(__fallbackChecks);
-      if (typeof JRD === "string") {
+      try {
+        const JRD = await this.fetchJRD(URL2);
         return WebFinger.processJRD(URL2, JRD);
-      } else {
-        throw new WebFingerError("unknown error");
+      } catch (err) {
+        return await __fallbackChecks(err);
       }
     };
     return __call();
