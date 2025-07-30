@@ -495,6 +495,77 @@ describe('WebFinger', () => {
     });
   });
 
+  describe('HTTP Fallback Bug', () => {
+    it('should fallback to HTTP when tls_only is false and HTTPS fails', async () => {
+      const originalFetch = globalThis.fetch;
+      let requestCount = 0;
+      
+      globalThis.fetch = async (url: string | Request) => {
+        requestCount++;
+        const urlString = typeof url === 'string' ? url : url.url;
+        
+        if (urlString.startsWith('https://')) {
+          throw new Error('HTTPS failed');
+        } else if (urlString.startsWith('http://')) {
+          return new Response(JSON.stringify({
+            subject: 'acct:test@example.com',
+            links: []
+          }), {
+            status: 200,
+            headers: { 'content-type': 'application/jrd+json' }
+          });
+        }
+        throw new Error('Unexpected protocol');
+      };
+
+      try {
+        const webfinger = new WebFinger({
+          tls_only: false,
+          uri_fallback: false,
+          webfist_fallback: false,
+          allow_private_addresses: true
+        });
+        
+        const result = await webfinger.lookup('test@example.com');
+        expect(result.object.subject).toBe('acct:test@example.com');
+        expect(requestCount).toBe(2); // Should make HTTPS then HTTP request
+      } finally {
+        globalThis.fetch = originalFetch;
+      }
+    });
+
+    it('should NOT fallback to HTTP when tls_only is true (default)', async () => {
+      const originalFetch = globalThis.fetch;
+      let httpAttempted = false;
+      
+      globalThis.fetch = async (url: string | Request) => {
+        const urlString = typeof url === 'string' ? url : url.url;
+        
+        if (urlString.startsWith('https://')) {
+          throw new Error('HTTPS failed');
+        } else if (urlString.startsWith('http://')) {
+          httpAttempted = true;
+          return new Response('Should not reach HTTP', { status: 200 });
+        }
+        throw new Error('Unexpected protocol');
+      };
+
+      try {
+        const webfinger = new WebFinger({
+          uri_fallback: false,
+          webfist_fallback: false,
+          allow_private_addresses: true
+          // tls_only defaults to true
+        });
+        
+        await expect(webfinger.lookup('test@example.com')).rejects.toThrow();
+        expect(httpAttempted).toBe(false);
+      } finally {
+        globalThis.fetch = originalFetch;
+      }
+    });
+  });
+
   describe('Content-Type Warnings', () => {
     it('should debug log when server returns application/json', async () => {
       const originalFetch = globalThis.fetch;

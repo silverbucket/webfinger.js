@@ -675,19 +675,20 @@ export default class WebFinger {
           const JRD = await this.fetchJRD(result.idx.links.webfist[0].href);
           return await WebFinger.processJRD(URL, JRD);
         }
+        throw new WebFingerError('webfist fallback failed');
       } else {
-        throw err instanceof Error ? err : new WebFingerError(String(err))
+        throw err instanceof Error ? err : new WebFingerError(String(err));
       }
     }
 
     const __call = async (): Promise<WebFingerResult> => {
       // make request
       const URL = __buildURL();
-      const JRD = await this.fetchJRD(URL).catch(__fallbackChecks);
-      if (typeof JRD === "string") {
+      try {
+        const JRD = await this.fetchJRD(URL);
         return WebFinger.processJRD(URL, JRD);
-      } else {
-        throw new WebFingerError("unknown error");
+      } catch (err) {
+        return await __fallbackChecks(err as Error);
       }
     }
 
