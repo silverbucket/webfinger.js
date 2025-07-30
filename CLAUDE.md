@@ -6,8 +6,6 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 webfinger.js is a WebFinger client library that runs in both browser and Node.js environments. It implements the WebFinger protocol for discovering user information across domains using email-like addresses.
 
-**Current Status**: The project has been successfully migrated from JavaScript to TypeScript.
-
 ## Development Commands
 
 ### Linting
@@ -17,7 +15,7 @@ bun run lint      # Run ESLint on the codebase
 
 ### TypeScript Compilation
 ```bash
-bun run build     # Compile TypeScript to JavaScript (outputs to dist/)
+bun run build     # Compile TypeScript to JavaScript (outputs to .tmp/)
 ```
 
 ### Testing
@@ -40,7 +38,7 @@ bun run docs:watch     # Watch mode for documentation generation
 ### Core Structure
 - **Main source**: `src/webfinger.ts` - Single TypeScript file containing the WebFinger class
 - **Output**: Compiles to `dist/webfinger.js` (UMD module for browser and Node.js)
-- **Tests**: Located in `test/` directory
+- **Tests**: Located in `src/` directory
 - **Documentation**: Auto-generated `docs/API.md` from TypeScript/JSDoc
 
 ### WebFinger Class Architecture
@@ -87,7 +85,7 @@ The project features:
 - **CRITICAL**: The `dist/` directory should ONLY contain the latest RELEASED version
 - **NEVER update dist during development or testing** - it should only be updated during the official release process
 - **Do not modify build system** to update dist when tests run - this pollutes the repository with development artifacts
-- Tests should run against source TypeScript files, not compiled dist files (except for specific release validation)
+- Tests should run against source TypeScript files, and compiled dist files
 
 ## Release Process
 - **Prepare Release**: Creates release branch with version bump, build, docs generation
@@ -96,7 +94,9 @@ The project features:
 - **NPM Publishing**: Automatic on release PR merge
 
 ## Testing
-- Tests use custom testing framework
+- Unit tests use Bun testing framework
+- Other tests use mocha & chai
+- Browser tests are run with web-test-runner
 - Both TypeScript and compiled JavaScript are tested
 - Tests run against development and release builds
 
@@ -105,5 +105,4 @@ The project features:
 - **ALWAYS LINT AND TEST BEFORE COMMITS**: CRITICAL - Run `bun run lint` and `bun run test` before ANY commit or push. This is non-negotiable.
 - **NEVER UPDATE DIST DURING DEVELOPMENT**: The dist/ directory should only contain the latest released version
 - **Documentation**: API docs are auto-generated - update JSDoc in source code
-- **Never create files unless absolutely necessary**: Prefer editing existing files
 - **No proactive README/docs creation**: Only create documentation if explicitly requested
