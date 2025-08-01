@@ -1,6 +1,6 @@
 {
   "entryPoints": ["src/webfinger.ts"],
-  "out": "docs",
+  "out": "docs/api",
   "plugin": ["typedoc-plugin-markdown"],
   "outputFileStrategy": "modules",
   "fileExtension": ".md",

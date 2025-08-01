@@ -87,34 +87,37 @@ jobs:
           # Generate release notes
           CURRENT_VERSION=${{ steps.current_version.outputs.version }}
           NEW_VERSION=${{ steps.version_bump.outputs.new_version }}
-          CHANGELOG=$(git log --pretty=format:"- %s" v$CURRENT_VERSION..HEAD | grep -v "^- chore: bump version" || echo "- Bug fixes and improvements")
+          # Generate changelog from git commits - FAIL if no commits found
+          echo "Generating changelog for v$CURRENT_VERSION -> v$NEW_VERSION"
           
-          # Create or update CHANGELOG.md
-          if [ ! -f CHANGELOG.md ]; then
-              # Create new file if it doesn't exist (shouldn't happen now that we have the base file)
-              cat > CHANGELOG.md << EOF
-          # Changelog
+          RELEASE_COMMITS=$(git log --pretty=format:"- %s" v$CURRENT_VERSION..HEAD | grep -v "^- chore: bump version" | head -10)
+          RELEASE_HEADER="## v$NEW_VERSION - ($(date '+%Y-%m-%d'))" 
           
-          All notable changes to this project will be documented in this file.
-          
-          ## [v$NEW_VERSION] - $(date '+%Y-%m-%d')
-          
-          $CHANGELOG
-          
-          EOF
-          else
-              # Insert new version after the header
-              cat > new_entry.tmp << EOF
-          ## [v$NEW_VERSION] - $(date '+%Y-%m-%d')
-          
-          $CHANGELOG
-          
-          EOF
-              # Insert after line that contains "Semantic Versioning" 
-              awk '/Semantic Versioning/ {print; print ""; getline < "new_entry.tmp"; while ((getline line < "new_entry.tmp") > 0) print line; print ""; next} 1' CHANGELOG.md > CHANGELOG.md.tmp
-              mv CHANGELOG.md.tmp CHANGELOG.md
-              rm new_entry.tmp
+          if [ -z "$RELEASE_COMMITS" ]; then
+            echo "❌ FATAL: No commits found between v$CURRENT_VERSION and HEAD"
+            echo "Available tags:"
+            git tag -l | tail -5
+            echo "Recent commits:"
+            git log --oneline -5
+            exit 1
           fi
+          
+          echo "✅ Generated changelog:"
+          echo "$RELEASE_HEADER"
+          echo "$RELEASE_COMMITS"
+         
+          # Update CHANGELOG.md
+          # Insert new version after the header
+          cat > new_entry.tmp << EOF
+
+          $RELEASE_HEADER
+          
+          $RELEASE_COMMITS
+          EOF
+          # Insert after line that contains "Semantic Versioning" 
+          awk '/Semantic Versioning/ {print; print ""; getline < "new_entry.tmp"; while ((getline line < "new_entry.tmp") > 0) print line; print ""; next} 1' CHANGELOG.md > CHANGELOG.md.tmp
+          mv CHANGELOG.md.tmp CHANGELOG.md
+          rm new_entry.tmp
 
       - name: Create release branch
         run: |
@@ -126,6 +129,9 @@ jobs:
           git commit -m "chore: bump version to $NEW_VERSION"
           git push origin "$RELEASE_BRANCH"
           echo "RELEASE_BRANCH=$RELEASE_BRANCH" >> $GITHUB_ENV
+
+      - name: Double check documentation links
+        run: bun run lint
 
       # Note: GitHub release and git tagging will happen automatically when PR is merged
 

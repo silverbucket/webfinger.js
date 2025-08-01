@@ -28,6 +28,9 @@ jobs:
       - name: Install dependencies
         run: bun install
 
+      - name: Run linting
+        run: bun run lint
+
       - name: Build project
         run: bun run build
 
@@ -39,18 +42,6 @@ jobs:
         id: version
         run: echo "version=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
 
-      - name: Configure Git
-        run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-
-      - name: Create and push git tag
-        run: |
-          git tag v${{ steps.version.outputs.version }}
-          git push origin v${{ steps.version.outputs.version }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Extract release notes for current version
         id: release_notes
         run: |
@@ -59,7 +50,7 @@ jobs:
           
           if [ -f CHANGELOG.md ]; then
             # Find the section for this version and extract until the next version or end of file
-            awk "/^## \[$VERSION\] - [0-9-]+$/{flag=1; next} /^## \[v[0-9]+\.[0-9]+\.[0-9]+\] - [0-9-]+$/{flag=0} flag" CHANGELOG.md > current_release_notes.txt
+            awk "/^## $VERSION - \([0-9-]+\)$/{flag=1; next} /^## v[0-9]+\.[0-9]+\.[0-9]+ - \([0-9-]+\)$/{flag=0} flag" CHANGELOG.md > current_release_notes.txt
             
             # Add installation and links sections
             cat >> current_release_notes.txt << EOF
@@ -87,35 +78,38 @@ jobs:
           🚀 Generated with automated release workflow
           EOF
           else
-            # Fallback if no CHANGELOG.md file
-            cat > current_release_notes.txt << EOF
-          ## 🚀 What's New
-          
-          Release v${{ steps.version.outputs.version }}
-          
-          ## 📦 Installation
-          
-          \`\`\`bash
-          # Using bun (recommended)
-          bun add webfinger.js@${{ steps.version.outputs.version }}
-          
-          # Using npm
-          npm install webfinger.js@${{ steps.version.outputs.version }}
-          
-          # Using yarn
-          yarn add webfinger.js@${{ steps.version.outputs.version }}
-          \`\`\`
-          
-          ## 🔗 Links
-          
-          - [NPM Package](https://www.npmjs.com/package/webfinger.js/v/${{ steps.version.outputs.version }})
-          - [Documentation](https://github.com/silverbucket/webfinger.js#readme)
-          - [Live Demo](https://silverbucket.github.io/webfinger.js/)
-          
-          ---
-          🚀 Generated with automated release workflow
-          EOF
+            echo "❌ FATAL: CHANGELOG.md file not found"
+            echo "Release process requires CHANGELOG.md to extract release notes"
+            exit 1
           fi
+          
+          # Verify release notes were extracted successfully - FAIL if not found
+          if [ -s current_release_notes.txt ]; then
+            echo "✅ Release notes extracted successfully for $VERSION"
+            echo "📄 Release notes preview:"
+            head -10 current_release_notes.txt
+            if [ $(wc -l < current_release_notes.txt) -gt 10 ]; then
+              echo "... (truncated for preview)"
+            fi
+          else
+            echo "❌ FATAL: No release notes found for $VERSION in CHANGELOG.md"
+            echo "Expected format: ## $VERSION - (YYYY-MM-DD)"
+            echo "Available versions in CHANGELOG.md:"
+            grep "^## v" CHANGELOG.md || echo "No version entries found"
+            exit 1
+          fi
+
+      - name: Configure Git
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+
+      - name: Create and push git tag
+        run: |
+          git tag v${{ steps.version.outputs.version }}
+          git push origin v${{ steps.version.outputs.version }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Create GitHub Release
         uses: actions/create-release@v1
@@ -129,6 +123,7 @@ jobs:
           prerelease: false
 
       - name: Publish to npm
+        id: npm_publish
         run: npm publish
 
       - name: Add publish summary
@@ -142,3 +137,41 @@ jobs:
           echo "- **Demo**: https://silverbucket.github.io/webfinger.js/" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "✅ Release is now complete!"
+
+      - name: Alert on NPM publish failure
+        if: failure() && steps.npm_publish.conclusion == 'failure'
+        run: |
+          echo "## 🚨 NPM Publish Failed" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY  
+          echo "✅ **Git tag created**: v${{ steps.version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "✅ **GitHub release created**: https://github.com/silverbucket/webfinger.js/releases/tag/v${{ steps.version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "❌ **NPM publish failed**" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Manual Fix**: Run \`npm publish\` locally to complete the release." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Steps:**" >> $GITHUB_STEP_SUMMARY
+          echo "1. Check NPM authentication and network" >> $GITHUB_STEP_SUMMARY
+          echo "2. Run \`npm publish\` from the project directory" >> $GITHUB_STEP_SUMMARY
+          echo "3. Verify publication at https://www.npmjs.com/package/webfinger.js" >> $GITHUB_STEP_SUMMARY
+          
+          # Create GitHub issue for tracking
+          gh issue create --title "🚨 NPM Publish Failed for v${{ steps.version.outputs.version }}" \
+            --body "The automated release process completed successfully except for NPM publishing. 
+
+**Status:**
+- ✅ Git tag created: v${{ steps.version.outputs.version }}
+- ✅ GitHub release created: https://github.com/silverbucket/webfinger.js/releases/tag/v${{ steps.version.outputs.version }}
+- ❌ NPM publish failed
+
+**Manual Fix Required:**
+Run \`npm publish\` locally after checking authentication and network connectivity.
+
+**Verification:**
+Check https://www.npmjs.com/package/webfinger.js to confirm publication.
+
+This issue can be closed once NPM publish is completed manually." \
+            --label "release" \
+            --label "npm"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
