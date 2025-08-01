@@ -50,10 +50,10 @@ See **[Usage Examples](docs/EXAMPLES.md)** for comprehensive examples including 
 
 ## Documentation
 
-📚 **[Complete API Reference](docs/api/API.md)** - Auto-generated from TypeScript source  
 🚀 **[Usage Examples](docs/EXAMPLES.md)** - Comprehensive examples and patterns  
-🛠️ **[Development Guide](docs/DEVELOPMENT.md)** - Contributing and development setup  
 🎮 **[Live Demo](https://silverbucket.github.io/webfinger.js/)** - Interactive WebFinger lookup
+📚 **[Complete API Reference](docs/api/API.md)** - Auto-generated from TypeScript source
+🛠️ **[Development Guide](docs/DEVELOPMENT.md)** - Contributing and development setup  
 
 ## Testing
 
