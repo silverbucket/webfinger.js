@@ -62,7 +62,7 @@ jobs:
           
           if [ -f CHANGELOG.md ]; then
             # Find the section for this version and extract until the next version or end of file
-            awk "/^## \[$VERSION\] - [0-9-]+$/{flag=1; next} /^## \[v[0-9]+\.[0-9]+\.[0-9]+\] - [0-9-]+$/{flag=0} flag" CHANGELOG.md > current_release_notes.txt
+            awk "/^## $VERSION - \([0-9-]+\)$/{flag=1; next} /^## v[0-9]+\.[0-9]+\.[0-9]+ - \([0-9-]+\)$/{flag=0} flag" CHANGELOG.md > current_release_notes.txt
             
             # Add installation and links sections
             cat >> current_release_notes.txt << EOF
@@ -90,34 +90,25 @@ jobs:
           🚀 Generated with automated release workflow
           EOF
           else
-            # Fallback if no CHANGELOG.md file
-            cat > current_release_notes.txt << EOF
-          ## 🚀 What's New
+            echo "❌ FATAL: CHANGELOG.md file not found"
+            echo "Release process requires CHANGELOG.md to extract release notes"
+            exit 1
+          fi
           
-          Release v${{ steps.version.outputs.version }}
-          
-          ## 📦 Installation
-          
-          \`\`\`bash
-          # Using bun (recommended)
-          bun add webfinger.js@${{ steps.version.outputs.version }}
-          
-          # Using npm
-          npm install webfinger.js@${{ steps.version.outputs.version }}
-          
-          # Using yarn
-          yarn add webfinger.js@${{ steps.version.outputs.version }}
-          \`\`\`
-          
-          ## 🔗 Links
-          
-          - [NPM Package](https://www.npmjs.com/package/webfinger.js/v/${{ steps.version.outputs.version }})
-          - [Documentation](https://github.com/silverbucket/webfinger.js#readme)
-          - [Live Demo](https://silverbucket.github.io/webfinger.js/)
-          
-          ---
-          🚀 Generated with automated release workflow
-          EOF
+          # Verify release notes were extracted successfully - FAIL if not found
+          if [ -s current_release_notes.txt ]; then
+            echo "✅ Release notes extracted successfully for $VERSION"
+            echo "📄 Release notes preview:"
+            head -10 current_release_notes.txt
+            if [ $(wc -l < current_release_notes.txt) -gt 10 ]; then
+              echo "... (truncated for preview)"
+            fi
+          else
+            echo "❌ FATAL: No release notes found for $VERSION in CHANGELOG.md"
+            echo "Expected format: ## $VERSION - (YYYY-MM-DD)"
+            echo "Available versions in CHANGELOG.md:"
+            grep "^## v" CHANGELOG.md || echo "No version entries found"
+            exit 1
           fi
 
       - name: Create GitHub Release
