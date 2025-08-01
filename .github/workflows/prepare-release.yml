@@ -109,11 +109,8 @@ jobs:
           # Update CHANGELOG.md
           # Insert new version after the header
           cat > new_entry.tmp << EOF
-          test1
-          - test2
+
           $RELEASE_HEADER
-          - test3
-          test4
           
           $RELEASE_COMMITS
           EOF
