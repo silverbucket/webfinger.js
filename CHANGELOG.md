@@ -4,6 +4,19 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+
+- simplify changelog generation
+- simplify check
+- simplify check
+- test bun exec
+- fail if changlog update fails
+- test execution
+- fix cmd execution
+- improve publish process
+- verify release notes are updated
+- fix version formatting changelog
+
+
 ## v2.8.2 - (2025-07-31)
 
 - Resolve HTTP fallback error (GitHub #116) (#117)
