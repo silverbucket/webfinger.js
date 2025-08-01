@@ -90,9 +90,10 @@ jobs:
           # Generate changelog from git commits - FAIL if no commits found
           echo "Generating changelog for v$CURRENT_VERSION -> v$NEW_VERSION"
           
-          COMMITS=$(git log --pretty=format:"- %s" v$CURRENT_VERSION..HEAD | grep -v "^- chore: bump version" | head -10)
+          RELEASE_COMMITS=$(git log --pretty=format:"- %s" v$CURRENT_VERSION..HEAD | grep -v "^- chore: bump version" | head -10)
+          RELEASE_HEADER="## v$NEW_VERSION - ($(date '+%Y-%m-%d'))" 
           
-          if [ -z "$COMMITS" ]; then
+          if [ -z "$RELEASE_COMMITS" ]; then
             echo "❌ FATAL: No commits found between v$CURRENT_VERSION and HEAD"
             echo "Available tags:"
             git tag -l | tail -5
@@ -101,36 +102,21 @@ jobs:
             exit 1
           fi
           
-          CHANGELOG="$COMMITS"
           echo "✅ Generated changelog:"
-          echo "$CHANGELOG"
+          echo "$RELEASE_HEADER"
+          echo "RELEASE_COMMITS"
+         
+          # Update CHANGELOG.md
+          # Insert new version after the header
+          cat > new_entry.tmp << EOF
+          $RELEASE_HEADER
           
-          # Create or update CHANGELOG.md
-          if [ ! -f CHANGELOG.md ]; then
-              # Create new file if it doesn't exist (shouldn't happen now that we have the base file)
-              cat > CHANGELOG.md << EOF
-          # Changelog
-          
-          All notable changes to this project will be documented in this file.
-          
-          ## v$NEW_VERSION - ($(date '+%Y-%m-%d'))
-          
-          $CHANGELOG
-          
+          $RELEASE_COMMITS
           EOF
-          else
-              # Insert new version after the header
-              cat > new_entry.tmp << EOF
-          ## v$NEW_VERSION - ($(date '+%Y-%m-%d'))
-          
-          $CHANGELOG
-          
-          EOF
-              # Insert after line that contains "Semantic Versioning" 
-              awk '/Semantic Versioning/ {print; print ""; getline < "new_entry.tmp"; while ((getline line < "new_entry.tmp") > 0) print line; print ""; next} 1' CHANGELOG.md > CHANGELOG.md.tmp
-              mv CHANGELOG.md.tmp CHANGELOG.md
-              rm new_entry.tmp
-          fi
+          # Insert after line that contains "Semantic Versioning" 
+          awk '/Semantic Versioning/ {print; print ""; getline < "new_entry.tmp"; while ((getline line < "new_entry.tmp") > 0) print line; print ""; next} 1' CHANGELOG.md > CHANGELOG.md.tmp
+          mv CHANGELOG.md.tmp CHANGELOG.md
+          rm new_entry.tmp
 
       - name: Create release branch
         run: |
