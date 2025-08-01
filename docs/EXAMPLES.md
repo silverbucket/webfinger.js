@@ -37,7 +37,7 @@ try {
 ### CommonJS / Node.js
 
 ```javascript
-const WebFinger = require('webfinger.js').default;
+const WebFinger = require('webfinger.js');
 
 const webfinger = new WebFinger({
   tls_only: true

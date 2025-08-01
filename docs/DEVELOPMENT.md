@@ -59,9 +59,12 @@ webfinger.js/
 │   ├── webfinger.d.ts        # TypeScript definitions
 │   └── webfinger.js.map      # Source map
 ├── docs/
-│   ├── API.md                # Auto-generated API docs (DO NOT EDIT)
+│   ├── api/
+│   │   └── API.md            # Auto-generated API docs (DO NOT EDIT)
 │   ├── EXAMPLES.md           # Usage examples
-│   └── DEVELOPMENT.md        # This file
+│   ├── DEVELOPMENT.md        # This file
+│   ├── RELEASE.md            # Release process guide
+│   └── SECURITY.md           # Security information
 ├── demo/
 │   └── index.html            # Live demo page
 ├── test/                     # Test files
@@ -126,7 +129,7 @@ The `docs/API.md` file is **auto-generated** from JSDoc comments in the TypeScri
 
 ### Documentation Files
 
-- **`docs/API.md`** - Auto-generated API reference (DO NOT EDIT)
+- **`docs/api/API.md`** - Auto-generated API reference (DO NOT EDIT)
 - **`docs/EXAMPLES.md`** - Usage examples and patterns
 - **`docs/DEVELOPMENT.md`** - This development guide
 - **`README.md`** - Main project documentation
