@@ -55,8 +55,8 @@ After merge, verify:
 
 **First-time setup only:**
 
-1. **NPM Token**: Add `NPM_TOKEN` secret in [repository settings](https://github.com/silverbucket/webfinger.js/settings/secrets/actions)
-   - Get token from [npmjs.com](https://www.npmjs.com/settings/tokens)
+1. **NPM Token**: Add `NPM_TOKEN` secret in the webfinger.js repository settings (Settings→Secrets and variables→Actions)
+   - Get token from npmjs.com (Profile→Access Tokens)
    - Use "Automation" token type
 
 2. **Done!** `GITHUB_TOKEN` is provided automatically.
