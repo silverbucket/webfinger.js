@@ -42,18 +42,6 @@ jobs:
         id: version
         run: echo "version=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
 
-      - name: Configure Git
-        run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-
-      - name: Create and push git tag
-        run: |
-          git tag v${{ steps.version.outputs.version }}
-          git push origin v${{ steps.version.outputs.version }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Extract release notes for current version
         id: release_notes
         run: |
@@ -111,6 +99,18 @@ jobs:
             exit 1
           fi
 
+      - name: Configure Git
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+
+      - name: Create and push git tag
+        run: |
+          git tag v${{ steps.version.outputs.version }}
+          git push origin v${{ steps.version.outputs.version }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Create GitHub Release
         uses: actions/create-release@v1
         env:
@@ -123,6 +123,7 @@ jobs:
           prerelease: false
 
       - name: Publish to npm
+        id: npm_publish
         run: npm publish
 
       - name: Add publish summary
@@ -136,3 +137,41 @@ jobs:
           echo "- **Demo**: https://silverbucket.github.io/webfinger.js/" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "✅ Release is now complete!"
+
+      - name: Alert on NPM publish failure
+        if: failure() && steps.npm_publish.conclusion == 'failure'
+        run: |
+          echo "## 🚨 NPM Publish Failed" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY  
+          echo "✅ **Git tag created**: v${{ steps.version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "✅ **GitHub release created**: https://github.com/silverbucket/webfinger.js/releases/tag/v${{ steps.version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "❌ **NPM publish failed**" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Manual Fix**: Run \`npm publish\` locally to complete the release." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Steps:**" >> $GITHUB_STEP_SUMMARY
+          echo "1. Check NPM authentication and network" >> $GITHUB_STEP_SUMMARY
+          echo "2. Run \`npm publish\` from the project directory" >> $GITHUB_STEP_SUMMARY
+          echo "3. Verify publication at https://www.npmjs.com/package/webfinger.js" >> $GITHUB_STEP_SUMMARY
+          
+          # Create GitHub issue for tracking
+          gh issue create --title "🚨 NPM Publish Failed for v${{ steps.version.outputs.version }}" \
+            --body "The automated release process completed successfully except for NPM publishing. 
+
+**Status:**
+- ✅ Git tag created: v${{ steps.version.outputs.version }}
+- ✅ GitHub release created: https://github.com/silverbucket/webfinger.js/releases/tag/v${{ steps.version.outputs.version }}
+- ❌ NPM publish failed
+
+**Manual Fix Required:**
+Run \`npm publish\` locally after checking authentication and network connectivity.
+
+**Verification:**
+Check https://www.npmjs.com/package/webfinger.js to confirm publication.
+
+This issue can be closed once NPM publish is completed manually." \
+            --label "release" \
+            --label "npm"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
