@@ -4,6 +4,21 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+
+- test execution
+- fix cmd execution
+- improve publish process
+- verify release notes are updated
+- fix version formatting changelog
+- add linting in more places during release
+- add link checking during linting
+- improve setup instruction
+- fix links
+- restore deleted documentation
+- fix typedoc generation to not wipe out other documents
+
+
+
 ## v2.8.2 - (2025-07-31)
 
 - Resolve HTTP fallback error (GitHub #116) (#117)

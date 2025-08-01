@@ -1,8 +1,8 @@
-**webfinger.js v2.8.2**
+**webfinger.js v2.8.3**
 
 ***
 
-# webfinger.js v2.8.2
+# webfinger.js v2.8.3
 
 ## Classes
 
