@@ -91,7 +91,7 @@ jobs:
           echo "Generating changelog for v$CURRENT_VERSION -> v$NEW_VERSION"
           
           RELEASE_COMMITS=$(git log --pretty=format:"- %s" v$CURRENT_VERSION..HEAD | grep -v "^- chore: bump version" | head -10)
-          RELEASE_HEADER="## v$NEW_VERSION - ($(date '+%Y-%m-%d'))" 
+          RELEASE_HEADER="v$NEW_VERSION - ($(date '+%Y-%m-%d'))" 
           
           if [ -z "$RELEASE_COMMITS" ]; then
             echo "❌ FATAL: No commits found between v$CURRENT_VERSION and HEAD"
@@ -104,7 +104,7 @@ jobs:
           
           echo "✅ Generated changelog:"
           echo "$RELEASE_HEADER"
-          echo "RELEASE_COMMITS"
+          echo "$RELEASE_COMMITS"
          
           # Update CHANGELOG.md
           # Insert new version after the header
