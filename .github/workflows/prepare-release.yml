@@ -97,7 +97,7 @@ jobs:
           
           All notable changes to this project will be documented in this file.
           
-          ## [v$NEW_VERSION] - $(date '+%Y-%m-%d')
+          ## v$NEW_VERSION - ($(date '+%Y-%m-%d'))
           
           $CHANGELOG
           
@@ -105,7 +105,7 @@ jobs:
           else
               # Insert new version after the header
               cat > new_entry.tmp << EOF
-          ## [v$NEW_VERSION] - $(date '+%Y-%m-%d')
+          ## v$NEW_VERSION - ($(date '+%Y-%m-%d'))
           
           $CHANGELOG
           
