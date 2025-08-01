@@ -1,4 +1,4 @@
-console.log('webfinger.js v2.8.2 loaded');
+console.log('webfinger.js v2.8.3 loaded');
 // src/webfinger.ts
 /*!
  * webfinger.js
