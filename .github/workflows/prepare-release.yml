@@ -127,6 +127,9 @@ jobs:
           git push origin "$RELEASE_BRANCH"
           echo "RELEASE_BRANCH=$RELEASE_BRANCH" >> $GITHUB_ENV
 
+      - name: Double check documentation links
+        run: bun run lint
+
       # Note: GitHub release and git tagging will happen automatically when PR is merged
 
       - name: Deploy to GitHub Pages
