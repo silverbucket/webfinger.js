@@ -8,9 +8,24 @@
 
 ### default
 
-Defined in: [src/webfinger.ts:170](https://github.com/silverbucket/webfinger.js/blob/master/src/webfinger.ts#L170)
+Defined in: [src/webfinger.ts:185](https://github.com/silverbucket/webfinger.js/blob/master/src/webfinger.ts#L185)
 
 WebFinger client for discovering user information across domains.
+
+## Constructor
+
+**`new WebFinger(cfg?)`**
+
+Creates a new WebFinger client instance.
+
+### Parameters
+
+- **cfg** `Partial<WebFingerConfig>` _(optional)_ - Configuration options for the WebFinger client
+  - **tls_only** `boolean` _(default: true)_ - Use HTTPS only. When false, allows HTTP fallback for localhost
+  - **uri_fallback** `boolean` _(default: false)_ - Enable host-meta and host-meta.json fallback endpoints
+  - **webfist_fallback** `boolean` _(default: false)_ - **@deprecated** WebFist is discontinued and will be removed in v3.0.0
+  - **request_timeout** `number` _(default: 10000)_ - Request timeout in milliseconds
+  - **allow_private_addresses** `boolean` _(default: false)_ - Allow private/internal addresses (DANGEROUS - only for development)
 
 #### Example
 
@@ -23,39 +38,13 @@ const result = await webfinger.lookup('user@domain.com');
 console.log(result.idx.properties.name);
 ```
 
-#### Constructors
-
-##### Constructor
-
-> **new default**(`cfg`): [`default`](#default)
-
-Defined in: [src/webfinger.ts:184](https://github.com/silverbucket/webfinger.js/blob/master/src/webfinger.ts#L184)
-
-Creates a new WebFinger client instance.
-
-###### Parameters
-
-###### cfg
-
-`Partial`\<[`WebFingerConfig`](#webfingerconfig)\> = `{}`
-
-Configuration options for the WebFinger client
-
-###### Returns
-
-[`default`](#default)
-
-###### Deprecated
-
-Enable WebFist fallback (default: false)
-
 #### Methods
 
 ##### lookup()
 
 > **lookup**(`address`): `Promise`\<[`WebFingerResult`](#webfingerresult)\>
 
-Defined in: [src/webfinger.ts:594](https://github.com/silverbucket/webfinger.js/blob/master/src/webfinger.ts#L594)
+Defined in: [src/webfinger.ts:601](https://github.com/silverbucket/webfinger.js/blob/master/src/webfinger.ts#L601)
 
 Performs a WebFinger lookup for the given address with comprehensive SSRF protection.
 
@@ -110,7 +99,7 @@ await webfinger.lookup('user@192.168.1.1');  // Direct access blocked
 
 > **lookupLink**(`address`, `rel`): `Promise`\<[`LinkObject`](#linkobject)\>
 
-Defined in: [src/webfinger.ts:717](https://github.com/silverbucket/webfinger.js/blob/master/src/webfinger.ts#L717)
+Defined in: [src/webfinger.ts:724](https://github.com/silverbucket/webfinger.js/blob/master/src/webfinger.ts#L724)
 
 Looks up a specific link relation for the given address.
 
@@ -152,14 +141,6 @@ try {
   console.log('No RemoteStorage found');
 }
 ```
-
-#### Properties
-
-##### default
-
-> `static` **default**: *typeof* [`default`](#default)
-
-Defined in: [src/webfinger.ts:171](https://github.com/silverbucket/webfinger.js/blob/master/src/webfinger.ts#L171)
 
 ***
 

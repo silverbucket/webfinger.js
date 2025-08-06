@@ -157,6 +157,21 @@ export class WebFingerError extends Error {
 /**
  * WebFinger client for discovering user information across domains.
  *
+ * ## Constructor
+ * 
+ * **`new WebFinger(cfg?)`**
+ * 
+ * Creates a new WebFinger client instance.
+ *
+ * ### Parameters
+ * 
+ * - **cfg** `Partial<WebFingerConfig>` _(optional)_ - Configuration options for the WebFinger client
+ *   - **tls_only** `boolean` _(default: true)_ - Use HTTPS only. When false, allows HTTP fallback for localhost
+ *   - **uri_fallback** `boolean` _(default: false)_ - Enable host-meta and host-meta.json fallback endpoints
+ *   - **webfist_fallback** `boolean` _(default: false)_ - **@deprecated** WebFist is discontinued and will be removed in v3.0.0
+ *   - **request_timeout** `number` _(default: 10000)_ - Request timeout in milliseconds
+ *   - **allow_private_addresses** `boolean` _(default: false)_ - Allow private/internal addresses (DANGEROUS - only for development)
+ *
  * @example
  * ```typescript
  * const webfinger = new WebFinger({
@@ -168,19 +183,11 @@ export class WebFingerError extends Error {
  * ```
  */
 export default class WebFinger {
+  /** @ignore */
   static default: typeof WebFinger;
   private config: WebFingerConfig;
 
-  /**
-   * Creates a new WebFinger client instance.
-   *
-   * @param cfg - Configuration options for the WebFinger client
-   * @param cfg.tls_only - Use HTTPS only (default: true)
-   * @param cfg.uri_fallback - Enable host-meta fallback (default: false)
-   * @param cfg.webfist_fallback - @deprecated Enable WebFist fallback (default: false)
-   * @param cfg.request_timeout - Request timeout in milliseconds (default: 10000)
-   * @param cfg.allow_private_addresses - Allow private/internal addresses (default: false, DANGEROUS)
-   */
+  /** @ignore */
   constructor(cfg: Partial<WebFingerConfig> = {}) {
     this.config = {
       tls_only: (typeof cfg.tls_only !== 'undefined') ? cfg.tls_only : true,
