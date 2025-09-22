@@ -32,6 +32,10 @@ npm install webfinger.js
 yarn add webfinger.js
 ```
 
+### CDN
+Replace the version `2.8.2` with the version of your choice:
+`https://cdn.jsdelivr.net/npm/webfinger.js@2.8.2/dist/webfinger.min.js`
+
 ## Quick Start
 
 ```typescript
