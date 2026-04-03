@@ -32,6 +32,10 @@ execSync('bun run tsc', { stdio: 'inherit' });
 const esmFile = outputPath.replace('.js', '.mjs');
 execSync(`bun build src/webfinger.ts --target=browser --format=esm --outfile=${esmFile}`, { stdio: 'inherit' });
 
+// Add version banner to ESM output
+const esmContent = fs.readFileSync(esmFile, 'utf8');
+fs.writeFileSync(esmFile, `// webfinger.js v${version}\n${esmContent}`);
+
 // Build CommonJS/UMD version
 const tempFile = outputPath + '.tmp';
 execSync(`bun build src/webfinger.ts --target=browser --format=esm --outfile=${tempFile}`, { stdio: 'inherit' });
@@ -55,6 +59,7 @@ const umdWrapper = `(function (root, factory) {
   }
 }(typeof self !== 'undefined' ? self : this, function () {
 'use strict';
+// webfinger.js v${version}
 
 ${cleanCode}
 
