@@ -17,7 +17,6 @@
 
 // URI to property name map
 const LINK_URI_MAPS = {
-  'http://webfist.org/spec/rel': 'webfist',
   'http://webfinger.net/rel/avatar': 'avatar',
   'remotestorage': 'remotestorage',
   'http://tools.ietf.org/id/draft-dejong-remotestorage': 'remotestorage',
@@ -40,7 +39,6 @@ const LINK_PROPERTIES = {
   'updates': [],
   'share': [],
   'profile': [],
-  'webfist': [],
   'camlistore': []
 };
 
@@ -67,11 +65,6 @@ export type WebFingerConfig = {
   tls_only: boolean,
   /** Enable host-meta and host-meta.json fallback endpoints. */
   uri_fallback: boolean,
-  /** 
-   * @deprecated WebFist is discontinued and will be removed in v3.0.0. Use standard WebFinger discovery instead.
-   * Enable WebFist fallback service for discovering WebFinger endpoints. 
-   */
-  webfist_fallback: boolean,
   /** Request timeout in milliseconds. */
   request_timeout: number,
   /** Allow private/internal addresses (DANGEROUS - only for development). */
@@ -168,7 +161,6 @@ export class WebFingerError extends Error {
  * - **cfg** `Partial<WebFingerConfig>` _(optional)_ - Configuration options for the WebFinger client
  *   - **tls_only** `boolean` _(default: true)_ - Use HTTPS only. When false, allows HTTP fallback for localhost
  *   - **uri_fallback** `boolean` _(default: false)_ - Enable host-meta and host-meta.json fallback endpoints
- *   - **webfist_fallback** `boolean` _(default: false)_ - **@deprecated** WebFist is discontinued and will be removed in v3.0.0
  *   - **request_timeout** `number` _(default: 10000)_ - Request timeout in milliseconds
  *   - **allow_private_addresses** `boolean` _(default: false)_ - Allow private/internal addresses (DANGEROUS - only for development)
  *
@@ -192,15 +184,9 @@ export default class WebFinger {
     this.config = {
       tls_only: (typeof cfg.tls_only !== 'undefined') ? cfg.tls_only : true,
       uri_fallback: (typeof cfg.uri_fallback !== 'undefined') ? cfg.uri_fallback : false,
-      webfist_fallback: (typeof cfg.webfist_fallback !== 'undefined') ? cfg.webfist_fallback : false,
       request_timeout: (typeof cfg.request_timeout !== 'undefined') ? cfg.request_timeout : 10000,
       allow_private_addresses: (typeof cfg.allow_private_addresses !== 'undefined') ? cfg.allow_private_addresses : false
     };
-    
-    // Deprecation warning for WebFist
-    if (this.config.webfist_fallback) {
-      console.warn('⚠️  WebFinger: webfist_fallback is deprecated and will be removed in v3.0.0. WebFist service is discontinued. Use standard WebFinger discovery instead.');
-    }
   }
 
   // make an HTTP request and look for JRD response, fails if request fails
@@ -657,32 +643,13 @@ export default class WebFinger {
 
     // control flow for failures, what to do in various cases, etc.
     const  __fallbackChecks = async (err: Error)=>  {
-      if ((this.config.uri_fallback) && (host !== 'webfist.org') && (uri_index !== URIS.length - 1)) { // we have uris left to try
+      if ((this.config.uri_fallback) && (uri_index !== URIS.length - 1)) { // we have uris left to try
         uri_index = uri_index + 1;
         return __call();
       } else if ((!this.config.tls_only) && (protocol === 'https')) { // try normal http
         uri_index = 0;
         protocol = 'http';
         return __call();
-      } else if ((this.config.webfist_fallback) && (host !== 'webfist.org')) { // webfist attempt (DEPRECATED)
-        console.warn('⚠️  WebFinger: Using deprecated WebFist fallback. WebFist service is discontinued and this feature will be removed in v3.0.0.');
-        uri_index = 0;
-        protocol = 'http';
-        host = 'webfist.org';
-        // webfist will
-        // 1. make a query to the webfist server for the users account
-        // 2. from the response, get a link to the actual WebFinger json data
-        //    (stored somewhere in control of the user)
-        // 3. make a request to that url and get the json
-        // 4. process it like a normal WebFinger response
-        const URL = __buildURL();
-        const data = await this.fetchJRD(URL); // get link to users JRD
-        const result = await WebFinger.processJRD(URL, data)
-        if (typeof result.idx.links.webfist === 'object') {
-          const JRD = await this.fetchJRD(result.idx.links.webfist[0].href);
-          return await WebFinger.processJRD(URL, JRD);
-        }
-        throw new WebFingerError('webfist fallback failed');
       } else {
         throw err instanceof Error ? err : new WebFingerError(String(err));
       }

@@ -58,7 +58,6 @@ describe('WebFinger', () => {
     it('should create instance with custom configuration', () => {
       const customWf = new WebFinger({
         tls_only: false,
-        webfist_fallback: true,
         uri_fallback: true,
         request_timeout: 15000
       });
@@ -522,7 +521,7 @@ describe('WebFinger', () => {
         const webfinger = new WebFinger({
           tls_only: false,
           uri_fallback: false,
-          webfist_fallback: false,
+
           allow_private_addresses: true
         });
         
@@ -553,7 +552,7 @@ describe('WebFinger', () => {
       try {
         const webfinger = new WebFinger({
           uri_fallback: false,
-          webfist_fallback: false,
+
           allow_private_addresses: true
           // tls_only defaults to true
         });
