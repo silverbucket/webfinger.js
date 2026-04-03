@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 6 196 68">
+  <title>wf.js</title>
+  <defs>
+    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#667eea"/>
+      <stop offset="100%" stop-color="#764ba2"/>
+    </linearGradient>
+  </defs>
+  <g>
+    <!-- Connection lines -->
+    <line x1="40" y1="40" x2="16" y2="18" stroke="url(#grad)" stroke-width="1.2" opacity="0.3"/>
+    <line x1="40" y1="40" x2="64" y2="14" stroke="url(#grad)" stroke-width="1.2" opacity="0.3"/>
+    <line x1="40" y1="40" x2="68" y2="52" stroke="url(#grad)" stroke-width="1.2" opacity="0.3"/>
+    <line x1="40" y1="40" x2="18" y2="60" stroke="url(#grad)" stroke-width="1.2" opacity="0.3"/>
+    <line x1="40" y1="40" x2="58" y2="70" stroke="url(#grad)" stroke-width="1.2" opacity="0.3"/>
+    <line x1="64" y1="14" x2="68" y2="52" stroke="url(#grad)" stroke-width="1" opacity="0.2"/>
+    <line x1="16" y1="18" x2="18" y2="60" stroke="url(#grad)" stroke-width="1" opacity="0.2"/>
+    <!-- Outer nodes -->
+    <circle cx="16" cy="18" r="4" fill="none" stroke="url(#grad)" stroke-width="1.5" opacity="0.6"/>
+    <circle cx="64" cy="14" r="3.5" fill="none" stroke="url(#grad)" stroke-width="1.5" opacity="0.5"/>
+    <circle cx="68" cy="52" r="3" fill="none" stroke="url(#grad)" stroke-width="1.5" opacity="0.5"/>
+    <circle cx="18" cy="60" r="3.5" fill="none" stroke="url(#grad)" stroke-width="1.5" opacity="0.5"/>
+    <circle cx="58" cy="70" r="2.5" fill="none" stroke="url(#grad)" stroke-width="1.5" opacity="0.4"/>
+    <!-- Central node with @ -->
+    <circle cx="40" cy="40" r="16" fill="url(#grad)" opacity="0.12"/>
+    <circle cx="40" cy="40" r="16" fill="none" stroke="url(#grad)" stroke-width="2"/>
+    <text x="40" y="46" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="18" font-weight="700" fill="url(#grad)">@</text>
+  </g>
+  <!-- Wordmark: dark text for light backgrounds -->
+  <text x="80" y="55" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="48" font-weight="600" fill="#2d3748">wf<tspan fill="url(#grad)">.js</tspan></text>
+</svg>
