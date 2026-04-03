@@ -155,21 +155,26 @@ jobs:
           echo "3. Verify publication at https://www.npmjs.com/package/webfinger.js" >> $GITHUB_STEP_SUMMARY
           
           # Create GitHub issue for tracking
-          gh issue create --title "🚨 NPM Publish Failed for v${{ steps.version.outputs.version }}" \
-            --body "The automated release process completed successfully except for NPM publishing. 
+          VERSION="v${{ steps.version.outputs.version }}"
+          RELEASE_URL="https://github.com/silverbucket/webfinger.js/releases/tag/$VERSION"
+          gh issue create --title "NPM Publish Failed for $VERSION" \
+            --body "$(cat <<ISSUE_BODY
+          The automated release process completed successfully except for NPM publishing.
 
-**Status:**
-- ✅ Git tag created: v${{ steps.version.outputs.version }}
-- ✅ GitHub release created: https://github.com/silverbucket/webfinger.js/releases/tag/v${{ steps.version.outputs.version }}
-- ❌ NPM publish failed
+          **Status:**
+          - Git tag created: $VERSION
+          - GitHub release created: $RELEASE_URL
+          - NPM publish failed
 
-**Manual Fix Required:**
-Run \`npm publish\` locally after checking authentication and network connectivity.
+          **Manual Fix Required:**
+          Run \`npm publish\` locally after checking authentication and network connectivity.
 
-**Verification:**
-Check https://www.npmjs.com/package/webfinger.js to confirm publication.
+          **Verification:**
+          Check https://www.npmjs.com/package/webfinger.js to confirm publication.
 
-This issue can be closed once NPM publish is completed manually." \
+          This issue can be closed once NPM publish is completed manually.
+          ISSUE_BODY
+          )" \
             --label "release" \
             --label "npm"
         env:
