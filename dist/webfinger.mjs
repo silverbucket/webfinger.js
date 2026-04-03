@@ -1,4 +1,4 @@
-console.log('webfinger.js v2.8.2 loaded');
+// webfinger.js v3.0.0
 // src/webfinger.ts
 /*!
  * webfinger.js
@@ -17,7 +17,6 @@ console.log('webfinger.js v2.8.2 loaded');
  *
  */
 var LINK_URI_MAPS = {
-  "http://webfist.org/spec/rel": "webfist",
   "http://webfinger.net/rel/avatar": "avatar",
   remotestorage: "remotestorage",
   "http://tools.ietf.org/id/draft-dejong-remotestorage": "remotestorage",
@@ -39,7 +38,6 @@ var LINK_PROPERTIES = {
   updates: [],
   share: [],
   profile: [],
-  webfist: [],
   camlistore: []
 };
 var URIS = ["webfinger", "host-meta", "host-meta.json"];
@@ -67,13 +65,9 @@ class WebFinger {
     this.config = {
       tls_only: typeof cfg.tls_only !== "undefined" ? cfg.tls_only : true,
       uri_fallback: typeof cfg.uri_fallback !== "undefined" ? cfg.uri_fallback : false,
-      webfist_fallback: typeof cfg.webfist_fallback !== "undefined" ? cfg.webfist_fallback : false,
       request_timeout: typeof cfg.request_timeout !== "undefined" ? cfg.request_timeout : 1e4,
       allow_private_addresses: typeof cfg.allow_private_addresses !== "undefined" ? cfg.allow_private_addresses : false
     };
-    if (this.config.webfist_fallback) {
-      console.warn("⚠️  WebFinger: webfist_fallback is deprecated and will be removed in v3.0.0. WebFist service is discontinued. Use standard WebFinger discovery instead.");
-    }
   }
   async fetchJRD(url, redirectCount = 0) {
     if (redirectCount > 3) {
@@ -319,26 +313,13 @@ class WebFinger {
       return protocol + "://" + host + "/.well-known/" + URIS[uri_index] + "?resource=" + uri + address;
     };
     const __fallbackChecks = async (err) => {
-      if (this.config.uri_fallback && host !== "webfist.org" && uri_index !== URIS.length - 1) {
+      if (this.config.uri_fallback && uri_index !== URIS.length - 1) {
         uri_index = uri_index + 1;
         return __call();
       } else if (!this.config.tls_only && protocol === "https") {
         uri_index = 0;
         protocol = "http";
         return __call();
-      } else if (this.config.webfist_fallback && host !== "webfist.org") {
-        console.warn("⚠️  WebFinger: Using deprecated WebFist fallback. WebFist service is discontinued and this feature will be removed in v3.0.0.");
-        uri_index = 0;
-        protocol = "http";
-        host = "webfist.org";
-        const URL2 = __buildURL();
-        const data = await this.fetchJRD(URL2);
-        const result = await WebFinger.processJRD(URL2, data);
-        if (typeof result.idx.links.webfist === "object") {
-          const JRD = await this.fetchJRD(result.idx.links.webfist[0].href);
-          return await WebFinger.processJRD(URL2, JRD);
-        }
-        throw new WebFingerError("webfist fallback failed");
       } else {
         throw err instanceof Error ? err : new WebFingerError(String(err));
       }

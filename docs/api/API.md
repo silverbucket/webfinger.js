@@ -1,14 +1,14 @@
-**webfinger.js v2.8.2**
+**webfinger.js v3.0.0**
 
 ***
 
-# webfinger.js v2.8.2
+# webfinger.js v3.0.0
 
 ## Classes
 
 ### default
 
-Defined in: [src/webfinger.ts:185](https://github.com/silverbucket/webfinger.js/blob/master/src/webfinger.ts#L185)
+Defined in: [src/webfinger.ts:177](https://github.com/silverbucket/webfinger.js/blob/master/src/webfinger.ts#L177)
 
 WebFinger client for discovering user information across domains.
 
@@ -23,7 +23,6 @@ Creates a new WebFinger client instance.
 - **cfg** `Partial<WebFingerConfig>` _(optional)_ - Configuration options for the WebFinger client
   - **tls_only** `boolean` _(default: true)_ - Use HTTPS only. When false, allows HTTP fallback for localhost
   - **uri_fallback** `boolean` _(default: false)_ - Enable host-meta and host-meta.json fallback endpoints
-  - **webfist_fallback** `boolean` _(default: false)_ - **@deprecated** WebFist is discontinued and will be removed in v3.0.0
   - **request_timeout** `number` _(default: 10000)_ - Request timeout in milliseconds
   - **allow_private_addresses** `boolean` _(default: false)_ - Allow private/internal addresses (DANGEROUS - only for development)
 
@@ -44,7 +43,7 @@ console.log(result.idx.properties.name);
 
 > **lookup**(`address`): `Promise`\<[`WebFingerResult`](#webfingerresult)\>
 
-Defined in: [src/webfinger.ts:601](https://github.com/silverbucket/webfinger.js/blob/master/src/webfinger.ts#L601)
+Defined in: [src/webfinger.ts:587](https://github.com/silverbucket/webfinger.js/blob/master/src/webfinger.ts#L587)
 
 Performs a WebFinger lookup for the given address with comprehensive SSRF protection.
 
@@ -99,7 +98,7 @@ await webfinger.lookup('user@192.168.1.1');  // Direct access blocked
 
 > **lookupLink**(`address`, `rel`): `Promise`\<[`LinkObject`](#linkobject)\>
 
-Defined in: [src/webfinger.ts:724](https://github.com/silverbucket/webfinger.js/blob/master/src/webfinger.ts#L724)
+Defined in: [src/webfinger.ts:691](https://github.com/silverbucket/webfinger.js/blob/master/src/webfinger.ts#L691)
 
 Looks up a specific link relation for the given address.
 
@@ -146,7 +145,7 @@ try {
 
 ### WebFingerError
 
-Defined in: [src/webfinger.ts:140](https://github.com/silverbucket/webfinger.js/blob/master/src/webfinger.ts#L140)
+Defined in: [src/webfinger.ts:133](https://github.com/silverbucket/webfinger.js/blob/master/src/webfinger.ts#L133)
 
 Custom error class for WebFinger-specific errors.
 
@@ -180,7 +179,7 @@ try {
 
 > **new WebFingerError**(`message`, `status?`): [`WebFingerError`](#webfingererror)
 
-Defined in: [src/webfinger.ts:150](https://github.com/silverbucket/webfinger.js/blob/master/src/webfinger.ts#L150)
+Defined in: [src/webfinger.ts:143](https://github.com/silverbucket/webfinger.js/blob/master/src/webfinger.ts#L143)
 
 Creates a new WebFingerError instance.
 
@@ -212,7 +211,7 @@ Optional HTTP status code if applicable
 
 > `static` **captureStackTrace**(`targetObject`, `constructorOpt?`): `void`
 
-Defined in: node\_modules/@types/node/globals.d.ts:146
+Defined in: node\_modules/@types/node/globals.d.ts:51
 
 Creates a `.stack` property on `targetObject`, which when accessed returns
 a string representing the location in the code at which
@@ -280,7 +279,7 @@ a();
 
 > `static` **prepareStackTrace**(`err`, `stackTraces`): `any`
 
-Defined in: node\_modules/@types/node/globals.d.ts:150
+Defined in: node\_modules/@types/node/globals.d.ts:55
 
 ###### Parameters
 
@@ -308,9 +307,9 @@ https://v8.dev/docs/stack-trace-api#customizing-stack-traces
 
 ##### cause?
 
-> `optional` **cause**: `unknown`
+> `optional` **cause?**: `unknown`
 
-Defined in: node\_modules/typescript/lib/lib.es2022.error.d.ts:26
+Defined in: node\_modules/typescript/lib/lib.es2022.error.d.ts:24
 
 ###### Inherited from
 
@@ -320,7 +319,7 @@ Defined in: node\_modules/typescript/lib/lib.es2022.error.d.ts:26
 
 > **message**: `string`
 
-Defined in: node\_modules/typescript/lib/lib.es5.d.ts:1077
+Defined in: node\_modules/typescript/lib/lib.es5.d.ts:1075
 
 ###### Inherited from
 
@@ -330,7 +329,7 @@ Defined in: node\_modules/typescript/lib/lib.es5.d.ts:1077
 
 > **name**: `string`
 
-Defined in: node\_modules/typescript/lib/lib.es5.d.ts:1076
+Defined in: node\_modules/typescript/lib/lib.es5.d.ts:1074
 
 ###### Inherited from
 
@@ -338,9 +337,9 @@ Defined in: node\_modules/typescript/lib/lib.es5.d.ts:1076
 
 ##### stack?
 
-> `optional` **stack**: `string`
+> `optional` **stack?**: `string`
 
-Defined in: node\_modules/typescript/lib/lib.es5.d.ts:1078
+Defined in: node\_modules/typescript/lib/lib.es5.d.ts:1076
 
 ###### Inherited from
 
@@ -348,9 +347,9 @@ Defined in: node\_modules/typescript/lib/lib.es5.d.ts:1078
 
 ##### status?
 
-> `optional` **status**: `number`
+> `optional` **status?**: `number`
 
-Defined in: [src/webfinger.ts:142](https://github.com/silverbucket/webfinger.js/blob/master/src/webfinger.ts#L142)
+Defined in: [src/webfinger.ts:135](https://github.com/silverbucket/webfinger.js/blob/master/src/webfinger.ts#L135)
 
 HTTP status code if the error originated from an HTTP response
 
@@ -358,7 +357,7 @@ HTTP status code if the error originated from an HTTP response
 
 > `static` **stackTraceLimit**: `number`
 
-Defined in: node\_modules/@types/node/globals.d.ts:162
+Defined in: node\_modules/@types/node/globals.d.ts:67
 
 The `Error.stackTraceLimit` property specifies the number of stack frames
 collected by a stack trace (whether generated by `new Error().stack` or
@@ -380,7 +379,7 @@ not capture any frames.
 
 > **JRD** = `object`
 
-Defined in: [src/webfinger.ts:84](https://github.com/silverbucket/webfinger.js/blob/master/src/webfinger.ts#L84)
+Defined in: [src/webfinger.ts:77](https://github.com/silverbucket/webfinger.js/blob/master/src/webfinger.ts#L77)
 
 JSON Resource Descriptor - Raw WebFinger response format
 
@@ -388,27 +387,27 @@ JSON Resource Descriptor - Raw WebFinger response format
 
 ##### error?
 
-> `optional` **error**: `string`
+> `optional` **error?**: `string`
 
-Defined in: [src/webfinger.ts:88](https://github.com/silverbucket/webfinger.js/blob/master/src/webfinger.ts#L88)
+Defined in: [src/webfinger.ts:81](https://github.com/silverbucket/webfinger.js/blob/master/src/webfinger.ts#L81)
 
 ##### links
 
 > **links**: `Record`\<`string`, `unknown`\>[]
 
-Defined in: [src/webfinger.ts:86](https://github.com/silverbucket/webfinger.js/blob/master/src/webfinger.ts#L86)
+Defined in: [src/webfinger.ts:79](https://github.com/silverbucket/webfinger.js/blob/master/src/webfinger.ts#L79)
 
 ##### properties?
 
-> `optional` **properties**: `Record`\<`string`, `unknown`\>
+> `optional` **properties?**: `Record`\<`string`, `unknown`\>
 
-Defined in: [src/webfinger.ts:87](https://github.com/silverbucket/webfinger.js/blob/master/src/webfinger.ts#L87)
+Defined in: [src/webfinger.ts:80](https://github.com/silverbucket/webfinger.js/blob/master/src/webfinger.ts#L80)
 
 ##### subject?
 
-> `optional` **subject**: `string`
+> `optional` **subject?**: `string`
 
-Defined in: [src/webfinger.ts:85](https://github.com/silverbucket/webfinger.js/blob/master/src/webfinger.ts#L85)
+Defined in: [src/webfinger.ts:78](https://github.com/silverbucket/webfinger.js/blob/master/src/webfinger.ts#L78)
 
 ***
 
@@ -416,13 +415,13 @@ Defined in: [src/webfinger.ts:85](https://github.com/silverbucket/webfinger.js/b
 
 > **LinkObject** = `object`
 
-Defined in: [src/webfinger.ts:107](https://github.com/silverbucket/webfinger.js/blob/master/src/webfinger.ts#L107)
+Defined in: [src/webfinger.ts:100](https://github.com/silverbucket/webfinger.js/blob/master/src/webfinger.ts#L100)
 
 Individual link object in WebFinger response
 
 #### Indexable
 
-\[`key`: `string`\]: `undefined` \| `string`
+> \[`key`: `string`\]: `string` \| `undefined`
 
 Additional properties
 
@@ -432,7 +431,7 @@ Additional properties
 
 > **href**: `string`
 
-Defined in: [src/webfinger.ts:109](https://github.com/silverbucket/webfinger.js/blob/master/src/webfinger.ts#L109)
+Defined in: [src/webfinger.ts:102](https://github.com/silverbucket/webfinger.js/blob/master/src/webfinger.ts#L102)
 
 Target URL
 
@@ -440,15 +439,15 @@ Target URL
 
 > **rel**: `string`
 
-Defined in: [src/webfinger.ts:111](https://github.com/silverbucket/webfinger.js/blob/master/src/webfinger.ts#L111)
+Defined in: [src/webfinger.ts:104](https://github.com/silverbucket/webfinger.js/blob/master/src/webfinger.ts#L104)
 
 Link relation type
 
 ##### type?
 
-> `optional` **type**: `string`
+> `optional` **type?**: `string`
 
-Defined in: [src/webfinger.ts:113](https://github.com/silverbucket/webfinger.js/blob/master/src/webfinger.ts#L113)
+Defined in: [src/webfinger.ts:106](https://github.com/silverbucket/webfinger.js/blob/master/src/webfinger.ts#L106)
 
 MIME type (optional)
 
@@ -458,7 +457,7 @@ MIME type (optional)
 
 > **WebFingerConfig** = `object`
 
-Defined in: [src/webfinger.ts:65](https://github.com/silverbucket/webfinger.js/blob/master/src/webfinger.ts#L65)
+Defined in: [src/webfinger.ts:63](https://github.com/silverbucket/webfinger.js/blob/master/src/webfinger.ts#L63)
 
 Configuration options for WebFinger client
 
@@ -468,7 +467,7 @@ Configuration options for WebFinger client
 
 > **allow\_private\_addresses**: `boolean`
 
-Defined in: [src/webfinger.ts:78](https://github.com/silverbucket/webfinger.js/blob/master/src/webfinger.ts#L78)
+Defined in: [src/webfinger.ts:71](https://github.com/silverbucket/webfinger.js/blob/master/src/webfinger.ts#L71)
 
 Allow private/internal addresses (DANGEROUS - only for development).
 
@@ -476,7 +475,7 @@ Allow private/internal addresses (DANGEROUS - only for development).
 
 > **request\_timeout**: `number`
 
-Defined in: [src/webfinger.ts:76](https://github.com/silverbucket/webfinger.js/blob/master/src/webfinger.ts#L76)
+Defined in: [src/webfinger.ts:69](https://github.com/silverbucket/webfinger.js/blob/master/src/webfinger.ts#L69)
 
 Request timeout in milliseconds.
 
@@ -484,7 +483,7 @@ Request timeout in milliseconds.
 
 > **tls\_only**: `boolean`
 
-Defined in: [src/webfinger.ts:67](https://github.com/silverbucket/webfinger.js/blob/master/src/webfinger.ts#L67)
+Defined in: [src/webfinger.ts:65](https://github.com/silverbucket/webfinger.js/blob/master/src/webfinger.ts#L65)
 
 Use HTTPS only. When false, allows HTTP fallback for localhost.
 
@@ -492,20 +491,9 @@ Use HTTPS only. When false, allows HTTP fallback for localhost.
 
 > **uri\_fallback**: `boolean`
 
-Defined in: [src/webfinger.ts:69](https://github.com/silverbucket/webfinger.js/blob/master/src/webfinger.ts#L69)
+Defined in: [src/webfinger.ts:67](https://github.com/silverbucket/webfinger.js/blob/master/src/webfinger.ts#L67)
 
 Enable host-meta and host-meta.json fallback endpoints.
-
-##### ~~webfist\_fallback~~
-
-> **webfist\_fallback**: `boolean`
-
-Defined in: [src/webfinger.ts:74](https://github.com/silverbucket/webfinger.js/blob/master/src/webfinger.ts#L74)
-
-###### Deprecated
-
-WebFist is discontinued and will be removed in v3.0.0. Use standard WebFinger discovery instead.
-Enable WebFist fallback service for discovering WebFinger endpoints.
 
 ***
 
@@ -513,7 +501,7 @@ Enable WebFist fallback service for discovering WebFinger endpoints.
 
 > **WebFingerResult** = `object`
 
-Defined in: [src/webfinger.ts:94](https://github.com/silverbucket/webfinger.js/blob/master/src/webfinger.ts#L94)
+Defined in: [src/webfinger.ts:87](https://github.com/silverbucket/webfinger.js/blob/master/src/webfinger.ts#L87)
 
 Complete WebFinger lookup result with processed data
 
@@ -523,7 +511,7 @@ Complete WebFinger lookup result with processed data
 
 > **idx**: `object`
 
-Defined in: [src/webfinger.ts:96](https://github.com/silverbucket/webfinger.js/blob/master/src/webfinger.ts#L96)
+Defined in: [src/webfinger.ts:89](https://github.com/silverbucket/webfinger.js/blob/master/src/webfinger.ts#L89)
 
 ###### links
 
@@ -541,4 +529,4 @@ Defined in: [src/webfinger.ts:96](https://github.com/silverbucket/webfinger.js/b
 
 > **object**: [`JRD`](#jrd)
 
-Defined in: [src/webfinger.ts:95](https://github.com/silverbucket/webfinger.js/blob/master/src/webfinger.ts#L95)
+Defined in: [src/webfinger.ts:88](https://github.com/silverbucket/webfinger.js/blob/master/src/webfinger.ts#L88)
