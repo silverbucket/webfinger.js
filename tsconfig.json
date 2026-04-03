@@ -2,8 +2,10 @@
   "compilerOptions": {
     "target": "es2022",
     "module": "commonjs",
-    "moduleResolution": "node",
+    "moduleResolution": "node10",
+    "ignoreDeprecations": "6.0",
     "lib": ["es2022", "dom"],
+    "types": ["node"],
     "rootDir": "./src",
     "outDir": "./dist",
     "strict": true,

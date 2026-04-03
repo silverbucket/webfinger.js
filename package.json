@@ -64,20 +64,20 @@
   },
   "homepage": "https://github.com/silverbucket/webfinger.js",
   "devDependencies": {
-    "@eslint/js": "^9.18.0",
+    "@eslint/js": "^10.0.1",
     "@esm-bundle/chai": "^4.3.4-fix.0",
-    "@types/node": "^24.1.0",
-    "@typescript-eslint/parser": "^8.20.0",
+    "@types/node": "^25.5.2",
+    "@typescript-eslint/parser": "^8.58.0",
     "@web/test-runner": "^0.20.2",
     "@web/test-runner-puppeteer": "^0.18.0",
-    "eslint": "^9.18.0",
-    "globals": "^15.14.0",
-    "markdown-link-check": "^3.13.7",
-    "mocha": "^11.7.1",
-    "prettier": "^3.4.2",
-    "typedoc": "^0.28.7",
-    "typedoc-plugin-markdown": "^4.7.1",
-    "typescript": "^5.7.3",
-    "typescript-eslint": "^8.20.0"
+    "eslint": "^10.2.0",
+    "globals": "^17.4.0",
+    "markdown-link-check": "^3.14.2",
+    "mocha": "^11.7.5",
+    "prettier": "^3.8.1",
+    "typedoc": "^0.28.18",
+    "typedoc-plugin-markdown": "^4.11.0",
+    "typescript": "^6.0.2",
+    "typescript-eslint": "^8.58.0"
   }
 }
