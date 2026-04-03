@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## v3.0.0 - (2026-04-03)
+
+- Fix release workflow: add version logging to build output (#142)
+- Fix gh-pages deploy failing on dirty working tree (#141)
+- Switch license from AGPL-3.0 to MIT (#140)
+- Add short logo variants (wf.js) (#139)
+- Remove WebFist fallback entirely (#120) (#138)
+- Add logo designs and update README (#135)
+- Remove console.log banner from build output (#137)
+- Update all devDependencies to latest versions (#136)
+- Update README.md
+- Update README.md
+
+
 ## v2.8.2 - (2025-07-31)
 
 - Resolve HTTP fallback error (GitHub #116) (#117)

@@ -22,11 +22,6 @@ export type WebFingerConfig = {
     tls_only: boolean;
     /** Enable host-meta and host-meta.json fallback endpoints. */
     uri_fallback: boolean;
-    /**
-     * @deprecated WebFist is discontinued and will be removed in v3.0.0. Use standard WebFinger discovery instead.
-     * Enable WebFist fallback service for discovering WebFinger endpoints.
-     */
-    webfist_fallback: boolean;
     /** Request timeout in milliseconds. */
     request_timeout: number;
     /** Allow private/internal addresses (DANGEROUS - only for development). */
@@ -113,7 +108,6 @@ export declare class WebFingerError extends Error {
  * - **cfg** `Partial<WebFingerConfig>` _(optional)_ - Configuration options for the WebFinger client
  *   - **tls_only** `boolean` _(default: true)_ - Use HTTPS only. When false, allows HTTP fallback for localhost
  *   - **uri_fallback** `boolean` _(default: false)_ - Enable host-meta and host-meta.json fallback endpoints
- *   - **webfist_fallback** `boolean` _(default: false)_ - **@deprecated** WebFist is discontinued and will be removed in v3.0.0
  *   - **request_timeout** `number` _(default: 10000)_ - Request timeout in milliseconds
  *   - **allow_private_addresses** `boolean` _(default: false)_ - Allow private/internal addresses (DANGEROUS - only for development)
  *
