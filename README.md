@@ -9,8 +9,8 @@
 A modern, TypeScript-based WebFinger client that runs in both browsers and Node.js environments.
 
 [![version](https://img.shields.io/npm/v/webfinger.js.svg)](https://www.npmjs.com/package/webfinger.js)
-[![license](https://img.shields.io/npm/l/webfinger.js.svg)](https://npmjs.org/package/webfinger.js)
-[![downloads](https://img.shields.io/npm/dm/webfinger.js.svg)](https://npmjs.org/package/webfinger.js)
+[![license](https://img.shields.io/npm/l/webfinger.js.svg)](https://www.npmjs.com/package/webfinger.js)
+[![downloads](https://img.shields.io/npm/dm/webfinger.js.svg)](https://www.npmjs.com/package/webfinger.js)
 [![TypeScript](https://img.shields.io/badge/TypeScript-Ready-blue.svg)](https://www.typescriptlang.org/)
 
 ## Features
