@@ -1,0 +1,1048 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>webfinger.js - Logo Variations</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      min-height: 100vh;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      padding: 40px 20px;
+      color: #2d3748;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 48px;
+    }
+
+    .header h1 {
+      color: white;
+      font-size: 36px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      letter-spacing: -0.5px;
+    }
+
+    .header p {
+      color: rgba(255, 255, 255, 0.8);
+      font-size: 16px;
+      font-weight: 400;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 24px;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    @media (max-width: 768px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 16px;
+      padding: 28px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+      backdrop-filter: blur(10px);
+      position: relative;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18);
+    }
+
+    .badge {
+      position: absolute;
+      top: -10px;
+      left: -10px;
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 700;
+      font-size: 14px;
+      box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
+    }
+
+    .card-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: #4a5568;
+      margin-bottom: 16px;
+      padding-left: 20px;
+    }
+
+    .logo-section {
+      background: #f7fafc;
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 80px;
+    }
+
+    .logo-section img {
+      max-width: 100%;
+      height: 64px;
+    }
+
+    .logo-section.dark {
+      background: #2d3748;
+    }
+
+    .favicon-row {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      padding-top: 8px;
+    }
+
+    .favicon-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .favicon-label {
+      font-size: 11px;
+      color: #a0aec0;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .favicon-preview {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .favicon-preview img {
+      border: 1px solid #e2e8f0;
+      border-radius: 4px;
+    }
+
+    .favicon-preview .size-label {
+      font-size: 10px;
+      color: #cbd5e0;
+    }
+
+    .footer {
+      text-align: center;
+      margin-top: 48px;
+      color: rgba(255, 255, 255, 0.6);
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>webfinger.js Logo Variations</h1>
+    <p>40 design concepts — full-size headers and favicon variants</p>
+  </div>
+
+  <div class="grid">
+    <!-- Logo 1: Fingerprint-At -->
+    <div class="card">
+      <div class="badge">1</div>
+      <div class="card-title">Fingerprint-At</div>
+      <div class="logo-section">
+        <img src="logo-01.svg" alt="Fingerprint-At logo">
+      </div>
+      <div class="logo-section dark">
+        <img src="logo-01.svg" alt="Fingerprint-At logo on dark">
+      </div>
+      <div class="favicon-row">
+        <div class="favicon-group">
+          <span class="favicon-label">Favicon</span>
+          <div class="favicon-preview">
+            <img src="favicon-01.svg" width="16" height="16" alt="favicon 16px">
+            <span class="size-label">16</span>
+            <img src="favicon-01.svg" width="32" height="32" alt="favicon 32px">
+            <span class="size-label">32</span>
+            <img src="favicon-01.svg" width="64" height="64" alt="favicon 64px">
+            <span class="size-label">64</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Logo 2: Pointing Hand -->
+    <div class="card">
+      <div class="badge">2</div>
+      <div class="card-title">Pointing Hand</div>
+      <div class="logo-section">
+        <img src="logo-02.svg" alt="Pointing Hand logo">
+      </div>
+      <div class="logo-section dark">
+        <img src="logo-02.svg" alt="Pointing Hand logo on dark">
+      </div>
+      <div class="favicon-row">
+        <div class="favicon-group">
+          <span class="favicon-label">Favicon</span>
+          <div class="favicon-preview">
+            <img src="favicon-02.svg" width="16" height="16" alt="favicon 16px">
+            <span class="size-label">16</span>
+            <img src="favicon-02.svg" width="32" height="32" alt="favicon 32px">
+            <span class="size-label">32</span>
+            <img src="favicon-02.svg" width="64" height="64" alt="favicon 64px">
+            <span class="size-label">64</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Logo 3: Network Nodes -->
+    <div class="card">
+      <div class="badge">3</div>
+      <div class="card-title">Network Nodes</div>
+      <div class="logo-section">
+        <img src="logo-03.svg" alt="Network Nodes logo">
+      </div>
+      <div class="logo-section dark">
+        <img src="logo-03.svg" alt="Network Nodes logo on dark">
+      </div>
+      <div class="favicon-row">
+        <div class="favicon-group">
+          <span class="favicon-label">Favicon</span>
+          <div class="favicon-preview">
+            <img src="favicon-03.svg" width="16" height="16" alt="favicon 16px">
+            <span class="size-label">16</span>
+            <img src="favicon-03.svg" width="32" height="32" alt="favicon 32px">
+            <span class="size-label">32</span>
+            <img src="favicon-03.svg" width="64" height="64" alt="favicon 64px">
+            <span class="size-label">64</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Logo 4: Magnifying @ -->
+    <div class="card">
+      <div class="badge">4</div>
+      <div class="card-title">Magnifying @</div>
+      <div class="logo-section">
+        <img src="logo-04.svg" alt="Magnifying @ logo">
+      </div>
+      <div class="logo-section dark">
+        <img src="logo-04.svg" alt="Magnifying @ logo on dark">
+      </div>
+      <div class="favicon-row">
+        <div class="favicon-group">
+          <span class="favicon-label">Favicon</span>
+          <div class="favicon-preview">
+            <img src="favicon-04.svg" width="16" height="16" alt="favicon 16px">
+            <span class="size-label">16</span>
+            <img src="favicon-04.svg" width="32" height="32" alt="favicon 32px">
+            <span class="size-label">32</span>
+            <img src="favicon-04.svg" width="64" height="64" alt="favicon 64px">
+            <span class="size-label">64</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Logo 5: Radial Ripple -->
+    <div class="card">
+      <div class="badge">5</div>
+      <div class="card-title">Radial Ripple</div>
+      <div class="logo-section">
+        <img src="logo-05.svg" alt="Radial Ripple logo">
+      </div>
+      <div class="logo-section dark">
+        <img src="logo-05.svg" alt="Radial Ripple logo on dark">
+      </div>
+      <div class="favicon-row">
+        <div class="favicon-group">
+          <span class="favicon-label">Favicon</span>
+          <div class="favicon-preview">
+            <img src="favicon-05.svg" width="16" height="16" alt="favicon 16px">
+            <span class="size-label">16</span>
+            <img src="favicon-05.svg" width="32" height="32" alt="favicon 32px">
+            <span class="size-label">32</span>
+            <img src="favicon-05.svg" width="64" height="64" alt="favicon 64px">
+            <span class="size-label">64</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Logo 6: Typographic Bracket -->
+    <div class="card">
+      <div class="badge">6</div>
+      <div class="card-title">Typographic Bracket</div>
+      <div class="logo-section">
+        <img src="logo-06.svg" alt="Typographic Bracket logo">
+      </div>
+      <div class="logo-section dark">
+        <img src="logo-06.svg" alt="Typographic Bracket logo on dark">
+      </div>
+      <div class="favicon-row">
+        <div class="favicon-group">
+          <span class="favicon-label">Favicon</span>
+          <div class="favicon-preview">
+            <img src="favicon-06.svg" width="16" height="16" alt="favicon 16px">
+            <span class="size-label">16</span>
+            <img src="favicon-06.svg" width="32" height="32" alt="favicon 32px">
+            <span class="size-label">32</span>
+            <img src="favicon-06.svg" width="64" height="64" alt="favicon 64px">
+            <span class="size-label">64</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Logo 7: Compass-At -->
+    <div class="card">
+      <div class="badge">7</div>
+      <div class="card-title">Compass-At</div>
+      <div class="logo-section">
+        <img src="logo-07.svg" alt="Compass-At logo">
+      </div>
+      <div class="logo-section dark">
+        <img src="logo-07.svg" alt="Compass-At logo on dark">
+      </div>
+      <div class="favicon-row">
+        <div class="favicon-group">
+          <span class="favicon-label">Favicon</span>
+          <div class="favicon-preview">
+            <img src="favicon-07.svg" width="16" height="16" alt="favicon 16px">
+            <span class="size-label">16</span>
+            <img src="favicon-07.svg" width="32" height="32" alt="favicon 32px">
+            <span class="size-label">32</span>
+            <img src="favicon-07.svg" width="64" height="64" alt="favicon 64px">
+            <span class="size-label">64</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Logo 8: Fingerprint Globe -->
+    <div class="card">
+      <div class="badge">8</div>
+      <div class="card-title">Fingerprint Globe</div>
+      <div class="logo-section">
+        <img src="logo-08.svg" alt="Fingerprint Globe logo">
+      </div>
+      <div class="logo-section dark">
+        <img src="logo-08.svg" alt="Fingerprint Globe logo on dark">
+      </div>
+      <div class="favicon-row">
+        <div class="favicon-group">
+          <span class="favicon-label">Favicon</span>
+          <div class="favicon-preview">
+            <img src="favicon-08.svg" width="16" height="16" alt="favicon 16px">
+            <span class="size-label">16</span>
+            <img src="favicon-08.svg" width="32" height="32" alt="favicon 32px">
+            <span class="size-label">32</span>
+            <img src="favicon-08.svg" width="64" height="64" alt="favicon 64px">
+            <span class="size-label">64</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Logo 9: Linked Rings -->
+    <div class="card">
+      <div class="badge">9</div>
+      <div class="card-title">Linked Rings</div>
+      <div class="logo-section">
+        <img src="logo-09.svg" alt="Linked Rings logo">
+      </div>
+      <div class="logo-section dark">
+        <img src="logo-09.svg" alt="Linked Rings logo on dark">
+      </div>
+      <div class="favicon-row">
+        <div class="favicon-group">
+          <span class="favicon-label">Favicon</span>
+          <div class="favicon-preview">
+            <img src="favicon-09.svg" width="16" height="16" alt="favicon 16px">
+            <span class="size-label">16</span>
+            <img src="favicon-09.svg" width="32" height="32" alt="favicon 32px">
+            <span class="size-label">32</span>
+            <img src="favicon-09.svg" width="64" height="64" alt="favicon 64px">
+            <span class="size-label">64</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Logo 10: Signal Beacon -->
+    <div class="card">
+      <div class="badge">10</div>
+      <div class="card-title">Signal Beacon</div>
+      <div class="logo-section">
+        <img src="logo-10.svg" alt="Signal Beacon logo">
+      </div>
+      <div class="logo-section dark">
+        <img src="logo-10.svg" alt="Signal Beacon logo on dark">
+      </div>
+      <div class="favicon-row">
+        <div class="favicon-group">
+          <span class="favicon-label">Favicon</span>
+          <div class="favicon-preview">
+            <img src="favicon-10.svg" width="16" height="16" alt="favicon 16px">
+            <span class="size-label">16</span>
+            <img src="favicon-10.svg" width="32" height="32" alt="favicon 32px">
+            <span class="size-label">32</span>
+            <img src="favicon-10.svg" width="64" height="64" alt="favicon 64px">
+            <span class="size-label">64</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section divider for inspired-by-original set -->
+  <div style="text-align: center; margin: 48px auto 32px; max-width: 1100px;">
+    <div style="display: flex; align-items: center; gap: 16px;">
+      <div style="flex: 1; height: 1px; background: rgba(255,255,255,0.3);"></div>
+      <span style="color: rgba(255,255,255,0.9); font-size: 14px; font-weight: 600; white-space: nowrap;">Inspired by the original WebFinger logo</span>
+      <div style="flex: 1; height: 1px; background: rgba(255,255,255,0.3);"></div>
+    </div>
+    <p style="color: rgba(255,255,255,0.6); font-size: 13px; margin-top: 8px;">Gold (#e2bb03) + purple-blue palette from the classic hand illustration</p>
+  </div>
+
+  <div class="grid">
+    <!-- Logo 11: Golden Hand Modernized -->
+    <div class="card">
+      <div class="badge">11</div>
+      <div class="card-title">Golden Hand Modernized</div>
+      <div class="logo-section">
+        <img src="logo-11.svg" alt="Golden Hand Modernized logo">
+      </div>
+      <div class="logo-section dark">
+        <img src="logo-11.svg" alt="Golden Hand Modernized logo on dark">
+      </div>
+      <div class="favicon-row">
+        <div class="favicon-group">
+          <span class="favicon-label">Favicon</span>
+          <div class="favicon-preview">
+            <img src="favicon-11.svg" width="16" height="16" alt="favicon 16px">
+            <span class="size-label">16</span>
+            <img src="favicon-11.svg" width="32" height="32" alt="favicon 32px">
+            <span class="size-label">32</span>
+            <img src="favicon-11.svg" width="64" height="64" alt="favicon 64px">
+            <span class="size-label">64</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Logo 12: Gold & Purple Fusion -->
+    <div class="card">
+      <div class="badge">12</div>
+      <div class="card-title">Gold &amp; Purple Fusion</div>
+      <div class="logo-section">
+        <img src="logo-12.svg" alt="Gold & Purple Fusion logo">
+      </div>
+      <div class="logo-section dark">
+        <img src="logo-12.svg" alt="Gold & Purple Fusion logo on dark">
+      </div>
+      <div class="favicon-row">
+        <div class="favicon-group">
+          <span class="favicon-label">Favicon</span>
+          <div class="favicon-preview">
+            <img src="favicon-12.svg" width="16" height="16" alt="favicon 16px">
+            <span class="size-label">16</span>
+            <img src="favicon-12.svg" width="32" height="32" alt="favicon 32px">
+            <span class="size-label">32</span>
+            <img src="favicon-12.svg" width="64" height="64" alt="favicon 64px">
+            <span class="size-label">64</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Logo 13: Finger Touch Discovery -->
+    <div class="card">
+      <div class="badge">13</div>
+      <div class="card-title">Finger Touch Discovery</div>
+      <div class="logo-section">
+        <img src="logo-13.svg" alt="Finger Touch Discovery logo">
+      </div>
+      <div class="logo-section dark">
+        <img src="logo-13.svg" alt="Finger Touch Discovery logo on dark">
+      </div>
+      <div class="favicon-row">
+        <div class="favicon-group">
+          <span class="favicon-label">Favicon</span>
+          <div class="favicon-preview">
+            <img src="favicon-13.svg" width="16" height="16" alt="favicon 16px">
+            <span class="size-label">16</span>
+            <img src="favicon-13.svg" width="32" height="32" alt="favicon 32px">
+            <span class="size-label">32</span>
+            <img src="favicon-13.svg" width="64" height="64" alt="favicon 64px">
+            <span class="size-label">64</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Logo 14: Web Spider Thread -->
+    <div class="card">
+      <div class="badge">14</div>
+      <div class="card-title">Web Spider Thread</div>
+      <div class="logo-section">
+        <img src="logo-14.svg" alt="Web Spider Thread logo">
+      </div>
+      <div class="logo-section dark">
+        <img src="logo-14.svg" alt="Web Spider Thread logo on dark">
+      </div>
+      <div class="favicon-row">
+        <div class="favicon-group">
+          <span class="favicon-label">Favicon</span>
+          <div class="favicon-preview">
+            <img src="favicon-14.svg" width="16" height="16" alt="favicon 16px">
+            <span class="size-label">16</span>
+            <img src="favicon-14.svg" width="32" height="32" alt="favicon 32px">
+            <span class="size-label">32</span>
+            <img src="favicon-14.svg" width="64" height="64" alt="favicon 64px">
+            <span class="size-label">64</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Logo 15: Cursor Arrow with @ -->
+    <div class="card">
+      <div class="badge">15</div>
+      <div class="card-title">Cursor Arrow with @</div>
+      <div class="logo-section">
+        <img src="logo-15.svg" alt="Cursor Arrow with @ logo">
+      </div>
+      <div class="logo-section dark">
+        <img src="logo-15.svg" alt="Cursor Arrow with @ logo on dark">
+      </div>
+      <div class="favicon-row">
+        <div class="favicon-group">
+          <span class="favicon-label">Favicon</span>
+          <div class="favicon-preview">
+            <img src="favicon-15.svg" width="16" height="16" alt="favicon 16px">
+            <span class="size-label">16</span>
+            <img src="favicon-15.svg" width="32" height="32" alt="favicon 32px">
+            <span class="size-label">32</span>
+            <img src="favicon-15.svg" width="64" height="64" alt="favicon 64px">
+            <span class="size-label">64</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Logo 16: Golden Shield Badge -->
+    <div class="card">
+      <div class="badge">16</div>
+      <div class="card-title">Golden Shield Badge</div>
+      <div class="logo-section">
+        <img src="logo-16.svg" alt="Golden Shield Badge logo">
+      </div>
+      <div class="logo-section dark">
+        <img src="logo-16.svg" alt="Golden Shield Badge logo on dark">
+      </div>
+      <div class="favicon-row">
+        <div class="favicon-group">
+          <span class="favicon-label">Favicon</span>
+          <div class="favicon-preview">
+            <img src="favicon-16.svg" width="16" height="16" alt="favicon 16px">
+            <span class="size-label">16</span>
+            <img src="favicon-16.svg" width="32" height="32" alt="favicon 32px">
+            <span class="size-label">32</span>
+            <img src="favicon-16.svg" width="64" height="64" alt="favicon 64px">
+            <span class="size-label">64</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Logo 17: Dual Tone Monogram -->
+    <div class="card">
+      <div class="badge">17</div>
+      <div class="card-title">Dual Tone Monogram</div>
+      <div class="logo-section">
+        <img src="logo-17.svg" alt="Dual Tone Monogram logo">
+      </div>
+      <div class="logo-section dark">
+        <img src="logo-17.svg" alt="Dual Tone Monogram logo on dark">
+      </div>
+      <div class="favicon-row">
+        <div class="favicon-group">
+          <span class="favicon-label">Favicon</span>
+          <div class="favicon-preview">
+            <img src="favicon-17.svg" width="16" height="16" alt="favicon 16px">
+            <span class="size-label">16</span>
+            <img src="favicon-17.svg" width="32" height="32" alt="favicon 32px">
+            <span class="size-label">32</span>
+            <img src="favicon-17.svg" width="64" height="64" alt="favicon 64px">
+            <span class="size-label">64</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Logo 18: Golden Path Discovery -->
+    <div class="card">
+      <div class="badge">18</div>
+      <div class="card-title">Golden Path Discovery</div>
+      <div class="logo-section">
+        <img src="logo-18.svg" alt="Golden Path Discovery logo">
+      </div>
+      <div class="logo-section dark">
+        <img src="logo-18.svg" alt="Golden Path Discovery logo on dark">
+      </div>
+      <div class="favicon-row">
+        <div class="favicon-group">
+          <span class="favicon-label">Favicon</span>
+          <div class="favicon-preview">
+            <img src="favicon-18.svg" width="16" height="16" alt="favicon 16px">
+            <span class="size-label">16</span>
+            <img src="favicon-18.svg" width="32" height="32" alt="favicon 32px">
+            <span class="size-label">32</span>
+            <img src="favicon-18.svg" width="64" height="64" alt="favicon 64px">
+            <span class="size-label">64</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Logo 19: Hand Silhouette with Network -->
+    <div class="card">
+      <div class="badge">19</div>
+      <div class="card-title">Hand Silhouette + Network</div>
+      <div class="logo-section">
+        <img src="logo-19.svg" alt="Hand Silhouette with Network logo">
+      </div>
+      <div class="logo-section dark">
+        <img src="logo-19.svg" alt="Hand Silhouette with Network logo on dark">
+      </div>
+      <div class="favicon-row">
+        <div class="favicon-group">
+          <span class="favicon-label">Favicon</span>
+          <div class="favicon-preview">
+            <img src="favicon-19.svg" width="16" height="16" alt="favicon 16px">
+            <span class="size-label">16</span>
+            <img src="favicon-19.svg" width="32" height="32" alt="favicon 32px">
+            <span class="size-label">32</span>
+            <img src="favicon-19.svg" width="64" height="64" alt="favicon 64px">
+            <span class="size-label">64</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Logo 20: Elegant @ Swirl -->
+    <div class="card">
+      <div class="badge">20</div>
+      <div class="card-title">Elegant @ Swirl</div>
+      <div class="logo-section">
+        <img src="logo-20.svg" alt="Elegant @ Swirl logo">
+      </div>
+      <div class="logo-section dark">
+        <img src="logo-20.svg" alt="Elegant @ Swirl logo on dark">
+      </div>
+      <div class="favicon-row">
+        <div class="favicon-group">
+          <span class="favicon-label">Favicon</span>
+          <div class="favicon-preview">
+            <img src="favicon-20.svg" width="16" height="16" alt="favicon 16px">
+            <span class="size-label">16</span>
+            <img src="favicon-20.svg" width="32" height="32" alt="favicon 32px">
+            <span class="size-label">32</span>
+            <img src="favicon-20.svg" width="64" height="64" alt="favicon 64px">
+            <span class="size-label">64</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section divider for original hand shape set -->
+  <div style="text-align: center; margin: 48px auto 32px; max-width: 1100px;">
+    <div style="display: flex; align-items: center; gap: 16px;">
+      <div style="flex: 1; height: 1px; background: rgba(255,255,255,0.3);"></div>
+      <span style="color: rgba(255,255,255,0.9); font-size: 14px; font-weight: 600; white-space: nowrap;">Original WebFinger hand sign</span>
+      <div style="flex: 1; height: 1px; background: rgba(255,255,255,0.3);"></div>
+    </div>
+    <p style="color: rgba(255,255,255,0.6); font-size: 13px; margin-top: 8px;">Using the original hand shape (index + pinky extended, middle &amp; ring crossed) in different treatments</p>
+  </div>
+
+  <div class="grid">
+    <!-- Logo 21: Classic Hand (Gold) -->
+    <div class="card">
+      <div class="badge">21</div>
+      <div class="card-title">Classic Hand (Gold)</div>
+      <div class="logo-section">
+        <img src="logo-21.svg" alt="Classic Hand Gold logo">
+      </div>
+      <div class="logo-section dark">
+        <img src="logo-21.svg" alt="Classic Hand Gold logo on dark">
+      </div>
+      <div class="favicon-row">
+        <div class="favicon-group">
+          <span class="favicon-label">Favicon</span>
+          <div class="favicon-preview">
+            <img src="favicon-21.svg" width="16" height="16" alt="favicon 16px">
+            <span class="size-label">16</span>
+            <img src="favicon-21.svg" width="32" height="32" alt="favicon 32px">
+            <span class="size-label">32</span>
+            <img src="favicon-21.svg" width="64" height="64" alt="favicon 64px">
+            <span class="size-label">64</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Logo 22: Classic Hand (Purple) -->
+    <div class="card">
+      <div class="badge">22</div>
+      <div class="card-title">Classic Hand (Purple)</div>
+      <div class="logo-section">
+        <img src="logo-22.svg" alt="Classic Hand Purple logo">
+      </div>
+      <div class="logo-section dark">
+        <img src="logo-22.svg" alt="Classic Hand Purple logo on dark">
+      </div>
+      <div class="favicon-row">
+        <div class="favicon-group">
+          <span class="favicon-label">Favicon</span>
+          <div class="favicon-preview">
+            <img src="favicon-22.svg" width="16" height="16" alt="favicon 16px">
+            <span class="size-label">16</span>
+            <img src="favicon-22.svg" width="32" height="32" alt="favicon 32px">
+            <span class="size-label">32</span>
+            <img src="favicon-22.svg" width="64" height="64" alt="favicon 64px">
+            <span class="size-label">64</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Logo 23: Hand Outline Minimal -->
+    <div class="card">
+      <div class="badge">23</div>
+      <div class="card-title">Hand Outline Minimal</div>
+      <div class="logo-section">
+        <img src="logo-23.svg" alt="Hand Outline Minimal logo">
+      </div>
+      <div class="logo-section dark">
+        <img src="logo-23.svg" alt="Hand Outline Minimal logo on dark">
+      </div>
+      <div class="favicon-row">
+        <div class="favicon-group">
+          <span class="favicon-label">Favicon</span>
+          <div class="favicon-preview">
+            <img src="favicon-23.svg" width="16" height="16" alt="favicon 16px">
+            <span class="size-label">16</span>
+            <img src="favicon-23.svg" width="32" height="32" alt="favicon 32px">
+            <span class="size-label">32</span>
+            <img src="favicon-23.svg" width="64" height="64" alt="favicon 64px">
+            <span class="size-label">64</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Logo 24: Gold-to-Purple Gradient -->
+    <div class="card">
+      <div class="badge">24</div>
+      <div class="card-title">Gold-to-Purple Gradient</div>
+      <div class="logo-section">
+        <img src="logo-24.svg" alt="Gold-to-Purple Gradient logo">
+      </div>
+      <div class="logo-section dark">
+        <img src="logo-24.svg" alt="Gold-to-Purple Gradient logo on dark">
+      </div>
+      <div class="favicon-row">
+        <div class="favicon-group">
+          <span class="favicon-label">Favicon</span>
+          <div class="favicon-preview">
+            <img src="favicon-24.svg" width="16" height="16" alt="favicon 16px">
+            <span class="size-label">16</span>
+            <img src="favicon-24.svg" width="32" height="32" alt="favicon 32px">
+            <span class="size-label">32</span>
+            <img src="favicon-24.svg" width="64" height="64" alt="favicon 64px">
+            <span class="size-label">64</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Logo 25: Hand in Circle Badge -->
+    <div class="card">
+      <div class="badge">25</div>
+      <div class="card-title">Hand in Circle Badge</div>
+      <div class="logo-section">
+        <img src="logo-25.svg" alt="Hand in Circle Badge logo">
+      </div>
+      <div class="logo-section dark">
+        <img src="logo-25.svg" alt="Hand in Circle Badge logo on dark">
+      </div>
+      <div class="favicon-row">
+        <div class="favicon-group">
+          <span class="favicon-label">Favicon</span>
+          <div class="favicon-preview">
+            <img src="favicon-25.svg" width="16" height="16" alt="favicon 16px">
+            <span class="size-label">16</span>
+            <img src="favicon-25.svg" width="32" height="32" alt="favicon 32px">
+            <span class="size-label">32</span>
+            <img src="favicon-25.svg" width="64" height="64" alt="favicon 64px">
+            <span class="size-label">64</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Logo 26: Original Dual-Tone Faithful -->
+    <div class="card">
+      <div class="badge">26</div>
+      <div class="card-title">Original Dual-Tone Faithful</div>
+      <div class="logo-section">
+        <img src="logo-26.svg" alt="Original Dual-Tone Faithful logo">
+      </div>
+      <div class="logo-section dark">
+        <img src="logo-26.svg" alt="Original Dual-Tone Faithful logo on dark">
+      </div>
+      <div class="favicon-row">
+        <div class="favicon-group">
+          <span class="favicon-label">Favicon</span>
+          <div class="favicon-preview">
+            <img src="favicon-26.svg" width="16" height="16" alt="favicon 16px">
+            <span class="size-label">16</span>
+            <img src="favicon-26.svg" width="32" height="32" alt="favicon 32px">
+            <span class="size-label">32</span>
+            <img src="favicon-26.svg" width="64" height="64" alt="favicon 64px">
+            <span class="size-label">64</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Logo 27: Hand with Ripple Effect -->
+    <div class="card">
+      <div class="badge">27</div>
+      <div class="card-title">Hand with Ripple Effect</div>
+      <div class="logo-section">
+        <img src="logo-27.svg" alt="Hand with Ripple Effect logo">
+      </div>
+      <div class="logo-section dark">
+        <img src="logo-27.svg" alt="Hand with Ripple Effect logo on dark">
+      </div>
+      <div class="favicon-row">
+        <div class="favicon-group">
+          <span class="favicon-label">Favicon</span>
+          <div class="favicon-preview">
+            <img src="favicon-27.svg" width="16" height="16" alt="favicon 16px">
+            <span class="size-label">16</span>
+            <img src="favicon-27.svg" width="32" height="32" alt="favicon 32px">
+            <span class="size-label">32</span>
+            <img src="favicon-27.svg" width="64" height="64" alt="favicon 64px">
+            <span class="size-label">64</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Logo 28: Hand on Rounded Square -->
+    <div class="card">
+      <div class="badge">28</div>
+      <div class="card-title">Hand on Rounded Square</div>
+      <div class="logo-section">
+        <img src="logo-28.svg" alt="Hand on Rounded Square logo">
+      </div>
+      <div class="logo-section dark">
+        <img src="logo-28.svg" alt="Hand on Rounded Square logo on dark">
+      </div>
+      <div class="favicon-row">
+        <div class="favicon-group">
+          <span class="favicon-label">Favicon</span>
+          <div class="favicon-preview">
+            <img src="favicon-28.svg" width="16" height="16" alt="favicon 16px">
+            <span class="size-label">16</span>
+            <img src="favicon-28.svg" width="32" height="32" alt="favicon 32px">
+            <span class="size-label">32</span>
+            <img src="favicon-28.svg" width="64" height="64" alt="favicon 64px">
+            <span class="size-label">64</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Logo 29: Hand Shadow + Text -->
+    <div class="card">
+      <div class="badge">29</div>
+      <div class="card-title">Hand Shadow + Text Integrated</div>
+      <div class="logo-section">
+        <img src="logo-29.svg" alt="Hand Shadow + Text logo">
+      </div>
+      <div class="logo-section dark">
+        <img src="logo-29.svg" alt="Hand Shadow + Text logo on dark">
+      </div>
+      <div class="favicon-row">
+        <div class="favicon-group">
+          <span class="favicon-label">Favicon</span>
+          <div class="favicon-preview">
+            <img src="favicon-29.svg" width="16" height="16" alt="favicon 16px">
+            <span class="size-label">16</span>
+            <img src="favicon-29.svg" width="32" height="32" alt="favicon 32px">
+            <span class="size-label">32</span>
+            <img src="favicon-29.svg" width="64" height="64" alt="favicon 64px">
+            <span class="size-label">64</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Logo 30: Hand with Network Nodes -->
+    <div class="card">
+      <div class="badge">30</div>
+      <div class="card-title">Hand with Network Nodes</div>
+      <div class="logo-section">
+        <img src="logo-30.svg" alt="Hand with Network Nodes logo">
+      </div>
+      <div class="logo-section dark">
+        <img src="logo-30.svg" alt="Hand with Network Nodes logo on dark">
+      </div>
+      <div class="favicon-row">
+        <div class="favicon-group">
+          <span class="favicon-label">Favicon</span>
+          <div class="favicon-preview">
+            <img src="favicon-30.svg" width="16" height="16" alt="favicon 16px">
+            <span class="size-label">16</span>
+            <img src="favicon-30.svg" width="32" height="32" alt="favicon 32px">
+            <span class="size-label">32</span>
+            <img src="favicon-30.svg" width="64" height="64" alt="favicon 64px">
+            <span class="size-label">64</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section divider for slim hand variations -->
+  <div style="text-align: center; margin: 48px auto 32px; max-width: 1100px;">
+    <div style="display: flex; align-items: center; gap: 16px;">
+      <div style="flex: 1; height: 1px; background: rgba(255,255,255,0.3);"></div>
+      <span style="color: rgba(255,255,255,0.9); font-size: 14px; font-weight: 600; white-space: nowrap;">Slim hand with detail lines</span>
+      <div style="flex: 1; height: 1px; background: rgba(255,255,255,0.3);"></div>
+    </div>
+    <p style="color: rgba(255,255,255,0.6); font-size: 13px; margin-top: 8px;">Slimmer hand, black lines showing finger crossing &amp; thumb, single-color fills</p>
+  </div>
+
+  <div class="grid">
+    <!-- Logo 31 -->
+    <div class="card">
+      <div class="badge">31</div>
+      <div class="card-title">Slim Hand Gold Fill</div>
+      <div class="logo-section"><img src="logo-31.svg" alt="Slim Hand Gold"></div>
+      <div class="logo-section dark"><img src="logo-31.svg" alt="Slim Hand Gold on dark"></div>
+      <div class="favicon-row"><div class="favicon-group"><span class="favicon-label">Favicon</span><div class="favicon-preview"><img src="favicon-31.svg" width="16" height="16"><span class="size-label">16</span><img src="favicon-31.svg" width="32" height="32"><span class="size-label">32</span><img src="favicon-31.svg" width="64" height="64"><span class="size-label">64</span></div></div></div>
+    </div>
+
+    <!-- Logo 32 -->
+    <div class="card">
+      <div class="badge">32</div>
+      <div class="card-title">Slim Hand Purple Fill</div>
+      <div class="logo-section"><img src="logo-32.svg" alt="Slim Hand Purple"></div>
+      <div class="logo-section dark"><img src="logo-32.svg" alt="Slim Hand Purple on dark"></div>
+      <div class="favicon-row"><div class="favicon-group"><span class="favicon-label">Favicon</span><div class="favicon-preview"><img src="favicon-32.svg" width="16" height="16"><span class="size-label">16</span><img src="favicon-32.svg" width="32" height="32"><span class="size-label">32</span><img src="favicon-32.svg" width="64" height="64"><span class="size-label">64</span></div></div></div>
+    </div>
+
+    <!-- Logo 33 -->
+    <div class="card">
+      <div class="badge">33</div>
+      <div class="card-title">Slim Hand Outline Only</div>
+      <div class="logo-section"><img src="logo-33.svg" alt="Slim Hand Outline"></div>
+      <div class="logo-section dark"><img src="logo-33.svg" alt="Slim Hand Outline on dark"></div>
+      <div class="favicon-row"><div class="favicon-group"><span class="favicon-label">Favicon</span><div class="favicon-preview"><img src="favicon-33.svg" width="16" height="16"><span class="size-label">16</span><img src="favicon-33.svg" width="32" height="32"><span class="size-label">32</span><img src="favicon-33.svg" width="64" height="64"><span class="size-label">64</span></div></div></div>
+    </div>
+
+    <!-- Logo 34 -->
+    <div class="card">
+      <div class="badge">34</div>
+      <div class="card-title">Slim Hand Dark Slate Fill</div>
+      <div class="logo-section"><img src="logo-34.svg" alt="Slim Hand Dark"></div>
+      <div class="logo-section dark"><img src="logo-34.svg" alt="Slim Hand Dark on dark"></div>
+      <div class="favicon-row"><div class="favicon-group"><span class="favicon-label">Favicon</span><div class="favicon-preview"><img src="favicon-34.svg" width="16" height="16"><span class="size-label">16</span><img src="favicon-34.svg" width="32" height="32"><span class="size-label">32</span><img src="favicon-34.svg" width="64" height="64"><span class="size-label">64</span></div></div></div>
+    </div>
+
+    <!-- Logo 35 -->
+    <div class="card">
+      <div class="badge">35</div>
+      <div class="card-title">Slim Hand in Circle</div>
+      <div class="logo-section"><img src="logo-35.svg" alt="Slim Hand in Circle"></div>
+      <div class="logo-section dark"><img src="logo-35.svg" alt="Slim Hand in Circle on dark"></div>
+      <div class="favicon-row"><div class="favicon-group"><span class="favicon-label">Favicon</span><div class="favicon-preview"><img src="favicon-35.svg" width="16" height="16"><span class="size-label">16</span><img src="favicon-35.svg" width="32" height="32"><span class="size-label">32</span><img src="favicon-35.svg" width="64" height="64"><span class="size-label">64</span></div></div></div>
+    </div>
+
+    <!-- Logo 36 -->
+    <div class="card">
+      <div class="badge">36</div>
+      <div class="card-title">Gold on Purple Square</div>
+      <div class="logo-section"><img src="logo-36.svg" alt="Gold on Purple Square"></div>
+      <div class="logo-section dark"><img src="logo-36.svg" alt="Gold on Purple Square on dark"></div>
+      <div class="favicon-row"><div class="favicon-group"><span class="favicon-label">Favicon</span><div class="favicon-preview"><img src="favicon-36.svg" width="16" height="16"><span class="size-label">16</span><img src="favicon-36.svg" width="32" height="32"><span class="size-label">32</span><img src="favicon-36.svg" width="64" height="64"><span class="size-label">64</span></div></div></div>
+    </div>
+
+    <!-- Logo 37 -->
+    <div class="card">
+      <div class="badge">37</div>
+      <div class="card-title">White on Gold Square</div>
+      <div class="logo-section"><img src="logo-37.svg" alt="White on Gold Square"></div>
+      <div class="logo-section dark"><img src="logo-37.svg" alt="White on Gold Square on dark"></div>
+      <div class="favicon-row"><div class="favicon-group"><span class="favicon-label">Favicon</span><div class="favicon-preview"><img src="favicon-37.svg" width="16" height="16"><span class="size-label">16</span><img src="favicon-37.svg" width="32" height="32"><span class="size-label">32</span><img src="favicon-37.svg" width="64" height="64"><span class="size-label">64</span></div></div></div>
+    </div>
+
+    <!-- Logo 38 -->
+    <div class="card">
+      <div class="badge">38</div>
+      <div class="card-title">Gold Fill + Purple Outline</div>
+      <div class="logo-section"><img src="logo-38.svg" alt="Gold + Purple Outline"></div>
+      <div class="logo-section dark"><img src="logo-38.svg" alt="Gold + Purple Outline on dark"></div>
+      <div class="favicon-row"><div class="favicon-group"><span class="favicon-label">Favicon</span><div class="favicon-preview"><img src="favicon-38.svg" width="16" height="16"><span class="size-label">16</span><img src="favicon-38.svg" width="32" height="32"><span class="size-label">32</span><img src="favicon-38.svg" width="64" height="64"><span class="size-label">64</span></div></div></div>
+    </div>
+
+    <!-- Logo 39 -->
+    <div class="card">
+      <div class="badge">39</div>
+      <div class="card-title">Pure Dark Outline</div>
+      <div class="logo-section"><img src="logo-39.svg" alt="Pure Dark Outline"></div>
+      <div class="logo-section dark"><img src="logo-39.svg" alt="Pure Dark Outline on dark"></div>
+      <div class="favicon-row"><div class="favicon-group"><span class="favicon-label">Favicon</span><div class="favicon-preview"><img src="favicon-39.svg" width="16" height="16"><span class="size-label">16</span><img src="favicon-39.svg" width="32" height="32"><span class="size-label">32</span><img src="favicon-39.svg" width="64" height="64"><span class="size-label">64</span></div></div></div>
+    </div>
+
+    <!-- Logo 40 -->
+    <div class="card">
+      <div class="badge">40</div>
+      <div class="card-title">Gold-to-Purple Transition</div>
+      <div class="logo-section"><img src="logo-40.svg" alt="Gold-to-Purple Transition"></div>
+      <div class="logo-section dark"><img src="logo-40.svg" alt="Gold-to-Purple Transition on dark"></div>
+      <div class="favicon-row"><div class="favicon-group"><span class="favicon-label">Favicon</span><div class="favicon-preview"><img src="favicon-40.svg" width="16" height="16"><span class="size-label">16</span><img src="favicon-40.svg" width="32" height="32"><span class="size-label">32</span><img src="favicon-40.svg" width="64" height="64"><span class="size-label">64</span></div></div></div>
+    </div>
+  </div>
+
+  <div class="footer">
+    webfinger.js logo design variations
+  </div>
+</body>
+</html>

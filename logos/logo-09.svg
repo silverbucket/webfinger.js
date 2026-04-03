@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 80">
+  <title>webfinger.js - Linked Rings Logo</title>
+  <defs>
+    <linearGradient id="grad9" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#667eea"/>
+      <stop offset="100%" stop-color="#764ba2"/>
+    </linearGradient>
+    <clipPath id="leftClip">
+      <rect x="-30" y="-30" width="42" height="60"/>
+    </clipPath>
+    <clipPath id="rightClip">
+      <rect x="12" y="-30" width="42" height="60"/>
+    </clipPath>
+  </defs>
+  <g transform="translate(40, 40)">
+    <!-- Left ring (user) -->
+    <circle cx="-8" cy="0" r="18" fill="none" stroke="url(#grad9)" stroke-width="2" opacity="0.7"/>
+    <!-- Right ring (domain) -->
+    <circle cx="8" cy="0" r="18" fill="none" stroke="url(#grad9)" stroke-width="2" opacity="0.7"/>
+    <!-- Overlap zone fill -->
+    <path d="M0,-15.5 A18,18 0 0,1 0,15.5 A18,18 0 0,1 0,-15.5" fill="url(#grad9)" opacity="0.1"/>
+    <!-- User icon in left ring -->
+    <g transform="translate(-14, -2)" opacity="0.5">
+      <circle cx="0" cy="-4" r="3.5" fill="none" stroke="url(#grad9)" stroke-width="1.2"/>
+      <path d="M-5,6 Q-5,1 0,1 Q5,1 5,6" fill="none" stroke="url(#grad9)" stroke-width="1.2" stroke-linecap="round"/>
+    </g>
+    <!-- Globe icon in right ring -->
+    <g transform="translate(14, 0)" opacity="0.5">
+      <circle cx="0" cy="0" r="5.5" fill="none" stroke="url(#grad9)" stroke-width="1.2"/>
+      <ellipse cx="0" cy="0" rx="2.5" ry="5.5" fill="none" stroke="url(#grad9)" stroke-width="0.8"/>
+      <line x1="-5.5" y1="0" x2="5.5" y2="0" stroke="url(#grad9)" stroke-width="0.8"/>
+    </g>
+  </g>
+  <!-- Wordmark -->
+  <text x="82" y="48" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="28" font-weight="600" fill="#2d3748">webfinger<tspan fill="url(#grad9)">.js</tspan></text>
+</svg>

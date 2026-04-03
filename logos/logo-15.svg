@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 80">
+  <title>webfinger.js - Cursor Arrow with @</title>
+  <defs>
+    <linearGradient id="grad15g" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#e2bb03"/>
+      <stop offset="100%" stop-color="#d4a017"/>
+    </linearGradient>
+    <linearGradient id="grad15p" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#667eea"/>
+      <stop offset="100%" stop-color="#764ba2"/>
+    </linearGradient>
+  </defs>
+  <g transform="translate(22, 10)">
+    <!-- Pointer cursor shape -->
+    <path d="M10,4 L10,50 L18,42 L26,56 L32,52 L24,38 L34,36 Z" fill="url(#grad15g)" fill-opacity="0.15" stroke="url(#grad15g)" stroke-width="2" stroke-linejoin="round"/>
+    <!-- @ symbol floating near the click target -->
+    <g transform="translate(40, 16)">
+      <circle cx="0" cy="0" r="10" fill="url(#grad15p)" opacity="0.1"/>
+      <circle cx="0" cy="0" r="10" fill="none" stroke="url(#grad15p)" stroke-width="1.2" opacity="0.4" stroke-dasharray="3 2"/>
+      <text x="0" y="4.5" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="13" font-weight="700" fill="url(#grad15p)">@</text>
+    </g>
+  </g>
+  <!-- Wordmark -->
+  <text x="88" y="48" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="28" font-weight="600" fill="#3b351d">webfinger<tspan fill="url(#grad15g)">.js</tspan></text>
+</svg>

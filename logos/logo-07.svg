@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 80">
+  <title>webfinger.js - Compass-At Logo</title>
+  <defs>
+    <linearGradient id="grad7" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#667eea"/>
+      <stop offset="100%" stop-color="#764ba2"/>
+    </linearGradient>
+  </defs>
+  <g transform="translate(40, 40)">
+    <!-- Outer compass ring -->
+    <circle cx="0" cy="0" r="24" fill="none" stroke="url(#grad7)" stroke-width="1.5" opacity="0.4"/>
+    <!-- Inner ring -->
+    <circle cx="0" cy="0" r="18" fill="none" stroke="url(#grad7)" stroke-width="0.8" opacity="0.2"/>
+    <!-- Cardinal direction markers -->
+    <!-- North (emphasized) -->
+    <polygon points="0,-26 -3,-20 3,-20" fill="url(#grad7)" opacity="0.9"/>
+    <!-- South -->
+    <polygon points="0,26 -2.5,21 2.5,21" fill="url(#grad7)" opacity="0.4"/>
+    <!-- East -->
+    <polygon points="26,0 21,-2.5 21,2.5" fill="url(#grad7)" opacity="0.4"/>
+    <!-- West -->
+    <polygon points="-26,0 -21,-2.5 -21,2.5" fill="url(#grad7)" opacity="0.4"/>
+    <!-- Intercardinal ticks -->
+    <line x1="17" y1="-17" x2="15" y2="-15" stroke="url(#grad7)" stroke-width="1" opacity="0.25"/>
+    <line x1="17" y1="17" x2="15" y2="15" stroke="url(#grad7)" stroke-width="1" opacity="0.25"/>
+    <line x1="-17" y1="17" x2="-15" y2="15" stroke="url(#grad7)" stroke-width="1" opacity="0.25"/>
+    <line x1="-17" y1="-17" x2="-15" y2="-15" stroke="url(#grad7)" stroke-width="1" opacity="0.25"/>
+    <!-- Center @ -->
+    <text x="0" y="5" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="16" font-weight="700" fill="url(#grad7)">@</text>
+  </g>
+  <!-- Wordmark -->
+  <text x="82" y="48" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="28" font-weight="600" fill="#2d3748">webfinger<tspan fill="url(#grad7)">.js</tspan></text>
+</svg>

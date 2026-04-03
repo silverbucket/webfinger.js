@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <title>webfinger.js favicon - Elegant @ Swirl</title>
+  <defs>
+    <linearGradient id="g20" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#e2bb03"/>
+      <stop offset="40%" stop-color="#d4a017"/>
+      <stop offset="70%" stop-color="#667eea"/>
+      <stop offset="100%" stop-color="#764ba2"/>
+    </linearGradient>
+    <linearGradient id="g20g" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#e2bb03"/>
+      <stop offset="100%" stop-color="#d4a017"/>
+    </linearGradient>
+  </defs>
+  <g transform="translate(16, 16)">
+    <!-- Outer spiral -->
+    <path d="M8,-1 C8,-6 4,-10 -1,-10 C-7,-10 -11,-6 -11,0 C-11,6 -7,11 -1,11 C3,11 6,9 8,6"
+      fill="none" stroke="url(#g20)" stroke-width="2" stroke-linecap="round"/>
+    <!-- Inner loop -->
+    <path d="M8,6 L8,-1 C8,-1 7,-5 3,-5 C-1,-5 -3,-2 -3,1 C-3,4 -1,6 2,6 C5,6 7,4 8,2"
+      fill="none" stroke="url(#g20)" stroke-width="2" stroke-linecap="round"/>
+    <!-- Tail -->
+    <path d="M8,6 C9,7 11,8 13,7 Q14,6 14,4"
+      fill="none" stroke="url(#g20g)" stroke-width="1.5" stroke-linecap="round" opacity="0.5"/>
+  </g>
+</svg>

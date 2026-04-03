@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <title>webfinger.js favicon - Pointing Hand</title>
+  <defs>
+    <linearGradient id="grad2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#667eea"/>
+      <stop offset="100%" stop-color="#764ba2"/>
+    </linearGradient>
+  </defs>
+  <g transform="translate(2, 6)" fill="none" stroke="url(#grad2)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Simplified pointing finger -->
+    <path d="M6,12 L18,12 Q20,12 20,10 Q20,8 18,8 L12,8"/>
+    <path d="M6,12 L6,16 Q6,18 8,18 L12,18 Q14,18 14,16 L14,14"/>
+    <path d="M6,8 L6,6 Q6,4 8,4 L10,4 Q12,4 12,6 L12,8"/>
+    <!-- Signal arcs -->
+    <path d="M22,10 A3,3 0 0,1 22,12" stroke-width="1.5" opacity="0.7"/>
+    <path d="M24,8 A5,5 0 0,1 24,14" stroke-width="1.5" opacity="0.45"/>
+  </g>
+</svg>

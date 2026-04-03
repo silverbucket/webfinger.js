@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <title>webfinger.js favicon - Linked Rings</title>
+  <defs>
+    <linearGradient id="grad9" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#667eea"/>
+      <stop offset="100%" stop-color="#764ba2"/>
+    </linearGradient>
+  </defs>
+  <g transform="translate(16, 16)">
+    <!-- Left ring -->
+    <circle cx="-4" cy="0" r="9" fill="none" stroke="url(#grad9)" stroke-width="1.5" opacity="0.7"/>
+    <!-- Right ring -->
+    <circle cx="4" cy="0" r="9" fill="none" stroke="url(#grad9)" stroke-width="1.5" opacity="0.7"/>
+    <!-- Overlap fill -->
+    <path d="M0,-8 A9,9 0 0,1 0,8 A9,9 0 0,1 0,-8" fill="url(#grad9)" opacity="0.12"/>
+  </g>
+</svg>

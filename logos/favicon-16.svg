@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <title>webfinger.js favicon - Golden Shield</title>
+  <defs>
+    <linearGradient id="g16g" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#f0d040"/>
+      <stop offset="50%" stop-color="#e2bb03"/>
+      <stop offset="100%" stop-color="#c49b00"/>
+    </linearGradient>
+    <linearGradient id="g16p" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#667eea"/>
+      <stop offset="100%" stop-color="#764ba2"/>
+    </linearGradient>
+  </defs>
+  <g transform="translate(16, 16)">
+    <path d="M0,-13 L10,-9 L10,2 C10,8 5,12 0,14 C-5,12 -10,8 -10,2 L-10,-9 Z" fill="url(#g16g)" fill-opacity="0.12" stroke="url(#g16g)" stroke-width="1.5" stroke-linejoin="round"/>
+    <path d="M0,-6 L0,3" stroke="url(#g16p)" stroke-width="2.5" stroke-linecap="round"/>
+    <circle cx="0" cy="-7.5" r="2" fill="none" stroke="url(#g16p)" stroke-width="1"/>
+    <path d="M-3,3 L3,3" stroke="url(#g16p)" stroke-width="1.5" stroke-linecap="round"/>
+  </g>
+</svg>

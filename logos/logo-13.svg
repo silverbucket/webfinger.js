@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 80">
+  <title>webfinger.js - Finger Touch Discovery</title>
+  <defs>
+    <linearGradient id="grad13" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#e2bb03"/>
+      <stop offset="100%" stop-color="#764ba2"/>
+    </linearGradient>
+    <radialGradient id="glow13" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#e2bb03" stop-opacity="0.4"/>
+      <stop offset="100%" stop-color="#764ba2" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <g transform="translate(40, 40)">
+    <!-- Fingertip from above, touching down -->
+    <ellipse cx="0" cy="0" rx="14" ry="18" fill="none" stroke="url(#grad13)" stroke-width="2"/>
+    <!-- Fingerprint lines inside the fingertip -->
+    <path d="M-8,2 Q0,-4 8,2" fill="none" stroke="url(#grad13)" stroke-width="1.2" opacity="0.5" stroke-linecap="round"/>
+    <path d="M-6,6 Q0,0 6,6" fill="none" stroke="url(#grad13)" stroke-width="1.2" opacity="0.45" stroke-linecap="round"/>
+    <path d="M-9,-4 Q0,-10 9,-4" fill="none" stroke="url(#grad13)" stroke-width="1" opacity="0.35" stroke-linecap="round"/>
+    <path d="M-4,10 Q0,7 4,10" fill="none" stroke="url(#grad13)" stroke-width="1" opacity="0.35" stroke-linecap="round"/>
+    <!-- Touch ripple beneath -->
+    <ellipse cx="0" cy="20" rx="18" ry="4" fill="none" stroke="url(#grad13)" stroke-width="1" opacity="0.2"/>
+    <ellipse cx="0" cy="20" rx="24" ry="6" fill="none" stroke="url(#grad13)" stroke-width="0.8" opacity="0.1"/>
+    <!-- Glow at touch point -->
+    <circle cx="0" cy="16" r="8" fill="url(#glow13)"/>
+  </g>
+  <!-- Wordmark -->
+  <text x="80" y="48" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="28" font-weight="600" fill="#3b351d">webfinger<tspan fill="url(#grad13)">.js</tspan></text>
+</svg>

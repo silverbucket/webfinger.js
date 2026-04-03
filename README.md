@@ -1,4 +1,10 @@
-# webfinger.js
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="logos/logo-dark.svg">
+    <source media="(prefers-color-scheme: light)" srcset="logos/logo-light.svg">
+    <img alt="webfinger.js" src="logos/logo-light.svg" width="400">
+  </picture>
+</p>
 
 A modern, TypeScript-based WebFinger client that runs in both browsers and Node.js environments.
 

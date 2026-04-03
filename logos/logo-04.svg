@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 80">
+  <title>webfinger.js - Magnifying @ Logo</title>
+  <defs>
+    <linearGradient id="grad4" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#667eea"/>
+      <stop offset="100%" stop-color="#764ba2"/>
+    </linearGradient>
+  </defs>
+  <g transform="translate(40, 36)">
+    <!-- Magnifying glass lens -->
+    <circle cx="0" cy="0" r="20" fill="none" stroke="url(#grad4)" stroke-width="2.5"/>
+    <!-- Shine arc -->
+    <path d="M-12,-14 A18,18 0 0,1 -2,-19" fill="none" stroke="white" stroke-width="1.5" opacity="0.4" stroke-linecap="round"/>
+    <!-- Handle -->
+    <line x1="14" y1="14" x2="28" y2="28" stroke="url(#grad4)" stroke-width="3" stroke-linecap="round"/>
+    <!-- @ inside lens -->
+    <text x="0" y="6" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="20" font-weight="600" fill="#2d3748">@</text>
+  </g>
+  <!-- Wordmark -->
+  <text x="85" y="48" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="28" font-weight="600" fill="#2d3748">webfinger<tspan fill="url(#grad4)">.js</tspan></text>
+</svg>
