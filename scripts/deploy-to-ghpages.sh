@@ -21,18 +21,32 @@ echo -e "${GREEN}🌐 Deploying demo v$VERSION to GitHub Pages...${NC}"
 
 # Remember current branch
 CURRENT_BRANCH=$(git branch --show-current)
+STASH_CREATED=false
 echo -e "${YELLOW}📍 Current branch: $CURRENT_BRANCH${NC}"
 
 # Function to return to original branch on exit
 cleanup() {
-    echo -e "${YELLOW}🔄 Returning to branch: $CURRENT_BRANCH${NC}"
-    git checkout "$CURRENT_BRANCH" 2>/dev/null || true
+    if git checkout "$CURRENT_BRANCH" 2>/dev/null; then
+        echo -e "${YELLOW}🔄 Returned to branch: $CURRENT_BRANCH${NC}"
+        if [ "$STASH_CREATED" = true ]; then
+            git stash pop 2>/dev/null || true
+        fi
+    else
+        echo -e "${YELLOW}⚠️  Failed to return to branch: $CURRENT_BRANCH. Leaving any stashed changes untouched.${NC}"
+    fi
 }
 trap cleanup EXIT
 
 # Deploy to GitHub Pages
 echo -e "${YELLOW}📥 Fetching gh-pages branch...${NC}"
 git fetch origin gh-pages
+
+# Stash uncommitted changes (e.g. bun.lock modified during import tests)
+if ! git diff --quiet || ! git diff --cached --quiet || [ -n "$(git ls-files --others --exclude-standard)" ]; then
+    echo -e "${YELLOW}📦 Stashing uncommitted changes...${NC}"
+    git stash push -u -m "deploy-to-ghpages: temporary stash"
+    STASH_CREATED=true
+fi
 
 echo -e "${YELLOW}🌿 Switching to gh-pages branch...${NC}"
 git checkout gh-pages
