@@ -27,12 +27,16 @@ echo -e "${YELLOW}📍 Current branch: $CURRENT_BRANCH${NC}"
 cleanup() {
     echo -e "${YELLOW}🔄 Returning to branch: $CURRENT_BRANCH${NC}"
     git checkout "$CURRENT_BRANCH" 2>/dev/null || true
+    git stash pop 2>/dev/null || true
 }
 trap cleanup EXIT
 
 # Deploy to GitHub Pages
 echo -e "${YELLOW}📥 Fetching gh-pages branch...${NC}"
 git fetch origin gh-pages
+
+echo -e "${YELLOW}📦 Stashing any uncommitted changes...${NC}"
+git stash --include-untracked
 
 echo -e "${YELLOW}🌿 Switching to gh-pages branch...${NC}"
 git checkout gh-pages
