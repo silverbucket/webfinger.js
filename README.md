@@ -86,4 +86,4 @@ Contributions are welcome! Please see the [Development Guide](docs/DEVELOPMENT.m
 
 ## License
 
-This project is licensed under the [AGPL License](LICENSE) - see the license file for details.
+This project is licensed under the MIT License.
