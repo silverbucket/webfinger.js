@@ -13,7 +13,7 @@
   }
 }(typeof self !== 'undefined' ? self : this, function () {
 'use strict';
-// webfinger.js v3.0.0
+// webfinger.js v3.0.1
 
 // src/webfinger.ts
 /*!
