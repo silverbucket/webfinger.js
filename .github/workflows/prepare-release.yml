@@ -69,7 +69,7 @@ jobs:
           grep "v${{ steps.version_bump.outputs.new_version }}" demo/index.html
 
       - name: Setup Node.js for ES module import test
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: '18'
 
