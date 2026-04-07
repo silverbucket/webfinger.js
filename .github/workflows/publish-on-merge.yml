@@ -106,22 +106,26 @@ jobs:
         id: npm_check
         run: |
           VERSION="${{ steps.version.outputs.version }}"
-          if npm view "webfinger.js@${VERSION}" version > /dev/null 2>&1; then
-            echo "Version ${VERSION} is already published to npm, skipping release."
+          NPM_VIEW_OUTPUT="$(npm view "webfinger.js@${VERSION}" version 2>&1)" && {
+            echo "Version ${VERSION} is already published to npm, skipping publish."
             echo "already_published=true" >> $GITHUB_OUTPUT
-          else
-            echo "Version ${VERSION} not yet on npm, proceeding with release."
-            echo "already_published=false" >> $GITHUB_OUTPUT
-          fi
+          } || {
+            if printf '%s\n' "$NPM_VIEW_OUTPUT" | grep -qE 'E404|404 Not Found|is not in this registry'; then
+              echo "Version ${VERSION} not yet on npm, proceeding with release."
+              echo "already_published=false" >> $GITHUB_OUTPUT
+            else
+              echo "Failed to check npm registry for version ${VERSION}:"
+              printf '%s\n' "$NPM_VIEW_OUTPUT"
+              exit 1
+            fi
+          }
 
       - name: Configure Git
-        if: steps.npm_check.outputs.already_published == 'false'
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
 
       - name: Create and push git tag
-        if: steps.npm_check.outputs.already_published == 'false'
         run: |
           git tag -f v${{ steps.version.outputs.version }}
           git push --force origin v${{ steps.version.outputs.version }}
@@ -129,7 +133,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Create GitHub Release
-        if: steps.npm_check.outputs.already_published == 'false'
         run: |
           VERSION="v${{ steps.version.outputs.version }}"
           if gh release view "$VERSION" > /dev/null 2>&1; then
@@ -154,9 +157,9 @@ jobs:
       - name: Add already published summary
         if: steps.npm_check.outputs.already_published == 'true'
         run: |
-          echo "## ⏭️ Version Already Published" >> $GITHUB_STEP_SUMMARY
+          echo "## ⏭️ NPM Version Already Published" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "v${{ steps.version.outputs.version }} is already on npm. No action taken." >> $GITHUB_STEP_SUMMARY
+          echo "v${{ steps.version.outputs.version }} is already on npm. Git tag and GitHub release were updated, npm publish skipped." >> $GITHUB_STEP_SUMMARY
 
       - name: Add publish summary
         if: steps.npm_check.outputs.already_published == 'false'
