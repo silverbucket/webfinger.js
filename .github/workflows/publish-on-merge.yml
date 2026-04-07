@@ -14,6 +14,7 @@ jobs:
     permissions:
       contents: write
       id-token: write
+      issues: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -34,9 +35,11 @@ jobs:
       - name: Build project
         run: bun run build
 
-      - name: Setup npm authentication
-        run: |
-          echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
+      - name: Setup Node.js for npm publish
+        uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*'
+          registry-url: 'https://registry.npmjs.org'
 
       - name: Get version from package.json
         id: version
@@ -99,6 +102,24 @@ jobs:
             exit 1
           fi
 
+      - name: Check if version already published to npm
+        id: npm_check
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          NPM_VIEW_OUTPUT="$(npm view "webfinger.js@${VERSION}" version 2>&1)" && {
+            echo "Version ${VERSION} is already published to npm, skipping publish."
+            echo "already_published=true" >> $GITHUB_OUTPUT
+          } || {
+            if printf '%s\n' "$NPM_VIEW_OUTPUT" | grep -qE 'E404|404 Not Found|is not in this registry'; then
+              echo "Version ${VERSION} not yet on npm, proceeding with release."
+              echo "already_published=false" >> $GITHUB_OUTPUT
+            else
+              echo "Failed to check npm registry for version ${VERSION}:"
+              printf '%s\n' "$NPM_VIEW_OUTPUT"
+              exit 1
+            fi
+          }
+
       - name: Configure Git
         run: |
           git config --local user.email "action@github.com"
@@ -106,27 +127,42 @@ jobs:
 
       - name: Create and push git tag
         run: |
-          git tag v${{ steps.version.outputs.version }}
-          git push origin v${{ steps.version.outputs.version }}
+          git tag -f v${{ steps.version.outputs.version }}
+          git push --force origin v${{ steps.version.outputs.version }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Create GitHub Release
-        uses: actions/create-release@v1
+        run: |
+          VERSION="v${{ steps.version.outputs.version }}"
+          if gh release view "$VERSION" > /dev/null 2>&1; then
+            gh release edit "$VERSION" \
+              --title "Release $VERSION" \
+              --notes-file current_release_notes.txt
+          else
+            gh release create "$VERSION" \
+              --title "Release $VERSION" \
+              --notes-file current_release_notes.txt
+          fi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: v${{ steps.version.outputs.version }}
-          release_name: Release v${{ steps.version.outputs.version }}
-          body_path: current_release_notes.txt
-          draft: false
-          prerelease: false
 
       - name: Publish to npm
+        if: steps.npm_check.outputs.already_published == 'false'
         id: npm_publish
         run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Add already published summary
+        if: steps.npm_check.outputs.already_published == 'true'
+        run: |
+          echo "## ⏭️ NPM Version Already Published" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "v${{ steps.version.outputs.version }} is already on npm. Git tag and GitHub release were updated, npm publish skipped." >> $GITHUB_STEP_SUMMARY
 
       - name: Add publish summary
+        if: steps.npm_check.outputs.already_published == 'false'
         run: |
           echo "## 📦 NPM Publish Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
@@ -175,8 +211,7 @@ jobs:
           This issue can be closed once NPM publish is completed manually.
           ISSUE_BODY
           )" \
-            --label "release" \
-            --label "npm"
+            --label "bug"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
