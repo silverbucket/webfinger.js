@@ -102,12 +102,26 @@ jobs:
             exit 1
           fi
 
+      - name: Check if version already published to npm
+        id: npm_check
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          if npm view "webfinger.js@${VERSION}" version > /dev/null 2>&1; then
+            echo "Version ${VERSION} is already published to npm, skipping release."
+            echo "already_published=true" >> $GITHUB_OUTPUT
+          else
+            echo "Version ${VERSION} not yet on npm, proceeding with release."
+            echo "already_published=false" >> $GITHUB_OUTPUT
+          fi
+
       - name: Configure Git
+        if: steps.npm_check.outputs.already_published == 'false'
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
 
       - name: Create and push git tag
+        if: steps.npm_check.outputs.already_published == 'false'
         run: |
           git tag -f v${{ steps.version.outputs.version }}
           git push --force origin v${{ steps.version.outputs.version }}
@@ -115,6 +129,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Create GitHub Release
+        if: steps.npm_check.outputs.already_published == 'false'
         run: |
           VERSION="v${{ steps.version.outputs.version }}"
           if gh release view "$VERSION" > /dev/null 2>&1; then
@@ -130,12 +145,21 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Publish to npm
+        if: steps.npm_check.outputs.already_published == 'false'
         id: npm_publish
         run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
+      - name: Add already published summary
+        if: steps.npm_check.outputs.already_published == 'true'
+        run: |
+          echo "## ⏭️ Version Already Published" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "v${{ steps.version.outputs.version }} is already on npm. No action taken." >> $GITHUB_STEP_SUMMARY
+
       - name: Add publish summary
+        if: steps.npm_check.outputs.already_published == 'false'
         run: |
           echo "## 📦 NPM Publish Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
