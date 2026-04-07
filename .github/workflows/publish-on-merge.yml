@@ -34,9 +34,11 @@ jobs:
       - name: Build project
         run: bun run build
 
-      - name: Setup npm authentication
-        run: |
-          echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
+      - name: Setup Node.js for npm publish
+        uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*'
+          registry-url: 'https://registry.npmjs.org'
 
       - name: Get version from package.json
         id: version
@@ -106,25 +108,31 @@ jobs:
 
       - name: Create and push git tag
         run: |
-          git tag v${{ steps.version.outputs.version }}
-          git push origin v${{ steps.version.outputs.version }}
+          git tag -f v${{ steps.version.outputs.version }}
+          git push --force origin v${{ steps.version.outputs.version }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Create GitHub Release
-        uses: actions/create-release@v1
+        run: |
+          VERSION="v${{ steps.version.outputs.version }}"
+          if gh release view "$VERSION" > /dev/null 2>&1; then
+            gh release edit "$VERSION" \
+              --title "Release $VERSION" \
+              --notes-file current_release_notes.txt
+          else
+            gh release create "$VERSION" \
+              --title "Release $VERSION" \
+              --notes-file current_release_notes.txt
+          fi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: v${{ steps.version.outputs.version }}
-          release_name: Release v${{ steps.version.outputs.version }}
-          body_path: current_release_notes.txt
-          draft: false
-          prerelease: false
 
       - name: Publish to npm
         id: npm_publish
         run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Add publish summary
         run: |
@@ -175,8 +183,7 @@ jobs:
           This issue can be closed once NPM publish is completed manually.
           ISSUE_BODY
           )" \
-            --label "release" \
-            --label "npm"
+            --label "bug"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
