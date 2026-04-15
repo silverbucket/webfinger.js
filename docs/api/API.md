@@ -1,8 +1,8 @@
-**webfinger.js v3.0.1**
+**webfinger.js v3.0.2**
 
 ***
 
-# webfinger.js v3.0.1
+# webfinger.js v3.0.2
 
 ## Classes
 
