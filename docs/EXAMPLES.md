@@ -58,7 +58,7 @@ const webfinger = new WebFinger({
 ### Browser (Global)
 
 ```html
-<script src="https://unpkg.com/webfinger.js/dist/webfinger.cjs"></script>
+<script src="https://unpkg.com/webfinger.js/dist/webfinger.js"></script>
 <script>
   const webfinger = new WebFinger({
     tls_only: true

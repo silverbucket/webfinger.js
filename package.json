@@ -22,6 +22,7 @@
       "types": "./dist/webfinger.d.ts",
       "import": "./dist/webfinger.mjs",
       "require": "./dist/webfinger.cjs",
+      "browser": "./dist/webfinger.js",
       "default": "./dist/webfinger.mjs"
     }
   },

@@ -28,7 +28,8 @@ fs.mkdirSync(outputDir, { recursive: true });
 console.log('Generating TypeScript declarations...');
 execSync('bun run tsc', { stdio: 'inherit' });
 
-// Remove tsc JavaScript output (we only need the .d.ts declarations)
+// Remove tsc JavaScript output (we only need the .d.ts declarations;
+// the browser .js alias is created later from the UMD bundle)
 const tscJsFile = path.join(outputDir, 'webfinger.js');
 const tscMapFile = path.join(outputDir, 'webfinger.js.map');
 if (fs.existsSync(tscJsFile)) fs.unlinkSync(tscJsFile);
@@ -76,6 +77,10 @@ return WebFinger;
 
 // Write the CommonJS/UMD bundle
 fs.writeFileSync(outputPath, umdWrapper);
+
+// Create browser-friendly .js alias (same UMD bundle, conventional extension for CDN/script tags)
+const browserFile = path.join(outputDir, 'webfinger.js');
+fs.copyFileSync(outputPath, browserFile);
 
 // Clean up temp file
 fs.unlinkSync(tempFile);
