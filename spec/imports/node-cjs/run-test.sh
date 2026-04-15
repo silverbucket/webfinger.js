@@ -18,17 +18,6 @@ echo ""
 echo "📁 Working directory: $(pwd)"
 echo ""
 
-# Build the package first so dist/webfinger.cjs exists for file: resolution
-echo "🔨 Building parent package..."
-pushd ../../.. > /dev/null
-bun run build:release
-if [ $? -ne 0 ]; then
-    echo "❌ Failed to build parent package"
-    exit 1
-fi
-popd > /dev/null
-echo ""
-
 # Check if Node.js is available
 if ! command -v node &> /dev/null; then
     echo "❌ Node.js is not installed."

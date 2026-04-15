@@ -28,6 +28,12 @@ fs.mkdirSync(outputDir, { recursive: true });
 console.log('Generating TypeScript declarations...');
 execSync('bun run tsc', { stdio: 'inherit' });
 
+// Remove tsc JavaScript output (we only need the .d.ts declarations)
+const tscJsFile = path.join(outputDir, 'webfinger.js');
+const tscMapFile = path.join(outputDir, 'webfinger.js.map');
+if (fs.existsSync(tscJsFile)) fs.unlinkSync(tscJsFile);
+if (fs.existsSync(tscMapFile)) fs.unlinkSync(tscMapFile);
+
 // Build ESM version
 const esmFile = outputPath.replace(/\.c?js$/, '.mjs');
 execSync(`bun build src/webfinger.ts --target=browser --format=esm --outfile=${esmFile}`, { stdio: 'inherit' });
