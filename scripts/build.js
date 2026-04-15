@@ -9,7 +9,7 @@ const args = process.argv.slice(2);
 const outputIndex = args.indexOf('--output');
 const outputPath = outputIndex !== -1 && args[outputIndex + 1]
   ? args[outputIndex + 1]
-  : 'dist/webfinger.js';
+  : 'dist/webfinger.cjs';
 
 // Read package.json to get version
 const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
@@ -29,7 +29,7 @@ console.log('Generating TypeScript declarations...');
 execSync('bun run tsc', { stdio: 'inherit' });
 
 // Build ESM version
-const esmFile = outputPath.replace('.js', '.mjs');
+const esmFile = outputPath.replace(/\.c?js$/, '.mjs');
 execSync(`bun build src/webfinger.ts --target=browser --format=esm --outfile=${esmFile}`, { stdio: 'inherit' });
 
 // Add version banner to ESM output

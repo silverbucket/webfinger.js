@@ -7,7 +7,7 @@ async function loadWebFinger() {
 
   return new Promise((resolve, reject) => {
     const script = document.createElement('script');
-    script.src = '/.tmp/webfinger.js';
+    script.src = '/.tmp/webfinger.cjs';
     script.onload = () => resolve(window.WebFinger);
     script.onerror = reject;
     document.head.appendChild(script);

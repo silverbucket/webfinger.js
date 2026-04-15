@@ -57,7 +57,7 @@ const server = Bun.serve({
 
     // Handle webfinger.js requests - serve from .tmp (development build)
     if (pathname === '/webfinger.js') {
-      const tmpFile = join(TMP_DIR, 'webfinger.js');
+      const tmpFile = join(TMP_DIR, 'webfinger.cjs');
       if (existsSync(tmpFile)) {
         return serveFile(tmpFile);
       } else {
@@ -86,6 +86,6 @@ const server = Bun.serve({
 
 console.log(`🚀 Demo server running at http://localhost:${PORT}`);
 console.log(`📂 Serving: demo/ directory`);
-console.log(`📦 Using: .tmp/webfinger.js (development build)`);
+console.log(`📦 Using: .tmp/webfinger.cjs (development build)`);
 console.log(`\n💡 Open http://localhost:${PORT} in your browser`);
 console.log(`   Press Ctrl+C to stop\n`);

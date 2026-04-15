@@ -53,8 +53,8 @@ git checkout gh-pages
 
 echo -e "${YELLOW}📦 Copying pre-built files from $RELEASE_BRANCH...${NC}"
 # Copy pre-built files from release branch
-git checkout "$RELEASE_BRANCH" -- dist/webfinger.js demo/
-cp dist/webfinger.js webfinger.js
+git checkout "$RELEASE_BRANCH" -- dist/webfinger.cjs demo/
+cp dist/webfinger.cjs webfinger.js
 cp -r demo/* .
 
 echo -e "${YELLOW}📝 Committing changes...${NC}"
