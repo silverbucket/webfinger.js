@@ -76,6 +76,9 @@ jobs:
       - name: Test Node.js ES module imports
         run: bun run test:imports:node
 
+      - name: Test Node.js CJS require
+        run: bun run test:imports:node-cjs
+
       - name: Test Bun ES module imports
         run: bun run test:imports:bun
 
