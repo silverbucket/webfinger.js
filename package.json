@@ -15,13 +15,14 @@
     "lookup"
   ],
   "type": "module",
-  "main": "./dist/webfinger.js",
+  "main": "./dist/webfinger.cjs",
   "types": "./dist/webfinger.d.ts",
   "exports": {
     ".": {
       "types": "./dist/webfinger.d.ts",
       "import": "./dist/webfinger.mjs",
-      "require": "./dist/webfinger.js",
+      "require": "./dist/webfinger.cjs",
+      "browser": "./dist/webfinger.js",
       "default": "./dist/webfinger.mjs"
     }
   },
@@ -35,8 +36,8 @@
     "email": "nick@silverbucket.net"
   },
   "scripts": {
-    "build": "bun run tsc --project tsconfig.dev.json && bun scripts/build.js --output .tmp/webfinger.js",
-    "build:release": "bun scripts/build.js --output dist/webfinger.js",
+    "build": "bun run tsc --project tsconfig.dev.json && bun scripts/build.js --output .tmp/webfinger.cjs",
+    "build:release": "bun scripts/build.js --output dist/webfinger.cjs",
     "build:clean": "rm -rf dist && bun run build:release",
     "prepublishOnly": "bun run build:clean",
     "lint": "eslint . && bun run lint:links",
@@ -48,6 +49,7 @@
     "test:unit": "bun run build && bun run test:ts && bun run test:js",
     "test:imports:bun": "cd spec/imports/bun && ./run-test.sh",
     "test:imports:node": "cd spec/imports/node && ./run-test.sh",
+    "test:imports:node-cjs": "cd spec/imports/node-cjs && ./run-test.sh",
     "test": "bun run test:unit && bun run test:integration && bun run test:browser",
     "help": "bun scripts/help.js",
     "docs:generate": "typedoc",

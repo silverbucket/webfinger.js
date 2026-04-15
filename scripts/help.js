@@ -14,8 +14,8 @@ console.log(`
    bun run test:integration - Integration tests only
    
 🔧 Development:
-   bun run build          - Build development version (.tmp/webfinger.js)
-   bun run build:release  - Build release version (dist/webfinger.js)
+   bun run build          - Build development version (.tmp/)
+   bun run build:release  - Build release version (dist/)
    bun run build:clean    - Clean build and rebuild release
    bun run lint           - Run ESLint code linting
    

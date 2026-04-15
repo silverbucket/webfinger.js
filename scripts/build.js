@@ -9,7 +9,7 @@ const args = process.argv.slice(2);
 const outputIndex = args.indexOf('--output');
 const outputPath = outputIndex !== -1 && args[outputIndex + 1]
   ? args[outputIndex + 1]
-  : 'dist/webfinger.js';
+  : 'dist/webfinger.cjs';
 
 // Read package.json to get version
 const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
@@ -28,8 +28,15 @@ fs.mkdirSync(outputDir, { recursive: true });
 console.log('Generating TypeScript declarations...');
 execSync('bun run tsc', { stdio: 'inherit' });
 
+// Remove tsc JavaScript output (we only need the .d.ts declarations;
+// the browser .js alias is created later from the UMD bundle)
+const tscJsFile = path.join(outputDir, 'webfinger.js');
+const tscMapFile = path.join(outputDir, 'webfinger.js.map');
+if (fs.existsSync(tscJsFile)) fs.unlinkSync(tscJsFile);
+if (fs.existsSync(tscMapFile)) fs.unlinkSync(tscMapFile);
+
 // Build ESM version
-const esmFile = outputPath.replace('.js', '.mjs');
+const esmFile = outputPath.replace(/\.c?js$/, '.mjs');
 execSync(`bun build src/webfinger.ts --target=browser --format=esm --outfile=${esmFile}`, { stdio: 'inherit' });
 
 // Add version banner to ESM output
@@ -70,6 +77,10 @@ return WebFinger;
 
 // Write the CommonJS/UMD bundle
 fs.writeFileSync(outputPath, umdWrapper);
+
+// Create browser-friendly .js alias (same UMD bundle, conventional extension for CDN/script tags)
+const browserFile = path.join(outputDir, 'webfinger.js');
+fs.copyFileSync(outputPath, browserFile);
 
 // Clean up temp file
 fs.unlinkSync(tempFile);

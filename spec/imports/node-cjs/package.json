@@ -1,0 +1,7 @@
+{
+  "version": "0.0.0",
+  "private": true,
+  "dependencies": {
+    "webfinger.js": "file:../../.."
+  }
+}

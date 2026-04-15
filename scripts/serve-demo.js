@@ -16,6 +16,7 @@ const TMP_DIR = join(import.meta.dir, '../.tmp');
 const MIME_TYPES = {
   '.html': 'text/html',
   '.js': 'application/javascript',
+  '.cjs': 'application/javascript',
   '.css': 'text/css',
   '.json': 'application/json',
   '.png': 'image/png',

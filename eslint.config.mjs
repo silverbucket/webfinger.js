@@ -30,4 +30,14 @@ export default [
   },
   pluginJs.configs.recommended,
   ...tseslint.configs.recommended,
+  // CJS test files need require() and Node.js globals
+  {
+    files: ["spec/imports/node-cjs/**/*.cjs"],
+    languageOptions: {
+      globals: globals.node,
+    },
+    rules: {
+      "@typescript-eslint/no-require-imports": "off",
+    }
+  },
 ];
