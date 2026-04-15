@@ -104,8 +104,10 @@ export type LinkObject = {
   rel: string;
   /** MIME type (optional) */
   type?: string;
+  /** RFC 7033 link properties */
+  properties?: Record<string, string | null>;
   /** Additional properties */
-  [key: string]: string | undefined;
+  [key: string]: string | Record<string, string | null> | undefined;
 }
 
 /**
@@ -460,7 +462,11 @@ export default class WebFinger {
             rel: String(link.rel || '')
           };
           Object.keys(link).map(function (item) {
-            entry[item] = String(link[item]);
+            if (typeof link[item] === 'object' && link[item] !== null) {
+              entry[item] = link[item] as Record<string, string | null>;
+            } else {
+              entry[item] = String(link[item]);
+            }
           });
           result.idx.links[mappedKey].push(entry);
         }

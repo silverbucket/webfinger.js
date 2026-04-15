@@ -718,4 +718,49 @@ describe('WebFinger', () => {
       }
     });
   });
+
+  describe('RFC 7033 Link Properties', () => {
+    it('should preserve link properties objects instead of converting to string', async () => {
+      const originalFetch = globalThis.fetch;
+
+      globalThis.fetch = async () => {
+        return new Response(JSON.stringify({
+          subject: 'acct:test@example.com',
+          links: [
+            {
+              rel: 'http://webfinger.net/rel/avatar',
+              href: 'https://example.com/avatar.png',
+              type: 'image/png',
+              properties: {
+                'http://example.com/ns/size': '128',
+                'http://example.com/ns/default': null
+              }
+            }
+          ]
+        }), {
+          status: 200,
+          headers: { 'content-type': 'application/jrd+json' }
+        });
+      };
+
+      try {
+        const testWf = new WebFinger({
+          request_timeout: 1000,
+          allow_private_addresses: true
+        });
+        const result = await testWf.lookup('test@example.com');
+
+        const avatarLinks = result.idx.links.avatar;
+        expect(avatarLinks).toHaveLength(1);
+        expect(avatarLinks[0].href).toBe('https://example.com/avatar.png');
+        expect(typeof avatarLinks[0].properties).toBe('object');
+        expect(avatarLinks[0].properties).toEqual({
+          'http://example.com/ns/size': '128',
+          'http://example.com/ns/default': null
+        });
+      } finally {
+        globalThis.fetch = originalFetch;
+      }
+    });
+  });
 });
