@@ -232,6 +232,113 @@ describe('WebFinger', () => {
       });
     });
 
+    describe('Host Canonicalization', () => {
+      it('should block non-canonical loopback spellings before network access', async () => {
+        const originalFetch = globalThis.fetch;
+        let fetchCalled = false;
+
+        globalThis.fetch = async () => {
+          fetchCalled = true;
+          throw new Error('Network request should not be made for blocked private hosts');
+        };
+
+        try {
+          const secureWebfinger = new WebFinger({
+            allow_private_addresses: false,
+            request_timeout: 1000
+          });
+
+          const attackVectors = [
+            'test@2130706433',
+            'test@0x7f000001',
+            'test@0177.0.0.1',
+            'test@127.1',
+            'test@2130706433:8080'
+          ];
+
+          for (const maliciousAddress of attackVectors) {
+            await expect(secureWebfinger.lookup(maliciousAddress))
+              .rejects.toThrow('private or internal addresses are not allowed');
+          }
+
+          expect(fetchCalled).toBe(false);
+        } finally {
+          globalThis.fetch = originalFetch;
+        }
+      });
+
+      it('should preserve explicit default ports for public hosts after normalization', async () => {
+        const originalFetch = globalThis.fetch;
+        const requestedUrls: string[] = [];
+
+        globalThis.fetch = async (url: string | Request) => {
+          requestedUrls.push(typeof url === 'string' ? url : url.url);
+          return new Response(JSON.stringify({
+            subject: 'acct:test@example.com:80',
+            links: []
+          }), {
+            status: 200,
+            headers: { 'content-type': 'application/jrd+json' }
+          });
+        };
+
+        try {
+          const permissiveWf = new WebFinger({
+            allow_private_addresses: true,
+            request_timeout: 1000,
+            uri_fallback: false
+          });
+
+          const result = await permissiveWf.lookup('test@example.com:80');
+          expect(result.object.subject).toBe('acct:test@example.com:80');
+          expect(requestedUrls).toEqual([
+            'https://example.com:80/.well-known/webfinger?resource=acct:test@example.com:80'
+          ]);
+        } finally {
+          globalThis.fetch = originalFetch;
+        }
+      });
+
+      it('should block redirects to non-canonical loopback spellings', async () => {
+        const originalFetch = globalThis.fetch;
+
+        try {
+          const redirectTargets = [
+            'http://2130706433/internal',
+            'http://0x7f000001/internal',
+            'http://127.1/internal'
+          ];
+
+          for (const redirectTarget of redirectTargets) {
+            const requestedUrls: string[] = [];
+
+            globalThis.fetch = async (url: string | Request) => {
+              requestedUrls.push(typeof url === 'string' ? url : url.url);
+              return new Response(null, {
+                status: 302,
+                headers: { location: redirectTarget }
+              });
+            };
+
+            const secureWebfinger = new WebFinger({
+              allow_private_addresses: false,
+              request_timeout: 1000,
+              uri_fallback: false
+            });
+
+            await expect(secureWebfinger.lookup('test@example.com'))
+              .rejects.toThrow('redirect to private or internal address blocked');
+
+            expect(requestedUrls).toEqual([
+              'https://example.com/.well-known/webfinger?resource=acct:test@example.com'
+            ]);
+          }
+        } finally {
+          globalThis.fetch = originalFetch;
+        }
+      });
+    });
+
     describe('DNS Resolution SSRF Protection', () => {
       it('should have DNS resolution protection available in Node.js environments', () => {
         const secureWebfinger = new WebFinger({

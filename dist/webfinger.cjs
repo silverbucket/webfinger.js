@@ -104,7 +104,7 @@ class WebFinger {
       } catch {
         throw new WebFingerError("invalid redirect URL");
       }
-      const redirectHost = WebFinger.validateHost(redirectUrl.hostname + (redirectUrl.port ? ":" + redirectUrl.port : ""));
+      const redirectHost = WebFinger.normalizeHost(redirectUrl.host).host;
       if (!this.config.allow_private_addresses && WebFinger.isPrivateAddress(redirectHost)) {
         throw new WebFingerError("redirect to private or internal address blocked");
       }
@@ -197,16 +197,50 @@ class WebFinger {
     }
     return false;
   }
-  static validateHost(host) {
+  static getExplicitPort(host) {
+    if (host.startsWith("[")) {
+      const ipv6PortSeparator = host.lastIndexOf("]:");
+      if (ipv6PortSeparator !== -1) {
+        const port = host.substring(ipv6PortSeparator + 2);
+        if (!NUMERIC_PORT_REGEX.test(port)) {
+          throw new WebFingerError("invalid host format");
+        }
+        return port;
+      }
+      return;
+    }
+    const colonCount = (host.match(/:/g) || []).length;
+    if (colonCount === 1) {
+      const [, port = ""] = host.split(":");
+      if (!port || !NUMERIC_PORT_REGEX.test(port)) {
+        throw new WebFingerError("invalid host format");
+      }
+      return port;
+    }
+    return;
+  }
+  static normalizeHost(host) {
     const hostParts = host.split("/");
     const cleanHost = hostParts[0];
     if (!cleanHost || cleanHost.length === 0) {
       throw new WebFingerError("invalid host format");
     }
-    if (cleanHost.includes("?") || cleanHost.includes("#") || cleanHost.includes(" ")) {
+    if (cleanHost.includes("?") || cleanHost.includes("#") || cleanHost.includes(" ") || cleanHost.includes("@")) {
       throw new WebFingerError("invalid characters in host");
     }
-    return cleanHost;
+    const explicitPort = WebFinger.getExplicitPort(cleanHost);
+    let parsedHost;
+    try {
+      parsedHost = new URL(`http://${cleanHost}`);
+    } catch {
+      throw new WebFingerError("invalid host format");
+    }
+    const hostname2 = parsedHost.hostname;
+    const normalizedHost = explicitPort ? `${hostname2}:${explicitPort}` : parsedHost.host || hostname2;
+    return {
+      host: normalizedHost,
+      hostname: hostname2
+    };
   }
   static async processJRD(URL2, JRDstring) {
     const parsedJRD = JSON.parse(JRDstring);
@@ -312,13 +346,13 @@ class WebFinger {
     if (!host) {
       throw new WebFingerError("could not determine host from address");
     }
-    host = WebFinger.validateHost(host);
+    const normalizedHost = WebFinger.normalizeHost(host);
+    host = normalizedHost.host;
     if (!this.config.allow_private_addresses && WebFinger.isPrivateAddress(host)) {
       throw new WebFingerError("private or internal addresses are not allowed");
     }
     if (!this.config.allow_private_addresses) {
-      const hostname2 = host.includes(":") ? host.split(":")[0] : host;
-      await this.validateDNSResolution(hostname2);
+      await this.validateDNSResolution(normalizedHost.hostname);
     }
     let uri_index = 0;
     let protocol = "https";

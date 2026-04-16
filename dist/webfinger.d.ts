@@ -154,21 +154,23 @@ export default class WebFinger {
      * @throws {WebFingerError} When host format is invalid
      */
     private static isPrivateAddress;
+    private static getExplicitPort;
     /**
-     * Validates and sanitizes host to prevent path injection attacks.
+     * Validates, sanitizes, and canonicalizes host to prevent path injection attacks.
      *
      * Removes path components and validates hostname format to prevent:
      * - Directory traversal attacks via path injection
      * - Query parameter injection
      * - Fragment injection
-     * - Invalid characters in hostnames
+     * - Userinfo injection
+     * - Non-canonical loopback/private host spellings bypassing SSRF checks
      *
      * @private
      * @param host - Raw host string that may contain path components
-     * @returns Cleaned hostname with only valid hostname and port
+     * @returns Canonical host information for URL building and policy checks
      * @throws {WebFingerError} When host format is invalid or contains dangerous characters
      */
-    private static validateHost;
+    private static normalizeHost;
     private static processJRD;
     /**
      * Resolves a hostname to IP addresses and validates they are not private addresses.
