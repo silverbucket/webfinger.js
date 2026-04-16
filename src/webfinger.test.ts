@@ -657,6 +657,49 @@ describe('WebFinger', () => {
       }
     });
 
+    it('should timeout when headers arrive but the body stalls', async () => {
+      const originalFetch = globalThis.fetch;
+      let bodyAbortCount = 0;
+
+      globalThis.fetch = (_url: string | Request, init?: RequestInit) => {
+        const signal = init?.signal;
+        const body = new ReadableStream({
+          start(controller) {
+            if (!signal) return;
+            const onAbort = () => {
+              bodyAbortCount++;
+              controller.error(createAbortError());
+            };
+            if (signal.aborted) {
+              onAbort();
+              return;
+            }
+            signal.addEventListener('abort', onAbort, { once: true });
+          }
+        });
+
+        return Promise.resolve(new Response(body, {
+          status: 200,
+          headers: { 'content-type': 'application/jrd+json' }
+        }));
+      };
+
+      try {
+        const timeoutWf = new WebFinger({
+          allow_private_addresses: true,
+          request_timeout: 20,
+          uri_fallback: false
+        });
+
+        await expect(timeoutWf.lookup('test@example.com'))
+          .rejects.toThrow('request timed out');
+
+        expect(bodyAbortCount).toBe(1);
+      } finally {
+        globalThis.fetch = originalFetch;
+      }
+    });
+
     it('should give redirect follow-up requests their own timeout budget', async () => {
       const originalFetch = globalThis.fetch;
       const requestedUrls: string[] = [];

@@ -65,7 +65,11 @@ export type WebFingerConfig = {
   tls_only: boolean,
   /** Enable host-meta and host-meta.json fallback endpoints. */
   uri_fallback: boolean,
-  /** Request timeout in milliseconds. */
+  /**
+   * Request timeout in milliseconds. Applied per HTTP attempt:
+   * each redirect hop and fallback URI gets a fresh budget, so the
+   * worst-case wall time is roughly (timeout) × (redirects + 1) × (URIs) × (protocols).
+   */
   request_timeout: number,
   /** Allow private/internal addresses (DANGEROUS - only for development). */
   allow_private_addresses: boolean
@@ -200,89 +204,85 @@ export default class WebFinger {
     }
 
     const abortController = new AbortController();
-    let requestTimedOut = false;
     const timeoutId = setTimeout(() => {
-      requestTimedOut = true;
       abortController.abort();
     }, this.config.request_timeout);
 
-    let response: Response;
     try {
-      response = await fetch(url, {
+      const response = await fetch(url, {
         headers: {'Accept': 'application/jrd+json, application/json'},
         redirect: 'manual', // Handle redirects manually for security validation
         signal: abortController.signal
       });
+
+      // Handle redirect responses with security validation
+      if (response.status >= 300 && response.status < 400) {
+        const location = response.headers.get('location');
+        if (!location) {
+          throw new WebFingerError('redirect without location header');
+        }
+
+        // Parse and validate redirect URL
+        let redirectUrl: URL;
+        try {
+          redirectUrl = new URL(location, url); // Resolve relative URLs
+        } catch {
+          throw new WebFingerError('invalid redirect URL');
+        }
+
+        // Security: Validate redirect destination host
+        const redirectHost = WebFinger.validateHost(redirectUrl.hostname + (redirectUrl.port ? ':' + redirectUrl.port : ''));
+
+        // Security: Check if redirect target is private/internal address
+        if (!this.config.allow_private_addresses && WebFinger.isPrivateAddress(redirectHost)) {
+          throw new WebFingerError('redirect to private or internal address blocked');
+        }
+
+        // Clear the current timer before recursing — the recursive call gets its own budget.
+        clearTimeout(timeoutId);
+        return this.fetchJRD(redirectUrl.toString(), redirectCount + 1);
+      }
+
+      if (response.status === 404) {
+        throw new WebFingerError('resource not found', 404)
+      } else if (!response.ok) {
+        throw new WebFingerError('error during request', response.status);
+      }
+
+      // Check Content-Type for RFC 7033 compliance (informational only)
+      const contentType = response.headers.get('content-type') || '';
+      const lowerContentType = contentType.toLowerCase();
+
+      // Parse main media type (before semicolon for charset/boundary params)
+      const mainType = lowerContentType.split(';')[0].trim();
+
+      if (mainType === 'application/jrd+json') {
+        // Perfect - RFC 7033 compliant
+      } else if (mainType === 'application/json') {
+        console.debug(
+          `WebFinger: Server uses "application/json" instead of RFC 7033 recommended "application/jrd+json".`
+        );
+      } else {
+        console.warn(
+          `WebFinger: Server returned unexpected content-type "${contentType}". ` +
+          'Expected "application/jrd+json" per RFC 7033.'
+        );
+      }
+
+      const responseText = await response.text();
+
+      if (WebFinger.isValidJSON(responseText)) {
+        return responseText;
+      } else {
+        throw new WebFingerError('invalid json')
+      }
     } catch (error) {
-      if (requestTimedOut ||
-          (abortController.signal.aborted && error instanceof Error && error.name === 'AbortError')) {
+      if (abortController.signal.aborted) {
         throw new WebFingerError('request timed out');
       }
-
-      throw error instanceof Error ? error : new WebFingerError(String(error));
+      throw error;
     } finally {
       clearTimeout(timeoutId);
-    }
-
-    // Handle redirect responses with security validation
-    if (response.status >= 300 && response.status < 400) {
-      const location = response.headers.get('location');
-      if (!location) {
-        throw new WebFingerError('redirect without location header');
-      }
-
-      // Parse and validate redirect URL
-      let redirectUrl: URL;
-      try {
-        redirectUrl = new URL(location, url); // Resolve relative URLs
-      } catch {
-        throw new WebFingerError('invalid redirect URL');
-      }
-
-      // Security: Validate redirect destination host
-      const redirectHost = WebFinger.validateHost(redirectUrl.hostname + (redirectUrl.port ? ':' + redirectUrl.port : ''));
-
-      // Security: Check if redirect target is private/internal address
-      if (!this.config.allow_private_addresses && WebFinger.isPrivateAddress(redirectHost)) {
-        throw new WebFingerError('redirect to private or internal address blocked');
-      }
-
-      // Follow the redirect
-      return this.fetchJRD(redirectUrl.toString(), redirectCount + 1);
-    }
-
-    if (response.status === 404) {
-      throw new WebFingerError('resource not found', 404)
-    } else if (!response.ok) {
-      throw new WebFingerError('error during request', response.status);
-    }
-
-    // Check Content-Type for RFC 7033 compliance (informational only)
-    const contentType = response.headers.get('content-type') || '';
-    const lowerContentType = contentType.toLowerCase();
-
-    // Parse main media type (before semicolon for charset/boundary params)
-    const mainType = lowerContentType.split(';')[0].trim();
-
-    if (mainType === 'application/jrd+json') {
-      // Perfect - RFC 7033 compliant
-    } else if (mainType === 'application/json') {
-      console.debug(
-        `WebFinger: Server uses "application/json" instead of RFC 7033 recommended "application/jrd+json".`
-      );
-    } else {
-      console.warn(
-        `WebFinger: Server returned unexpected content-type "${contentType}". ` +
-        'Expected "application/jrd+json" per RFC 7033.'
-      );
-    }
-
-    const responseText = await response.text();
-
-    if (WebFinger.isValidJSON(responseText)) {
-      return responseText;
-    } else {
-      throw new WebFingerError('invalid json')
     }
   };
 
