@@ -14,6 +14,32 @@ async function loadWebFinger() {
   });
 }
 
+function createAbortError() {
+  const abortError = new Error('Aborted');
+  abortError.name = 'AbortError';
+  return abortError;
+}
+
+function createAbortablePendingFetch(onAbort) {
+  return (_url, init = {}) => new Promise((_resolve, reject) => {
+    const signal = init.signal;
+    if (!signal) {
+      return;
+    }
+
+    if (signal.aborted) {
+      if (onAbort) onAbort();
+      reject(createAbortError());
+      return;
+    }
+
+    signal.addEventListener('abort', () => {
+      if (onAbort) onAbort();
+      reject(createAbortError());
+    }, { once: true });
+  });
+}
+
 describe('WebFinger Browser Tests', () => {
   let WebFinger;
   let webfinger;
@@ -302,6 +328,36 @@ describe('WebFinger Browser Tests', () => {
         throw new Error('Should have thrown');
       } catch (err) {
         expect(err.message).to.include('private or internal addresses are not allowed');
+      }
+    });
+  });
+
+  describe('Request Timeout', () => {
+    it('should timeout stalled requests in the browser bundle', async () => {
+      const originalFetch = window.fetch;
+      let abortCount = 0;
+
+      window.fetch = createAbortablePendingFetch(() => {
+        abortCount++;
+      });
+
+      try {
+        const timeoutWf = new WebFinger({
+          allow_private_addresses: true,
+          request_timeout: 20,
+          uri_fallback: false
+        });
+
+        try {
+          await timeoutWf.lookup('test@example.com');
+          throw new Error('Should have thrown');
+        } catch (err) {
+          expect(err.message).to.include('request timed out');
+        }
+
+        expect(abortCount).to.equal(1);
+      } finally {
+        window.fetch = originalFetch;
       }
     });
   });
