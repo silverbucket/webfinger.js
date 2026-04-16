@@ -1,14 +1,14 @@
-**webfinger.js v3.0.2**
+**webfinger.js v3.0.3**
 
 ***
 
-# webfinger.js v3.0.2
+# webfinger.js v3.0.3
 
 ## Classes
 
 ### default
 
-Defined in: [src/webfinger.ts:177](https://github.com/silverbucket/webfinger.js/blob/master/src/webfinger.ts#L177)
+Defined in: [src/webfinger.ts:179](https://github.com/silverbucket/webfinger.js/blob/master/src/webfinger.ts#L179)
 
 WebFinger client for discovering user information across domains.
 
@@ -43,7 +43,7 @@ console.log(result.idx.properties.name);
 
 > **lookup**(`address`): `Promise`\<[`WebFingerResult`](#webfingerresult)\>
 
-Defined in: [src/webfinger.ts:587](https://github.com/silverbucket/webfinger.js/blob/master/src/webfinger.ts#L587)
+Defined in: [src/webfinger.ts:593](https://github.com/silverbucket/webfinger.js/blob/master/src/webfinger.ts#L593)
 
 Performs a WebFinger lookup for the given address with comprehensive SSRF protection.
 
@@ -98,7 +98,7 @@ await webfinger.lookup('user@192.168.1.1');  // Direct access blocked
 
 > **lookupLink**(`address`, `rel`): `Promise`\<[`LinkObject`](#linkobject)\>
 
-Defined in: [src/webfinger.ts:691](https://github.com/silverbucket/webfinger.js/blob/master/src/webfinger.ts#L691)
+Defined in: [src/webfinger.ts:697](https://github.com/silverbucket/webfinger.js/blob/master/src/webfinger.ts#L697)
 
 Looks up a specific link relation for the given address.
 
@@ -145,7 +145,7 @@ try {
 
 ### WebFingerError
 
-Defined in: [src/webfinger.ts:133](https://github.com/silverbucket/webfinger.js/blob/master/src/webfinger.ts#L133)
+Defined in: [src/webfinger.ts:135](https://github.com/silverbucket/webfinger.js/blob/master/src/webfinger.ts#L135)
 
 Custom error class for WebFinger-specific errors.
 
@@ -179,7 +179,7 @@ try {
 
 > **new WebFingerError**(`message`, `status?`): [`WebFingerError`](#webfingererror)
 
-Defined in: [src/webfinger.ts:143](https://github.com/silverbucket/webfinger.js/blob/master/src/webfinger.ts#L143)
+Defined in: [src/webfinger.ts:145](https://github.com/silverbucket/webfinger.js/blob/master/src/webfinger.ts#L145)
 
 Creates a new WebFingerError instance.
 
@@ -349,7 +349,7 @@ Defined in: node\_modules/typescript/lib/lib.es5.d.ts:1076
 
 > `optional` **status?**: `number`
 
-Defined in: [src/webfinger.ts:135](https://github.com/silverbucket/webfinger.js/blob/master/src/webfinger.ts#L135)
+Defined in: [src/webfinger.ts:137](https://github.com/silverbucket/webfinger.js/blob/master/src/webfinger.ts#L137)
 
 HTTP status code if the error originated from an HTTP response
 
@@ -421,7 +421,7 @@ Individual link object in WebFinger response
 
 #### Indexable
 
-> \[`key`: `string`\]: `string` \| `undefined`
+> \[`key`: `string`\]: `string` \| `Record`\<`string`, `string` \| `null`\> \| `undefined`
 
 Additional properties
 
@@ -434,6 +434,14 @@ Additional properties
 Defined in: [src/webfinger.ts:102](https://github.com/silverbucket/webfinger.js/blob/master/src/webfinger.ts#L102)
 
 Target URL
+
+##### properties?
+
+> `optional` **properties?**: `Record`\<`string`, `string` \| `null`\>
+
+Defined in: [src/webfinger.ts:108](https://github.com/silverbucket/webfinger.js/blob/master/src/webfinger.ts#L108)
+
+RFC 7033 link properties
 
 ##### rel
 
