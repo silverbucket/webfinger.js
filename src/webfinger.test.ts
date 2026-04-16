@@ -8,6 +8,32 @@ type MockProcess = {
   };
 };
 
+function createAbortError(): Error {
+  const abortError = new Error('Aborted');
+  abortError.name = 'AbortError';
+  return abortError;
+}
+
+function createAbortablePendingFetch(onAbort?: () => void) {
+  return (_url: string | Request, init?: RequestInit) => new Promise<Response>((_resolve, reject) => {
+    const signal = init?.signal;
+    if (!signal) {
+      return;
+    }
+
+    if (signal.aborted) {
+      onAbort?.();
+      reject(createAbortError());
+      return;
+    }
+
+    signal.addEventListener('abort', () => {
+      onAbort?.();
+      reject(createAbortError());
+    }, { once: true });
+  });
+}
+
 describe('WebFinger', () => {
   let webfinger: WebFinger;
 
@@ -559,6 +585,116 @@ describe('WebFinger', () => {
         
         await expect(webfinger.lookup('test@example.com')).rejects.toThrow();
         expect(httpAttempted).toBe(false);
+      } finally {
+        globalThis.fetch = originalFetch;
+      }
+    });
+  });
+
+  describe('Request Timeout', () => {
+    it('should timeout a stalled request attempt', async () => {
+      const originalFetch = globalThis.fetch;
+      let abortCount = 0;
+
+      globalThis.fetch = createAbortablePendingFetch(() => {
+        abortCount++;
+      });
+
+      try {
+        const timeoutWf = new WebFinger({
+          allow_private_addresses: true,
+          request_timeout: 20,
+          uri_fallback: false
+        });
+
+        await expect(timeoutWf.lookup('test@example.com'))
+          .rejects.toThrow('request timed out');
+
+        expect(abortCount).toBe(1);
+      } finally {
+        globalThis.fetch = originalFetch;
+      }
+    });
+
+    it('should fallback to HTTP after an HTTPS timeout when tls_only is false', async () => {
+      const originalFetch = globalThis.fetch;
+      let requestCount = 0;
+      let abortCount = 0;
+
+      globalThis.fetch = (url: string | Request, init?: RequestInit) => {
+        requestCount++;
+        const urlString = typeof url === 'string' ? url : url.url;
+
+        if (urlString.startsWith('https://')) {
+          return createAbortablePendingFetch(() => {
+            abortCount++;
+          })(url, init);
+        }
+
+        return Promise.resolve(new Response(JSON.stringify({
+          subject: 'acct:test@example.com',
+          links: []
+        }), {
+          status: 200,
+          headers: { 'content-type': 'application/jrd+json' }
+        }));
+      };
+
+      try {
+        const timeoutWf = new WebFinger({
+          allow_private_addresses: true,
+          request_timeout: 20,
+          tls_only: false,
+          uri_fallback: false
+        });
+
+        const result = await timeoutWf.lookup('test@example.com');
+        expect(result.object.subject).toBe('acct:test@example.com');
+        expect(requestCount).toBe(2);
+        expect(abortCount).toBe(1);
+      } finally {
+        globalThis.fetch = originalFetch;
+      }
+    });
+
+    it('should give redirect follow-up requests their own timeout budget', async () => {
+      const originalFetch = globalThis.fetch;
+      const requestedUrls: string[] = [];
+      let abortCount = 0;
+
+      globalThis.fetch = (url: string | Request, init?: RequestInit) => {
+        const urlString = typeof url === 'string' ? url : url.url;
+        requestedUrls.push(urlString);
+
+        if (requestedUrls.length === 1) {
+          return Promise.resolve(new Response(null, {
+            status: 302,
+            headers: {
+              location: 'https://redirected.example/.well-known/webfinger?resource=acct:test@example.com'
+            }
+          }));
+        }
+
+        return createAbortablePendingFetch(() => {
+          abortCount++;
+        })(url, init);
+      };
+
+      try {
+        const timeoutWf = new WebFinger({
+          allow_private_addresses: true,
+          request_timeout: 20,
+          uri_fallback: false
+        });
+
+        await expect(timeoutWf.lookup('test@example.com'))
+          .rejects.toThrow('request timed out');
+
+        expect(requestedUrls).toEqual([
+          'https://example.com/.well-known/webfinger?resource=acct:test@example.com',
+          'https://redirected.example/.well-known/webfinger?resource=acct:test@example.com'
+        ]);
+        expect(abortCount).toBe(1);
       } finally {
         globalThis.fetch = originalFetch;
       }

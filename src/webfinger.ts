@@ -199,10 +199,30 @@ export default class WebFinger {
       throw new WebFingerError('too many redirects');
     }
 
-    const response = await fetch(url, {
-      headers: {'Accept': 'application/jrd+json, application/json'},
-      redirect: 'manual' // Handle redirects manually for security validation
-    });
+    const abortController = new AbortController();
+    let requestTimedOut = false;
+    const timeoutId = setTimeout(() => {
+      requestTimedOut = true;
+      abortController.abort();
+    }, this.config.request_timeout);
+
+    let response: Response;
+    try {
+      response = await fetch(url, {
+        headers: {'Accept': 'application/jrd+json, application/json'},
+        redirect: 'manual', // Handle redirects manually for security validation
+        signal: abortController.signal
+      });
+    } catch (error) {
+      if (requestTimedOut ||
+          (abortController.signal.aborted && error instanceof Error && error.name === 'AbortError')) {
+        throw new WebFingerError('request timed out');
+      }
+
+      throw error instanceof Error ? error : new WebFingerError(String(error));
+    } finally {
+      clearTimeout(timeoutId);
+    }
 
     // Handle redirect responses with security validation
     if (response.status >= 300 && response.status < 400) {
