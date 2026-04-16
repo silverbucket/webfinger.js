@@ -58,8 +58,10 @@ export type LinkObject = {
     rel: string;
     /** MIME type (optional) */
     type?: string;
+    /** RFC 7033 link properties */
+    properties?: Record<string, string | null>;
     /** Additional properties */
-    [key: string]: string | undefined;
+    [key: string]: string | Record<string, string | null> | undefined;
 };
 /**
  * Custom error class for WebFinger-specific errors.

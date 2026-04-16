@@ -1,6 +1,6 @@
 {
   "name": "webfinger.js",
-  "version": "3.0.2",
+  "version": "3.0.3",
   "description": "A client library to query WebFinger records",
   "license": "MIT",
   "packageManager": "bun@1.1.42",

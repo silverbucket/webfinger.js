@@ -1,4 +1,4 @@
-// webfinger.js v3.0.2
+// webfinger.js v3.0.3
 // src/webfinger.ts
 /*!
  * webfinger.js
@@ -220,7 +220,11 @@ class WebFinger {
             rel: String(link.rel || "")
           };
           Object.keys(link).map(function(item) {
-            entry[item] = String(link[item]);
+            if (typeof link[item] === "object" && link[item] !== null) {
+              entry[item] = link[item];
+            } else {
+              entry[item] = String(link[item]);
+            }
           });
           result.idx.links[mappedKey].push(entry);
         }
