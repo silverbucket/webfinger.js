@@ -37,7 +37,7 @@ bun run docs:watch     # Watch mode for documentation generation
 
 ### Core Structure
 - **Main source**: `src/webfinger.ts` - Single TypeScript file containing the WebFinger class
-- **Output**: Compiles to `dist/` (UMD `webfinger.cjs`, ES module `webfinger.mjs`, browser alias `webfinger.js`, and `webfinger.d.ts` type definitions)
+- **Output**: Compiles to `dist/` (UMD `webfinger.cjs`, ES module `webfinger.mjs`, browser alias `webfinger.js`, minified `webfinger.min.js`, and `webfinger.d.ts` type definitions)
 - **Tests**: Unit tests in `src/webfinger.test.ts`; browser, imports, and integration tests in `spec/`
 - **Documentation**: Auto-generated `docs/api/API.md` from TypeScript/JSDoc
 

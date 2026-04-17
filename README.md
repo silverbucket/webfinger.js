@@ -41,7 +41,7 @@ yarn add webfinger.js
 ### CDN
 Replace the version `3.0.0` with the version of your choice:
 
-`https://cdn.jsdelivr.net/npm/webfinger.js@3.0.0/dist/webfinger.js`
+`https://cdn.jsdelivr.net/npm/webfinger.js@3.0.0/dist/webfinger.min.js`
 
 ## Quick Start
 

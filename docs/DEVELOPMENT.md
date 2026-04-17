@@ -58,6 +58,7 @@ webfinger.js/
 │   ├── webfinger.cjs         # CommonJS / UMD bundle
 │   ├── webfinger.mjs         # ES module bundle
 │   ├── webfinger.js          # Browser-friendly alias of the UMD bundle
+│   ├── webfinger.min.js      # Minified UMD bundle for CDN / <script> usage
 │   ├── webfinger.d.ts        # TypeScript definitions
 │   └── webfinger.d.ts.map    # Definition source map
 ├── docs/

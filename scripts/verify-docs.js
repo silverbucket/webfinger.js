@@ -33,16 +33,13 @@ const FILES = [
 const DIST_ARTIFACTS = new Set([
   'dist/webfinger.cjs',
   'dist/webfinger.js',
+  'dist/webfinger.min.js',
   'dist/webfinger.mjs',
   'dist/webfinger.d.ts',
   'dist/webfinger.d.ts.map',
 ]);
 
 const FORBIDDEN = [
-  {
-    pattern: /webfinger\.min\.js/g,
-    reason: 'No minified bundle is produced — reference dist/webfinger.js instead.',
-  },
   {
     pattern: /(^|[^/])\bdocs\/API\.md\b/g,
     reason: 'Generated API docs live at docs/api/API.md (note the nested api/ directory).',
