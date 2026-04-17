@@ -227,12 +227,16 @@ export default class WebFinger {
           throw new WebFingerError('invalid redirect URL');
         }
 
-        // Security: Validate redirect destination host
-        const redirectHost = WebFinger.normalizeHost(redirectUrl.host).host;
-
-        // Security: Check if redirect target is private/internal address
-        if (!this.config.allow_private_addresses && WebFinger.isPrivateAddress(redirectHost)) {
-          throw new WebFingerError('redirect to private or internal address blocked');
+        // Security: run the redirect target through the same canonical pipeline
+        // as the initial lookup — includes normalization, private-IP check, and
+        // DNS resolution — so a redirect can't reach a host the caller couldn't.
+        try {
+          await this.resolveAndValidateHost(redirectUrl.host);
+        } catch (err) {
+          if (err instanceof WebFingerError) {
+            throw new WebFingerError('redirect to private or internal address blocked');
+          }
+          throw err;
         }
 
         // Clear the current timer before recursing — the recursive call gets its own budget.
@@ -434,6 +438,64 @@ export default class WebFinger {
     }
 
     return undefined;
+  };
+
+  /**
+   * Extracts the host authority from an address, deferring to the platform URL
+   * parser for URI-form addresses so userinfo, IPv6 literals, and path/query
+   * boundaries are handled consistently with {@link fetchJRD}'s redirect parsing.
+   *
+   * @private
+   * @param address - Raw address supplied by the caller (useraddress or URI)
+   * @returns Raw host as it would appear in a URL authority
+   * @throws {WebFingerError} When the address is malformed or missing a host
+   */
+  private static parseAddress(address: string): { host: string } {
+    const cleaned = address.replace(/ /g, '');
+    if (cleaned.includes('://')) {
+      let url: URL;
+      try {
+        url = new URL(cleaned);
+      } catch {
+        throw new WebFingerError('invalid URI format');
+      }
+      if (!url.hostname) {
+        throw new WebFingerError('could not determine host from address');
+      }
+      return { host: url.host };
+    }
+
+    // Useraddress form: require exactly one '@' with a non-empty host segment,
+    // matching prior behaviour (multi-'@' inputs are rejected).
+    const parts = cleaned.split('@');
+    if (parts.length !== 2 || !parts[1]) {
+      throw new WebFingerError('invalid useraddress format');
+    }
+    return { host: parts[1] };
+  };
+
+  /**
+   * Canonical host validation pipeline shared by the initial lookup and every
+   * redirect hop. Applying the same checks in the same order here ensures there
+   * is no drift between entry points — a redirect target must clear exactly the
+   * same bar as the caller-supplied address.
+   *
+   * @private
+   * @param rawHost - Authority component from an address or redirect URL
+   * @returns Canonicalized host and hostname for downstream URL building
+   * @throws {WebFingerError} When the host is syntactically invalid, resolves
+   *         to a private address, or is itself a private address (unless
+   *         {@link WebFingerConfig.allow_private_addresses} is enabled)
+   */
+  private async resolveAndValidateHost(rawHost: string): Promise<{ host: string, hostname: string }> {
+    const normalized = WebFinger.normalizeHost(rawHost);
+    if (!this.config.allow_private_addresses) {
+      if (WebFinger.isPrivateAddress(normalized.host)) {
+        throw new WebFingerError('private or internal addresses are not allowed');
+      }
+      await this.validateDNSResolution(normalized.hostname);
+    }
+    return normalized;
   };
 
   /**
@@ -653,41 +715,9 @@ export default class WebFinger {
       throw new WebFingerError('address is required');
     }
 
-    let host = '';
-    if (address.indexOf('://') > -1) {
-      // other uri format
-      const parts = address.replace(/ /g, '').split('/');
-      if (parts.length < 3) {
-        throw new WebFingerError('invalid URI format');
-      }
-      host = parts[2];
-    } else {
-      // useraddress
-      const parts = address.replace(/ /g, '').split('@');
-      if (parts.length !== 2 || !parts[1]) {
-        throw new WebFingerError('invalid useraddress format');
-      }
-      host = parts[1];
-    }
+    const { host: rawHost } = WebFinger.parseAddress(address);
+    const { host } = await this.resolveAndValidateHost(rawHost);
 
-    if (!host) {
-      throw new WebFingerError('could not determine host from address');
-    }
-
-    // Security: Validate and sanitize the host
-    const normalizedHost = WebFinger.normalizeHost(host);
-    host = normalizedHost.host;
-
-    // Security: Check for private/internal addresses to prevent SSRF
-    if (!this.config.allow_private_addresses && WebFinger.isPrivateAddress(host)) {
-      throw new WebFingerError('private or internal addresses are not allowed');
-    }
-
-    // Security: Additional DNS resolution validation for domains that might resolve to private IPs
-    if (!this.config.allow_private_addresses) {
-      // Extract hostname without port for DNS validation
-      await this.validateDNSResolution(normalizedHost.hostname);
-    }
     let uri_index = 0;      // track which URIS we've tried already
     let protocol = 'https'; // we use https by default
 
