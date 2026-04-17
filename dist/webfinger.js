@@ -13,7 +13,7 @@
   }
 }(typeof self !== 'undefined' ? self : this, function () {
 'use strict';
-// webfinger.js v3.0.3
+// webfinger.js v3.0.4
 
 // src/webfinger.ts
 /*!
@@ -23,13 +23,10 @@
  * Developed and Maintained by:
  *   Nick Jennings <nick@silverbucket.net>
  *
- * webfinger.js is released under the AGPL (see LICENSE).
+ * webfinger.js is released under the MIT License (see LICENSE).
  *
- * You don't have to do anything special to choose one license or the other and you don't
- * have to notify anyone which license you are using.
- * Please see the corresponding license file for details of these licenses.
- * You are free to use, modify and distribute this software, but all copyright
- * information must remain.
+ * You are free to use, modify, and distribute this software under the terms
+ * of the MIT License. All copyright information must remain.
  *
  */
 var LINK_URI_MAPS = {
@@ -89,45 +86,64 @@ class WebFinger {
     if (redirectCount > 3) {
       throw new WebFingerError("too many redirects");
     }
-    const response = await fetch(url, {
-      headers: { Accept: "application/jrd+json, application/json" },
-      redirect: "manual"
-    });
-    if (response.status >= 300 && response.status < 400) {
-      const location = response.headers.get("location");
-      if (!location) {
-        throw new WebFingerError("redirect without location header");
+    const abortController = new AbortController;
+    const timeoutId = setTimeout(() => {
+      abortController.abort();
+    }, this.config.request_timeout);
+    try {
+      const response = await fetch(url, {
+        headers: { Accept: "application/jrd+json, application/json" },
+        redirect: "manual",
+        signal: abortController.signal
+      });
+      if (response.status >= 300 && response.status < 400) {
+        const location = response.headers.get("location");
+        if (!location) {
+          throw new WebFingerError("redirect without location header");
+        }
+        let redirectUrl;
+        try {
+          redirectUrl = new URL(location, url);
+        } catch {
+          throw new WebFingerError("invalid redirect URL");
+        }
+        try {
+          await this.resolveAndValidateHost(redirectUrl.host);
+        } catch (err) {
+          if (err instanceof WebFingerError) {
+            throw new WebFingerError("redirect to private or internal address blocked");
+          }
+          throw err;
+        }
+        clearTimeout(timeoutId);
+        return this.fetchJRD(redirectUrl.toString(), redirectCount + 1);
       }
-      let redirectUrl;
-      try {
-        redirectUrl = new URL(location, url);
-      } catch {
-        throw new WebFingerError("invalid redirect URL");
+      if (response.status === 404) {
+        throw new WebFingerError("resource not found", 404);
+      } else if (!response.ok) {
+        throw new WebFingerError("error during request", response.status);
       }
-      const redirectHost = WebFinger.validateHost(redirectUrl.hostname + (redirectUrl.port ? ":" + redirectUrl.port : ""));
-      if (!this.config.allow_private_addresses && WebFinger.isPrivateAddress(redirectHost)) {
-        throw new WebFingerError("redirect to private or internal address blocked");
+      const contentType = response.headers.get("content-type") || "";
+      const lowerContentType = contentType.toLowerCase();
+      const mainType = lowerContentType.split(";")[0].trim();
+      if (mainType === "application/jrd+json") {} else if (mainType === "application/json") {
+        console.debug(`WebFinger: Server uses "application/json" instead of RFC 7033 recommended "application/jrd+json".`);
+      } else {
+        console.warn(`WebFinger: Server returned unexpected content-type "${contentType}". ` + 'Expected "application/jrd+json" per RFC 7033.');
       }
-      return this.fetchJRD(redirectUrl.toString(), redirectCount + 1);
-    }
-    if (response.status === 404) {
-      throw new WebFingerError("resource not found", 404);
-    } else if (!response.ok) {
-      throw new WebFingerError("error during request", response.status);
-    }
-    const contentType = response.headers.get("content-type") || "";
-    const lowerContentType = contentType.toLowerCase();
-    const mainType = lowerContentType.split(";")[0].trim();
-    if (mainType === "application/jrd+json") {} else if (mainType === "application/json") {
-      console.debug(`WebFinger: Server uses "application/json" instead of RFC 7033 recommended "application/jrd+json".`);
-    } else {
-      console.warn(`WebFinger: Server returned unexpected content-type "${contentType}". ` + 'Expected "application/jrd+json" per RFC 7033.');
-    }
-    const responseText = await response.text();
-    if (WebFinger.isValidJSON(responseText)) {
-      return responseText;
-    } else {
-      throw new WebFingerError("invalid json");
+      const responseText = await response.text();
+      if (WebFinger.isValidJSON(responseText)) {
+        return responseText;
+      } else {
+        throw new WebFingerError("invalid json");
+      }
+    } catch (error) {
+      if (abortController.signal.aborted) {
+        throw new WebFingerError("request timed out");
+      }
+      throw error;
+    } finally {
+      clearTimeout(timeoutId);
     }
   }
   static isValidJSON(str) {
@@ -197,16 +213,80 @@ class WebFinger {
     }
     return false;
   }
-  static validateHost(host) {
+  static getExplicitPort(host) {
+    if (host.startsWith("[")) {
+      const ipv6PortSeparator = host.lastIndexOf("]:");
+      if (ipv6PortSeparator !== -1) {
+        const port = host.substring(ipv6PortSeparator + 2);
+        if (!NUMERIC_PORT_REGEX.test(port)) {
+          throw new WebFingerError("invalid host format");
+        }
+        return port;
+      }
+      return;
+    }
+    const colonCount = (host.match(/:/g) || []).length;
+    if (colonCount === 1) {
+      const [, port = ""] = host.split(":");
+      if (!port || !NUMERIC_PORT_REGEX.test(port)) {
+        throw new WebFingerError("invalid host format");
+      }
+      return port;
+    }
+    return;
+  }
+  static parseAddress(address) {
+    const cleaned = address.replace(/ /g, "");
+    if (cleaned.includes("://")) {
+      let url;
+      try {
+        url = new URL(cleaned);
+      } catch {
+        throw new WebFingerError("invalid URI format");
+      }
+      if (!url.hostname) {
+        throw new WebFingerError("could not determine host from address");
+      }
+      return { host: url.host };
+    }
+    const parts = cleaned.split("@");
+    if (parts.length !== 2 || !parts[1]) {
+      throw new WebFingerError("invalid useraddress format");
+    }
+    return { host: parts[1] };
+  }
+  async resolveAndValidateHost(rawHost) {
+    const normalized = WebFinger.normalizeHost(rawHost);
+    if (!this.config.allow_private_addresses) {
+      if (WebFinger.isPrivateAddress(normalized.host)) {
+        throw new WebFingerError("private or internal addresses are not allowed");
+      }
+      await this.validateDNSResolution(normalized.hostname);
+    }
+    return normalized;
+  }
+  static normalizeHost(host) {
     const hostParts = host.split("/");
     const cleanHost = hostParts[0];
     if (!cleanHost || cleanHost.length === 0) {
       throw new WebFingerError("invalid host format");
     }
-    if (cleanHost.includes("?") || cleanHost.includes("#") || cleanHost.includes(" ")) {
+    if (/[?# @]/.test(cleanHost)) {
       throw new WebFingerError("invalid characters in host");
     }
-    return cleanHost;
+    const explicitPort = WebFinger.getExplicitPort(cleanHost);
+    let parsedHost;
+    try {
+      parsedHost = new URL(`http://${cleanHost}`);
+    } catch {
+      throw new WebFingerError("invalid host format");
+    }
+    const hostname2 = parsedHost.hostname;
+    const normalizedHost = explicitPort ? `${hostname2}:${explicitPort}` : parsedHost.host || hostname2;
+    return {
+      host: normalizedHost,
+      hostname: hostname2
+    };
   }
   static async processJRD(URL2, JRDstring) {
     const parsedJRD = JSON.parse(JRDstring);
@@ -295,31 +375,8 @@ class WebFinger {
     if (!address) {
       throw new WebFingerError("address is required");
     }
-    let host = "";
-    if (address.indexOf("://") > -1) {
-      const parts = address.replace(/ /g, "").split("/");
-      if (parts.length < 3) {
-        throw new WebFingerError("invalid URI format");
-      }
-      host = parts[2];
-    } else {
-      const parts = address.replace(/ /g, "").split("@");
-      if (parts.length !== 2 || !parts[1]) {
-        throw new WebFingerError("invalid useraddress format");
-      }
-      host = parts[1];
-    }
-    if (!host) {
-      throw new WebFingerError("could not determine host from address");
-    }
-    host = WebFinger.validateHost(host);
-    if (!this.config.allow_private_addresses && WebFinger.isPrivateAddress(host)) {
-      throw new WebFingerError("private or internal addresses are not allowed");
-    }
-    if (!this.config.allow_private_addresses) {
-      const hostname2 = host.includes(":") ? host.split(":")[0] : host;
-      await this.validateDNSResolution(hostname2);
-    }
+    const { host: rawHost } = WebFinger.parseAddress(address);
+    const { host } = await this.resolveAndValidateHost(rawHost);
     let uri_index = 0;
     let protocol = "https";
     if (WebFinger.isLocalhost(host)) {
