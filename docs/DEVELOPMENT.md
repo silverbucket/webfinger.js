@@ -91,24 +91,50 @@ bun scripts/build.js           # Bundle creation with UMD wrapper
 
 ## Testing
 
-Tests use Bun's testing framework and cover unit, integration, and browser environments.
+Tests are organized into two tiers:
+
+### Dev loop — `bun run test`
+
+Fast feedback while editing source. Runs unit, integration, and browser tests against source and `.tmp/` build output.
 
 ```bash
-# Complete test suite (recommended for development)
-bun run test
-
-# Individual test types
+bun run test             # unit + integration + browser
 bun run test:unit        # Unit tests (TypeScript + JavaScript)
 bun run test:integration # Integration tests with real servers
 bun run test:browser     # Browser environment tests
 ```
 
+### Release gate — `bun run test:release`
+
+The authoritative check before shipping. Builds `dist/` and runs the full import matrix against the built artifacts, so any regression in `package.json` exports, bundler output, or module wrappers is caught before release.
+
+```bash
+bun run test:release     # build:release + test + test:imports
+bun run test:imports     # Bun ESM + Node ESM + Node CJS smoke tests
+bun run test:imports:bun      # Bun ES module import (spec/imports/bun)
+bun run test:imports:node     # Node.js ES module import (spec/imports/node)
+bun run test:imports:node-cjs # Node.js CommonJS require (spec/imports/node-cjs)
+```
+
+Run `test:release` whenever you touch `package.json` `exports`, `scripts/build.js`, `tsconfig*.json`, or anything that affects `dist/`. It mutates `dist/` locally — the dist policy still applies, so discard those changes (`git checkout -- dist/`) before committing.
+
 ### Test Structure
 
-- **Unit tests**: `src/webfinger.test.ts` - Core functionality testing
-- **Integration tests**: `spec/integration/` - Real server and local server tests  
-- **Browser tests**: `spec/browser/` - Browser environment compatibility
+- **Unit tests**: `src/webfinger.test.ts` — Core functionality testing
+- **Integration tests**: `spec/integration/` — Real server and local server tests
+- **Browser tests**: `spec/browser/` — Browser environment compatibility
+- **Import smoke tests**: `spec/imports/{bun,node,node-cjs}/` — Verify the published package imports cleanly in each supported runtime via `file:`/`link:` against `dist/`
 - Uses Bun testing framework with comprehensive test coverage
+
+### Supported import matrix
+
+| Runtime | Module system | Test |
+|---------|--------------|------|
+| Bun | ES modules | `test:imports:bun` |
+| Node.js | ES modules | `test:imports:node` |
+| Node.js | CommonJS (`require`) | `test:imports:node-cjs` |
+
+CI runs the full matrix on every pull request via `.github/workflows/compliance.yml`; `prepare-release.yml` runs it again before creating a release PR.
 
 ## Documentation System
 

@@ -36,10 +36,13 @@ jobs:
       - name: Run Browser Tests
         run: bun run test:browser
 
+      - name: Build release dist (for import smoke tests)
+        run: bun run build:release
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '22'
 
-      - name: Test Node.js CJS require
-        run: bun run test:imports:node-cjs
+      - name: Run import smoke tests (Bun, Node ESM, Node CJS)
+        run: bun run test:imports

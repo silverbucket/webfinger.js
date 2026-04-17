@@ -7,3 +7,4 @@ coverage/
 spec/imports/node/index.d.ts
 spec/imports/node/index.js
 spec/imports/node/package-lock.json
+spec/imports/node-cjs/package-lock.json

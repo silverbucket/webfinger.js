@@ -99,10 +99,15 @@ The project features:
 - Browser tests are run with web-test-runner
 - Both TypeScript and compiled JavaScript are tested
 - Tests run against development and release builds
+- **Two tiers**:
+  - `bun run test` — dev loop (unit + integration + browser). Fast, no dist mutation.
+  - `bun run test:release` — release gate (builds dist/ and runs the full import matrix: Bun ESM, Node ESM, Node CJS via `test:imports`). Use this whenever packaging surfaces are touched.
+- Import smoke tests live in `spec/imports/{bun,node,node-cjs}/` and are aggregated by `bun run test:imports`
 
 # Important Instructions
 - **ALWAYS USE BUN**: Never use npm or node commands, always use bun
 - **ALWAYS LINT AND TEST BEFORE COMMITS**: CRITICAL - Run `bun run lint` and `bun run test` before ANY commit or push. This is non-negotiable.
+- **USE `test:release` FOR PACKAGING CHANGES**: If you touch `package.json` `exports`, `scripts/build.js`, `tsconfig*.json`, or anything that affects `dist/`, run `bun run test:release` before committing. It rebuilds dist and runs the full import matrix. Discard the resulting `dist/` changes with `git checkout -- dist/` before committing (see dist policy).
 - **NEVER UPDATE DIST DURING DEVELOPMENT**: The dist/ directory should only contain the latest released version
 - **Documentation**: API docs are auto-generated - update JSDoc in source code
 - **No proactive README/docs creation**: Only create documentation if explicitly requested

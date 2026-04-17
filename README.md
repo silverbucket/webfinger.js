@@ -69,11 +69,12 @@ See **[Usage Examples](docs/EXAMPLES.md)** for comprehensive examples including 
 ## Testing
 
 ```bash
-bun run test        # Run complete test suite
-bun run lint        # Code linting
+bun run test         # Dev loop: unit + integration + browser
+bun run test:release # Release gate: test + import smoke tests (Bun, Node ESM, Node CJS)
+bun run lint         # Code linting
 ```
 
-See the [Development Guide](docs/DEVELOPMENT.md) for detailed testing information and individual test commands.
+Use `bun run test` for day-to-day work. Run `bun run test:release` before shipping changes that touch `package.json` exports, build config, or `dist/` output — it rebuilds `dist/` and exercises every supported import mode. See the [Development Guide](docs/DEVELOPMENT.md) for details.
 
 ## Security
 
