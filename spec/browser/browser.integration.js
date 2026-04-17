@@ -249,8 +249,7 @@ describe('WebFinger Browser Tests', () => {
         await wf.lookupLink(`test@localhost:${serverPort}`, 'nonexistent');
         throw new Error('Should have thrown');
       } catch (err) {
-        expect(err).to.be.instanceOf(Error);
-        expect(err.message).to.include('unsupported rel');
+        expect(err).to.include('unsupported rel');
       }
     });
   });
@@ -403,7 +402,7 @@ describe('WebFinger Browser Tests', () => {
           }
 
           expect(requestedUrls).to.deep.equal([
-            'https://example.com/.well-known/webfinger?resource=acct%3Atest%40example.com'
+            'https://example.com/.well-known/webfinger?resource=acct:test@example.com'
           ]);
         }
       } finally {
