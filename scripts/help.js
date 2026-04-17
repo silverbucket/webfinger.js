@@ -7,12 +7,19 @@
 console.log(`
 🧪 WebFinger.js Development Commands:
 
-📋 Testing:
-   bun run test           - Complete test suite (unit + integration + browser)
+📋 Testing (dev loop):
+   bun run test           - Dev suite (unit + integration + browser)
    bun run test:unit      - Unit tests only (TypeScript + JavaScript)
-   bun run test:browser   - Browser tests only  
+   bun run test:browser   - Browser tests only
    bun run test:integration - Integration tests only
-   
+
+🎯 Testing (release gate):
+   bun run test:release   - Full gate: build:release + test + test:imports
+   bun run test:imports   - All import smoke tests (Bun ESM, Node ESM, Node CJS)
+   bun run test:imports:bun      - Bun ES module import smoke test
+   bun run test:imports:node     - Node.js ES module import smoke test
+   bun run test:imports:node-cjs - Node.js CommonJS require() smoke test
+
 🔧 Development:
    bun run build          - Build development version (.tmp/)
    bun run build:release  - Build release version (dist/)
@@ -31,12 +38,16 @@ console.log(`
 ⚠️  IMPORTANT NOTES:
 
    • "bun test" only runs unit tests by design
-     For complete testing, always use "bun run test"
-     
+     For the dev suite, use "bun run test"
+     For the full release gate, use "bun run test:release"
+
    • Always use Bun commands, never npm or node
-   
+
    • Always run "bun run lint" and "bun run test" before commits
-   
+     Run "bun run test:release" if you touch package.json exports,
+     build config, or anything affecting dist/ — then discard the
+     resulting dist/ changes with "git checkout -- dist/"
+
    • The dist/ directory should only contain the latest RELEASED version
      Never update dist/ during development - use .tmp/ for testing
 
