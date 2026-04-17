@@ -76,7 +76,7 @@ describe('WebFinger', () => {
     });
 
     it('should reject invalid URI format', async () => {
-      await expect(webfinger.lookup('http://')).rejects.toThrow('could not determine host from address');
+      await expect(webfinger.lookup('http://')).rejects.toThrow('invalid URI format');
     });
   });
 
@@ -334,6 +334,99 @@ describe('WebFinger', () => {
             ]);
           }
         } finally {
+          globalThis.fetch = originalFetch;
+        }
+      });
+
+      it('should block redirects whose hostname resolves to a private IPv4 address', async () => {
+        const originalEval = global.eval;
+        const originalProcess = global.process;
+        const originalFetch = globalThis.fetch;
+
+        global.process = { versions: { node: '18.0.0' } } as MockProcess;
+
+        let sneakyLookupAttempted = false;
+        const mockDns = {
+          resolve4: async (hostname: string) => {
+            if (hostname === 'initial-source.example') return ['8.8.8.8'];
+            if (hostname === 'sneaky-target.example') {
+              sneakyLookupAttempted = true;
+              return ['127.0.0.1'];
+            }
+            return [];
+          },
+          resolve6: async () => []
+        };
+
+        global.eval = (code: string) => {
+          if (typeof code === 'string' && code.includes('import("dns")')) {
+            return Promise.resolve({ promises: mockDns });
+          }
+          return originalEval(code);
+        };
+
+        globalThis.fetch = async () => new Response(null, {
+          status: 302,
+          headers: { location: 'https://sneaky-target.example/.well-known/webfinger' }
+        });
+
+        try {
+          const wf = new WebFinger({
+            allow_private_addresses: false,
+            request_timeout: 1000,
+            uri_fallback: false
+          });
+
+          await expect(wf.lookup('test@initial-source.example'))
+            .rejects.toThrow('redirect to private or internal address blocked');
+          expect(sneakyLookupAttempted).toBe(true);
+        } finally {
+          global.eval = originalEval;
+          global.process = originalProcess;
+          globalThis.fetch = originalFetch;
+        }
+      });
+
+      it('should block redirects whose hostname resolves to a private IPv6 address', async () => {
+        const originalEval = global.eval;
+        const originalProcess = global.process;
+        const originalFetch = globalThis.fetch;
+
+        global.process = { versions: { node: '18.0.0' } } as MockProcess;
+
+        const mockDns = {
+          resolve4: async () => [],
+          resolve6: async (hostname: string) => {
+            if (hostname === 'initial-source.example') return ['2001:db8::1'];
+            if (hostname === 'sneaky-target.example') return ['::1'];
+            return [];
+          }
+        };
+
+        global.eval = (code: string) => {
+          if (typeof code === 'string' && code.includes('import("dns")')) {
+            return Promise.resolve({ promises: mockDns });
+          }
+          return originalEval(code);
+        };
+
+        globalThis.fetch = async () => new Response(null, {
+          status: 302,
+          headers: { location: 'https://sneaky-target.example/.well-known/webfinger' }
+        });
+
+        try {
+          const wf = new WebFinger({
+            allow_private_addresses: false,
+            request_timeout: 1000,
+            uri_fallback: false
+          });
+
+          await expect(wf.lookup('test@initial-source.example'))
+            .rejects.toThrow('redirect to private or internal address blocked');
+        } finally {
+          global.eval = originalEval;
+          global.process = originalProcess;
           globalThis.fetch = originalFetch;
         }
       });

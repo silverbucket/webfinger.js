@@ -52,14 +52,15 @@ In Node.js environments, the library performs DNS resolution to prevent attacks 
 
 ### Redirect Protection
 
-The library implements manual redirect handling to validate redirect destinations:
+The library implements manual redirect handling to validate redirect destinations through the same canonical validation pipeline used for the initial address:
 
 - **Redirect limits**: Maximum of 3 redirects to prevent redirect loops
 - **Destination validation**: All redirect targets are checked against the private address blacklist
+- **DNS resolution**: In Node.js/Bun, redirect hostnames are resolved and their IPs checked against the private blacklist — closing DNS-rebind style redirect attacks
 - **Malformed response handling**: Invalid or missing Location headers are rejected
 - **URL validation**: Redirect URLs are parsed and validated before following
 
-This prevents attacks where a public domain's WebFinger endpoint redirects to private network resources.
+This prevents attacks where a public domain's WebFinger endpoint redirects to private network resources — either via IP literal or via a hostname whose DNS records point inside the network.
 
 ## Development Override
 
