@@ -462,7 +462,7 @@ export default class WebFinger {
     }
 
     // Check for invalid characters that could indicate injection
-    if (cleanHost.includes('?') || cleanHost.includes('#') || cleanHost.includes(' ') || cleanHost.includes('@')) {
+    if (/[?# @]/.test(cleanHost)) {
       throw new WebFingerError('invalid characters in host');
     }
 
