@@ -228,7 +228,7 @@ export default class WebFinger {
         }
 
         // Security: Validate redirect destination host
-        const redirectHost = WebFinger.validateHost(redirectUrl.hostname + (redirectUrl.port ? ':' + redirectUrl.port : ''));
+        const redirectHost = WebFinger.normalizeHost(redirectUrl.host).host;
 
         // Security: Check if redirect target is private/internal address
         if (!this.config.allow_private_addresses && WebFinger.isPrivateAddress(redirectHost)) {
@@ -411,21 +411,47 @@ export default class WebFinger {
     return false;
   };
 
+  private static getExplicitPort(host: string): string | undefined {
+    if (host.startsWith('[')) {
+      const ipv6PortSeparator = host.lastIndexOf(']:');
+      if (ipv6PortSeparator !== -1) {
+        const port = host.substring(ipv6PortSeparator + 2);
+        if (!NUMERIC_PORT_REGEX.test(port)) {
+          throw new WebFingerError('invalid host format');
+        }
+        return port;
+      }
+      return undefined;
+    }
+
+    const colonCount = (host.match(/:/g) || []).length;
+    if (colonCount === 1) {
+      const [, port = ''] = host.split(':');
+      if (!port || !NUMERIC_PORT_REGEX.test(port)) {
+        throw new WebFingerError('invalid host format');
+      }
+      return port;
+    }
+
+    return undefined;
+  };
+
   /**
-   * Validates and sanitizes host to prevent path injection attacks.
+   * Validates, sanitizes, and canonicalizes host to prevent path injection attacks.
    *
    * Removes path components and validates hostname format to prevent:
    * - Directory traversal attacks via path injection
    * - Query parameter injection
    * - Fragment injection
-   * - Invalid characters in hostnames
+   * - Userinfo injection
+   * - Non-canonical loopback/private host spellings bypassing SSRF checks
    *
    * @private
    * @param host - Raw host string that may contain path components
-   * @returns Cleaned hostname with only valid hostname and port
+   * @returns Canonical host information for URL building and policy checks
    * @throws {WebFingerError} When host format is invalid or contains dangerous characters
    */
-  private static validateHost(host: string): string {
+  private static normalizeHost(host: string): { host: string, hostname: string } {
     // Remove any path components - only keep hostname and port
     const hostParts = host.split('/');
     const cleanHost = hostParts[0];
@@ -436,11 +462,26 @@ export default class WebFinger {
     }
 
     // Check for invalid characters that could indicate injection
-    if (cleanHost.includes('?') || cleanHost.includes('#') || cleanHost.includes(' ')) {
+    if (/[?# @]/.test(cleanHost)) {
       throw new WebFingerError('invalid characters in host');
     }
 
-    return cleanHost;
+    const explicitPort = WebFinger.getExplicitPort(cleanHost);
+
+    let parsedHost: URL;
+    try {
+      parsedHost = new URL(`http://${cleanHost}`);
+    } catch {
+      throw new WebFingerError('invalid host format');
+    }
+
+    const hostname = parsedHost.hostname;
+    const normalizedHost = explicitPort ? `${hostname}:${explicitPort}` : (parsedHost.host || hostname);
+
+    return {
+      host: normalizedHost,
+      hostname
+    };
   };
 
   // processes JRD object as if it's a WebFinger response object
@@ -634,7 +675,8 @@ export default class WebFinger {
     }
 
     // Security: Validate and sanitize the host
-    host = WebFinger.validateHost(host);
+    const normalizedHost = WebFinger.normalizeHost(host);
+    host = normalizedHost.host;
 
     // Security: Check for private/internal addresses to prevent SSRF
     if (!this.config.allow_private_addresses && WebFinger.isPrivateAddress(host)) {
@@ -644,8 +686,7 @@ export default class WebFinger {
     // Security: Additional DNS resolution validation for domains that might resolve to private IPs
     if (!this.config.allow_private_addresses) {
       // Extract hostname without port for DNS validation
-      const hostname = host.includes(':') ? host.split(':')[0] : host;
-      await this.validateDNSResolution(hostname);
+      await this.validateDNSResolution(normalizedHost.hostname);
     }
     let uri_index = 0;      // track which URIS we've tried already
     let protocol = 'https'; // we use https by default

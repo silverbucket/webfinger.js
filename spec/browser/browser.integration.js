@@ -330,6 +330,85 @@ describe('WebFinger Browser Tests', () => {
         expect(err.message).to.include('private or internal addresses are not allowed');
       }
     });
+
+    it('should block non-canonical loopback spellings before fetch in the browser bundle', async () => {
+      const originalFetch = window.fetch;
+      let fetchCalled = false;
+
+      window.fetch = async () => {
+        fetchCalled = true;
+        throw new Error('Browser fetch should not be called for blocked private hosts');
+      };
+
+      try {
+        const secureWf = new WebFinger({
+          allow_private_addresses: false,
+          request_timeout: 1000
+        });
+
+        const attackVectors = [
+          'test@2130706433',
+          'test@0x7f000001',
+          'test@127.1'
+        ];
+
+        for (const maliciousAddress of attackVectors) {
+          try {
+            await secureWf.lookup(maliciousAddress);
+            throw new Error('Should have thrown');
+          } catch (err) {
+            expect(err.message).to.include('private or internal addresses are not allowed');
+          }
+        }
+
+        expect(fetchCalled).to.equal(false);
+      } finally {
+        window.fetch = originalFetch;
+      }
+    });
+
+    it('should block redirects to non-canonical loopback spellings in the browser bundle', async () => {
+      const originalFetch = window.fetch;
+
+      try {
+        const redirectTargets = [
+          'http://2130706433/internal',
+          'http://0x7f000001/internal',
+          'http://127.1/internal'
+        ];
+
+        for (const redirectTarget of redirectTargets) {
+          const requestedUrls = [];
+
+          window.fetch = async (url) => {
+            requestedUrls.push(typeof url === 'string' ? url : url.url);
+            return new Response(null, {
+              status: 302,
+              headers: { location: redirectTarget }
+            });
+          };
+
+          const secureWf = new WebFinger({
+            allow_private_addresses: false,
+            request_timeout: 1000,
+            uri_fallback: false
+          });
+
+          try {
+            await secureWf.lookup('test@example.com');
+            throw new Error('Should have thrown');
+          } catch (err) {
+            expect(err.message).to.include('redirect to private or internal address blocked');
+          }
+
+          expect(requestedUrls).to.deep.equal([
+            'https://example.com/.well-known/webfinger?resource=acct:test@example.com'
+          ]);
+        }
+      } finally {
+        window.fetch = originalFetch;
+      }
+    });
   });
 
   describe('Request Timeout', () => {
