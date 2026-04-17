@@ -43,15 +43,11 @@ execSync(`bun build src/webfinger.ts --target=browser --format=esm --outfile=${e
 const esmContent = fs.readFileSync(esmFile, 'utf8');
 fs.writeFileSync(esmFile, `// webfinger.js v${version}\n${esmContent}`);
 
-// Build CommonJS/UMD version
-const tempFile = outputPath + '.tmp';
-execSync(`bun build src/webfinger.ts --target=browser --format=esm --outfile=${tempFile}`, { stdio: 'inherit' });
-
-// Read the ESM output and wrap for CommonJS/UMD compatibility
-const esmCode = fs.readFileSync(tempFile, 'utf8');
-const cleanCode = esmCode.replace(/export \{[\s\S]*?\};?\s*$/m, '').trim();
-
-const umdWrapper = `(function (root, factory) {
+// Shared ESM → UMD wrapper. Bun's minifier preserves the `WebFinger` default-export
+// class name, so the same strip-and-wrap flow works for both regular and minified inputs.
+function wrapUmd(esmCode) {
+  const cleanCode = esmCode.replace(/export\s*\{[\s\S]*?\};?\s*$/m, '').trim();
+  return `(function (root, factory) {
   if (typeof exports === 'object' && typeof module !== 'undefined') {
     // CommonJS/Node.js environment
     const result = factory();
@@ -74,15 +70,24 @@ ${cleanCode}
 return WebFinger;
 
 }));`;
+}
 
-// Write the CommonJS/UMD bundle
-fs.writeFileSync(outputPath, umdWrapper);
+// Build CommonJS/UMD version
+const tempFile = outputPath + '.tmp';
+execSync(`bun build src/webfinger.ts --target=browser --format=esm --outfile=${tempFile}`, { stdio: 'inherit' });
+fs.writeFileSync(outputPath, wrapUmd(fs.readFileSync(tempFile, 'utf8')));
+fs.unlinkSync(tempFile);
 
 // Create browser-friendly .js alias (same UMD bundle, conventional extension for CDN/script tags)
 const browserFile = path.join(outputDir, 'webfinger.js');
 fs.copyFileSync(outputPath, browserFile);
 
-// Clean up temp file
-fs.unlinkSync(tempFile);
+// Build minified UMD bundle for CDN consumers (dist/webfinger.min.js)
+const minTempFile = outputPath + '.min.tmp';
+execSync(`bun build src/webfinger.ts --target=browser --format=esm --minify --outfile=${minTempFile}`, { stdio: 'inherit' });
+const minFile = path.join(outputDir, 'webfinger.min.js');
+fs.writeFileSync(minFile, wrapUmd(fs.readFileSync(minTempFile, 'utf8')));
+fs.unlinkSync(minTempFile);
 
 console.log(`✓ Built ${outputPath} with UMD wrapper and version ${version}`);
+console.log(`✓ Built ${minFile} (minified)`);

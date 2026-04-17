@@ -55,9 +55,12 @@ webfinger.js/
 ├── src/
 │   └── webfinger.ts          # Main TypeScript source
 ├── dist/
-│   ├── webfinger.js          # Compiled UMD bundle
+│   ├── webfinger.cjs         # CommonJS / UMD bundle
+│   ├── webfinger.mjs         # ES module bundle
+│   ├── webfinger.js          # Browser-friendly alias of the UMD bundle
+│   ├── webfinger.min.js      # Minified UMD bundle for CDN / <script> usage
 │   ├── webfinger.d.ts        # TypeScript definitions
-│   └── webfinger.js.map      # Source map
+│   └── webfinger.d.ts.map    # Definition source map
 ├── docs/
 │   ├── api/
 │   │   └── API.md            # Auto-generated API docs (DO NOT EDIT)
@@ -67,7 +70,10 @@ webfinger.js/
 │   └── SECURITY.md           # Security information
 ├── demo/
 │   └── index.html            # Live demo page
-├── test/                     # Test files
+├── spec/
+│   ├── browser/              # Browser environment tests
+│   ├── imports/              # Import method tests (bun, node, node-cjs)
+│   └── integration/          # Integration tests (local + real servers)
 ├── scripts/                  # Build and release scripts
 └── .github/workflows/        # GitHub Actions
 ```
@@ -142,7 +148,7 @@ Documentation is auto-generated from TypeScript source code using TypeDoc.
 
 ### Important: Never Edit API.md Manually
 
-The `docs/API.md` file is **auto-generated** from JSDoc comments in the TypeScript source. 
+The `docs/api/API.md` file is **auto-generated** from JSDoc comments in the TypeScript source. 
 
 ```bash
 # ✅ To update documentation:
@@ -150,7 +156,7 @@ The `docs/API.md` file is **auto-generated** from JSDoc comments in the TypeScri
 # 2. Run: bun run docs:generate
 
 # ❌ Never do this:
-# Edit docs/API.md directly
+# Edit docs/api/API.md directly
 ```
 
 ### Documentation Files
