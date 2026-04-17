@@ -5,13 +5,10 @@
  * Developed and Maintained by:
  *   Nick Jennings <nick@silverbucket.net>
  *
- * webfinger.js is released under the AGPL (see LICENSE).
+ * webfinger.js is released under the MIT License (see LICENSE).
  *
- * You don't have to do anything special to choose one license or the other and you don't
- * have to notify anyone which license you are using.
- * Please see the corresponding license file for details of these licenses.
- * You are free to use, modify and distribute this software, but all copyright
- * information must remain.
+ * You are free to use, modify, and distribute this software under the terms
+ * of the MIT License. All copyright information must remain.
  *
  */
 /**
@@ -22,7 +19,11 @@ export type WebFingerConfig = {
     tls_only: boolean;
     /** Enable host-meta and host-meta.json fallback endpoints. */
     uri_fallback: boolean;
-    /** Request timeout in milliseconds. */
+    /**
+     * Request timeout in milliseconds. Applied per HTTP attempt:
+     * each redirect hop and fallback URI gets a fresh budget, so the
+     * worst-case wall time is roughly (timeout) × (redirects + 1) × (URIs) × (protocols).
+     */
     request_timeout: number;
     /** Allow private/internal addresses (DANGEROUS - only for development). */
     allow_private_addresses: boolean;
@@ -154,21 +155,48 @@ export default class WebFinger {
      * @throws {WebFingerError} When host format is invalid
      */
     private static isPrivateAddress;
+    private static getExplicitPort;
     /**
-     * Validates and sanitizes host to prevent path injection attacks.
+     * Extracts the host authority from an address, deferring to the platform URL
+     * parser for URI-form addresses so userinfo, IPv6 literals, and path/query
+     * boundaries are handled consistently with {@link fetchJRD}'s redirect parsing.
+     *
+     * @private
+     * @param address - Raw address supplied by the caller (useraddress or URI)
+     * @returns Raw host as it would appear in a URL authority
+     * @throws {WebFingerError} When the address is malformed or missing a host
+     */
+    private static parseAddress;
+    /**
+     * Canonical host validation pipeline shared by the initial lookup and every
+     * redirect hop. Applying the same checks in the same order here ensures there
+     * is no drift between entry points — a redirect target must clear exactly the
+     * same bar as the caller-supplied address.
+     *
+     * @private
+     * @param rawHost - Authority component from an address or redirect URL
+     * @returns Canonicalized host and hostname for downstream URL building
+     * @throws {WebFingerError} When the host is syntactically invalid, resolves
+     *         to a private address, or is itself a private address (unless
+     *         {@link WebFingerConfig.allow_private_addresses} is enabled)
+     */
+    private resolveAndValidateHost;
+    /**
+     * Validates, sanitizes, and canonicalizes host to prevent path injection attacks.
      *
      * Removes path components and validates hostname format to prevent:
      * - Directory traversal attacks via path injection
      * - Query parameter injection
      * - Fragment injection
-     * - Invalid characters in hostnames
+     * - Userinfo injection
+     * - Non-canonical loopback/private host spellings bypassing SSRF checks
      *
      * @private
      * @param host - Raw host string that may contain path components
-     * @returns Cleaned hostname with only valid hostname and port
+     * @returns Canonical host information for URL building and policy checks
      * @throws {WebFingerError} When host format is invalid or contains dangerous characters
      */
-    private static validateHost;
+    private static normalizeHost;
     private static processJRD;
     /**
      * Resolves a hostname to IP addresses and validates they are not private addresses.
