@@ -71,18 +71,18 @@
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@esm-bundle/chai": "^4.3.4-fix.0",
-    "@types/node": "^25.5.2",
-    "@typescript-eslint/parser": "^8.58.0",
+    "@types/node": "^25.6.0",
+    "@typescript-eslint/parser": "^8.58.2",
     "@web/test-runner": "^0.20.2",
     "@web/test-runner-puppeteer": "^0.18.0",
     "eslint": "^10.2.0",
-    "globals": "^17.4.0",
+    "globals": "^17.5.0",
     "markdown-link-check": "^3.14.2",
     "mocha": "^11.7.5",
-    "prettier": "^3.8.1",
-    "typedoc": "^0.28.18",
+    "prettier": "^3.8.3",
+    "typedoc": "^0.28.19",
     "typedoc-plugin-markdown": "^4.11.0",
-    "typescript": "^6.0.2",
-    "typescript-eslint": "^8.58.0"
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.58.2"
   }
 }
