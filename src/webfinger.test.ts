@@ -6,7 +6,16 @@ type MockProcess = {
   versions: {
     node: string;
   };
+  getBuiltinModule?: (id: string) => unknown;
 };
+
+// Creates a mock process that serves a fake dns module via getBuiltinModule
+function createMockNodeProcess(mockDns: unknown): MockProcess {
+  return {
+    versions: { node: '22.3.0' },
+    getBuiltinModule: (id: string) => id === 'node:dns' ? { promises: mockDns } : undefined
+  };
+}
 
 function createAbortError(): Error {
   const abortError = new Error('Aborted');
@@ -339,11 +348,8 @@ describe('WebFinger', () => {
       });
 
       it('should block redirects whose hostname resolves to a private IPv4 address', async () => {
-        const originalEval = global.eval;
         const originalProcess = global.process;
         const originalFetch = globalThis.fetch;
-
-        global.process = { versions: { node: '18.0.0' } } as MockProcess;
 
         let sneakyLookupAttempted = false;
         const mockDns = {
@@ -358,12 +364,7 @@ describe('WebFinger', () => {
           resolve6: async () => []
         };
 
-        global.eval = (code: string) => {
-          if (typeof code === 'string' && code.includes('import("dns")')) {
-            return Promise.resolve({ promises: mockDns });
-          }
-          return originalEval(code);
-        };
+        global.process = createMockNodeProcess(mockDns) as MockProcess;
 
         globalThis.fetch = async () => new Response(null, {
           status: 302,
@@ -381,18 +382,14 @@ describe('WebFinger', () => {
             .rejects.toThrow('redirect to private or internal address blocked');
           expect(sneakyLookupAttempted).toBe(true);
         } finally {
-          global.eval = originalEval;
           global.process = originalProcess;
           globalThis.fetch = originalFetch;
         }
       });
 
       it('should block redirects whose hostname resolves to a private IPv6 address', async () => {
-        const originalEval = global.eval;
         const originalProcess = global.process;
         const originalFetch = globalThis.fetch;
-
-        global.process = { versions: { node: '18.0.0' } } as MockProcess;
 
         const mockDns = {
           resolve4: async () => [],
@@ -403,12 +400,7 @@ describe('WebFinger', () => {
           }
         };
 
-        global.eval = (code: string) => {
-          if (typeof code === 'string' && code.includes('import("dns")')) {
-            return Promise.resolve({ promises: mockDns });
-          }
-          return originalEval(code);
-        };
+        global.process = createMockNodeProcess(mockDns) as MockProcess;
 
         globalThis.fetch = async () => new Response(null, {
           status: 302,
@@ -425,7 +417,6 @@ describe('WebFinger', () => {
           await expect(wf.lookup('test@initial-source.example'))
             .rejects.toThrow('redirect to private or internal address blocked');
         } finally {
-          global.eval = originalEval;
           global.process = originalProcess;
           globalThis.fetch = originalFetch;
         }
@@ -445,15 +436,11 @@ describe('WebFinger', () => {
       });
 
       it('should perform DNS resolution in Node.js environment and block private IPs', async () => {
-        const originalEval = global.eval;
         const originalProcess = global.process;
-        
-        // Set up Node.js environment simulation
-        global.process = { versions: { node: '18.0.0' } } as MockProcess;
-        
+
         let dnsResolveCalled = false;
         let resolvedHostname = '';
-        
+
         const mockDns = {
           resolve4: async (hostname: string) => {
             dnsResolveCalled = true;
@@ -462,15 +449,10 @@ describe('WebFinger', () => {
           },
           resolve6: async () => []
         };
-        
-        // Mock eval to return our mock DNS module
-        global.eval = (code: string) => {
-          if (code.includes('import("dns")')) {
-            return Promise.resolve({ promises: mockDns });
-          }
-          return originalEval(code);
-        };
-        
+
+        // Set up Node.js environment simulation with a mock dns builtin
+        global.process = createMockNodeProcess(mockDns) as MockProcess;
+
         try {
           const webfinger = new WebFinger({
             allow_private_addresses: false,
@@ -485,19 +467,13 @@ describe('WebFinger', () => {
           expect(dnsResolveCalled).toBe(true);
           expect(resolvedHostname).toBe('malicious-domain.com');
         } finally {
-          // Restore original functions
-          global.eval = originalEval;
           global.process = originalProcess;
         }
       });
 
       it('should skip DNS resolution for IP addresses', async () => {
-        const originalEval = global.eval;
         const originalProcess = global.process;
-        
-        // Set up Node.js environment
-        global.process = { versions: { node: '18.0.0' } } as MockProcess;
-        
+
         let dnsResolveCalled = false;
         const mockDns = {
           resolve4: async () => {
@@ -506,9 +482,9 @@ describe('WebFinger', () => {
           },
           resolve6: async () => []
         };
-        
-        global.eval = () => Promise.resolve({ promises: mockDns });
-        
+
+        global.process = createMockNodeProcess(mockDns) as MockProcess;
+
         try {
           const secureWebfinger = new WebFinger({
             allow_private_addresses: false,
@@ -522,17 +498,13 @@ describe('WebFinger', () => {
           // DNS should not have been called since it's already an IP
           expect(dnsResolveCalled).toBe(false);
         } finally {
-          global.eval = originalEval;
           global.process = originalProcess;
         }
       });
 
       it('should skip DNS resolution for localhost', async () => {
-        const originalEval = global.eval;
         const originalProcess = global.process;
-        
-        global.process = { versions: { node: '18.0.0' } } as MockProcess;
-        
+
         let dnsResolveCalled = false;
         const mockDns = {
           resolve4: async () => {
@@ -541,9 +513,9 @@ describe('WebFinger', () => {
           },
           resolve6: async () => []
         };
-        
-        global.eval = () => Promise.resolve({ promises: mockDns });
-        
+
+        global.process = createMockNodeProcess(mockDns) as MockProcess;
+
         try {
           const secureWebfinger = new WebFinger({
             allow_private_addresses: false,
@@ -556,18 +528,14 @@ describe('WebFinger', () => {
           // DNS should not have been called for localhost
           expect(dnsResolveCalled).toBe(false);
         } finally {
-          global.eval = originalEval;
           global.process = originalProcess;
         }
       });
 
       it('should allow domains that resolve to public IPs', async () => {
-        const originalEval = global.eval;
         const originalProcess = global.process;
         const originalFetch = globalThis.fetch;
-        
-        global.process = { versions: { node: '18.0.0' } } as MockProcess;
-        
+
         let dnsResolveCalled = false;
         const mockDns = {
           resolve4: async () => {
@@ -576,9 +544,9 @@ describe('WebFinger', () => {
           },
           resolve6: async () => []
         };
-        
-        global.eval = () => Promise.resolve({ promises: mockDns });
-        
+
+        global.process = createMockNodeProcess(mockDns) as MockProcess;
+
         // Mock fetch to simulate network request
         globalThis.fetch = () => Promise.reject(new Error('Network error'));
         
@@ -594,42 +562,55 @@ describe('WebFinger', () => {
           
           expect(dnsResolveCalled).toBe(true);
         } finally {
-          global.eval = originalEval;
           global.process = originalProcess;
           globalThis.fetch = originalFetch;
         }
       });
 
       it('should not perform DNS resolution in browser environments', async () => {
-        const originalEval = global.eval;
         const originalProcess = global.process;
         const originalFetch = globalThis.fetch;
-        
+
         // Simulate browser environment (no process.versions.node)
         delete (global as Record<string, unknown>).process;
-        
-        let evalCalled = false;
-        global.eval = () => {
-          evalCalled = true;
-          return Promise.resolve({ promises: null });
-        };
-        
+
         globalThis.fetch = () => Promise.reject(new Error('Network error'));
-        
+
         try {
           const secureWebfinger = new WebFinger({
             allow_private_addresses: false,
             request_timeout: 1000
           });
-          
+
           // Should fail with network error, DNS resolution should be skipped
+          // (lookup must not crash trying to access the missing process object)
           await expect(secureWebfinger.lookup('test@example.com'))
             .rejects.toThrow('Network error');
-          
-          // eval should not have been called in browser environment
-          expect(evalCalled).toBe(false);
         } finally {
-          global.eval = originalEval;
+          global.process = originalProcess;
+          globalThis.fetch = originalFetch;
+        }
+      });
+
+      it('should skip DNS resolution on runtimes without process.getBuiltinModule', async () => {
+        const originalProcess = global.process;
+        const originalFetch = globalThis.fetch;
+
+        // Simulate an older Node.js runtime (< 20.16) with no getBuiltinModule
+        global.process = { versions: { node: '18.0.0' } } as MockProcess;
+
+        globalThis.fetch = () => Promise.reject(new Error('Network error'));
+
+        try {
+          const secureWebfinger = new WebFinger({
+            allow_private_addresses: false,
+            request_timeout: 1000
+          });
+
+          // Should fall through to the network request, not crash
+          await expect(secureWebfinger.lookup('test@example.com'))
+            .rejects.toThrow('Network error');
+        } finally {
           global.process = originalProcess;
           globalThis.fetch = originalFetch;
         }
@@ -653,13 +634,9 @@ describe('WebFinger', () => {
       });
 
       it('should skip DNS resolution when allow_private_addresses is true', async () => {
-        const originalEval = global.eval;
         const originalProcess = global.process;
         const originalFetch = globalThis.fetch;
-        
-        // Set up Node.js environment simulation
-        global.process = { versions: { node: '18.0.0' } } as MockProcess;
-        
+
         let dnsResolveCalled = false;
         const mockDns = {
           resolve4: async () => {
@@ -668,15 +645,10 @@ describe('WebFinger', () => {
           },
           resolve6: async () => []
         };
-        
-        // Mock eval to return our mock DNS module
-        global.eval = (code: string) => {
-          if (code.includes('import("dns")')) {
-            return Promise.resolve({ promises: mockDns });
-          }
-          return originalEval(code);
-        };
-        
+
+        // Set up Node.js environment simulation with a mock dns builtin
+        global.process = createMockNodeProcess(mockDns) as MockProcess;
+
         // Mock fetch to prevent real network requests
         globalThis.fetch = async () => {
           throw new Error('Network error - should not reach here');
@@ -699,8 +671,6 @@ describe('WebFinger', () => {
           // Verify DNS resolution was NOT called when allow_private_addresses is true
           expect(dnsResolveCalled).toBe(false);
         } finally {
-          // Restore original functions
-          global.eval = originalEval;
           global.process = originalProcess;
           globalThis.fetch = originalFetch;
         }

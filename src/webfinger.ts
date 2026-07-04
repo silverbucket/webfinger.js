@@ -611,7 +611,8 @@ export default class WebFinger {
    *
    * This prevents DNS-based SSRF attacks where public domains resolve to private
    * IP addresses (e.g., yoogle.com -> 127.0.0.1). Only performs DNS resolution
-   * in Node.js/Bun environments where the dns module is available.
+   * in Node.js (>= 20.16) and Bun environments where the dns module is available
+   * via process.getBuiltinModule; skipped elsewhere (browsers, older runtimes).
    *
    * @private
    * @param hostname - The hostname to resolve (without port)
@@ -631,45 +632,39 @@ export default class WebFinger {
     const isNodeJS = typeof process !== 'undefined' && process.versions?.node;
 
     if (isNodeJS) {
-      try {
-        // Dynamic import for Node.js dns module (not available in browsers)
-        // Use eval to prevent bundlers from trying to resolve this import
-        const dnsImport = eval('import("dns")');
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const dns = await dnsImport.then((m: any) => m.promises).catch(() => null);
+      // Load the built-in dns module via process.getBuiltinModule so browser
+      // bundlers never see an import of it (an import triggers resolution
+      // attempts or eval warnings downstream). Available in Node >= 20.16 and
+      // Bun; on older runtimes DNS validation is skipped and the address
+      // blocklist checks above remain the only SSRF protection.
+      const dns = typeof process.getBuiltinModule === 'function'
+        ? process.getBuiltinModule('node:dns')?.promises
+        : null;
 
-        if (dns) {
-          try {
-            // Resolve both A and AAAA records
-            const [ipv4Results, ipv6Results] = await Promise.allSettled([
-              dns.resolve4(hostname).catch(() => []),
-              dns.resolve6(hostname).catch(() => [])
-            ]);
+      if (dns) {
+        try {
+          // Resolve both A and AAAA records
+          const [ipv4Results, ipv6Results] = await Promise.allSettled([
+            dns.resolve4(hostname).catch(() => []),
+            dns.resolve6(hostname).catch(() => [])
+          ]);
 
-            const ipv4Addresses = ipv4Results.status === 'fulfilled' ? ipv4Results.value : [];
-            const ipv6Addresses = ipv6Results.status === 'fulfilled' ? ipv6Results.value : [];
+          const ipv4Addresses = ipv4Results.status === 'fulfilled' ? ipv4Results.value : [];
+          const ipv6Addresses = ipv6Results.status === 'fulfilled' ? ipv6Results.value : [];
 
-            // Check all resolved IP addresses
-            for (const ip of [...ipv4Addresses, ...ipv6Addresses]) {
-              if (WebFinger.isPrivateAddress(ip)) {
-                throw new WebFingerError(`hostname ${hostname} resolves to private address ${ip}`);
-              }
+          // Check all resolved IP addresses
+          for (const ip of [...ipv4Addresses, ...ipv6Addresses]) {
+            if (WebFinger.isPrivateAddress(ip)) {
+              throw new WebFingerError(`hostname ${hostname} resolves to private address ${ip}`);
             }
-          } catch (error) {
-            if (error instanceof WebFingerError) {
-              throw error;
-            }
-            // DNS resolution failed - this might be a legitimate DNS error
-            // We'll allow it to proceed as blocking all DNS failures would be too restrictive
           }
+        } catch (error) {
+          if (error instanceof WebFingerError) {
+            throw error;
+          }
+          // DNS resolution failed - this might be a legitimate DNS error
+          // We'll allow it to proceed as blocking all DNS failures would be too restrictive
         }
-      } catch (outerError) {
-        // Re-throw WebFingerErrors (security errors should not be swallowed)
-        if (outerError instanceof WebFingerError) {
-          throw outerError;
-        }
-        // DNS module not available or import failed.
-        // Already have blacklist protection above
       }
     }
   }
