@@ -6,7 +6,16 @@ type MockProcess = {
   versions: {
     node: string;
   };
+  getBuiltinModule?: (id: string) => unknown;
 };
+
+// Creates a mock process that serves a fake dns module via getBuiltinModule
+function createMockNodeProcess(mockDns: unknown): MockProcess {
+  return {
+    versions: { node: '22.3.0' },
+    getBuiltinModule: (id: string) => id === 'node:dns' ? { promises: mockDns } : undefined
+  };
+}
 
 
 describe('WebFinger Integration Tests', () => {
@@ -233,11 +242,7 @@ describe('WebFinger Integration Tests', () => {
 
   describe('DNS Resolution SSRF Protection - Mocked Tests', () => {
     it('should block domains that resolve to localhost via mocked DNS', async () => {
-      const originalEval = global.eval;
       const originalProcess = global.process;
-
-      // Set up Node.js environment simulation
-      global.process = { versions: { node: '18.0.0' } } as MockProcess;
 
       let dnsResolveCalled = false;
       const mockDns = {
@@ -251,13 +256,8 @@ describe('WebFinger Integration Tests', () => {
         resolve6: async () => []
       };
 
-      // Mock eval to return our mock DNS module
-      global.eval = (code: string) => {
-        if (code.includes('import("dns")')) {
-          return Promise.resolve({ promises: mockDns });
-        }
-        return originalEval(code);
-      };
+      // Set up Node.js environment simulation with a mock dns builtin
+      global.process = createMockNodeProcess(mockDns) as MockProcess;
 
       try {
         const secureWebfinger = new WebFinger({
@@ -271,16 +271,12 @@ describe('WebFinger Integration Tests', () => {
 
         expect(dnsResolveCalled).toBe(true);
       } finally {
-        global.eval = originalEval;
         global.process = originalProcess;
       }
     });
 
     it('should allow domains that resolve to public IPs via mocked DNS', async () => {
-      const originalEval = global.eval;
       const originalProcess = global.process;
-
-      global.process = { versions: { node: '18.0.0' } } as MockProcess;
 
       let dnsResolveCalled = false;
       const mockDns = {
@@ -294,12 +290,7 @@ describe('WebFinger Integration Tests', () => {
         resolve6: async () => []
       };
 
-      global.eval = (code: string) => {
-        if (code.includes('import("dns")')) {
-          return Promise.resolve({ promises: mockDns });
-        }
-        return originalEval(code);
-      };
+      global.process = createMockNodeProcess(mockDns) as MockProcess;
 
       // Mock fetch to simulate the subsequent WebFinger request failing (expected)
       globalThis.fetch = async () => {
@@ -319,7 +310,6 @@ describe('WebFinger Integration Tests', () => {
 
         expect(dnsResolveCalled).toBe(true);
       } finally {
-        global.eval = originalEval;
         global.process = originalProcess;
       }
     });

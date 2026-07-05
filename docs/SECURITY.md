@@ -48,7 +48,9 @@ In Node.js environments, the library performs DNS resolution to prevent attacks 
 - `10.0.0.1.nip.io` → `10.0.0.1` (blocked)
 - Custom domains configured to resolve to private networks
 
-**Note**: This protection only applies in Node.js environments. Browser environments rely on the browser's built-in protections against private network access.
+**Note**: This protection only applies in Node.js and Bun environments. Browser environments rely on the browser's built-in protections against private network access.
+
+**Runtime requirements**: DNS resolution protection uses [`process.getBuiltinModule`](https://nodejs.org/api/process.html#processgetbuiltinmoduleid), available in Node.js >= 20.16 / 22.3 and Bun (see the `engines` field in package.json). On older Node.js versions this check is skipped and the library falls back to the address blocklist validation above — direct private IPs and hostnames are still blocked, but domains that *resolve* to private IPs are not.
 
 ### Redirect Protection
 
