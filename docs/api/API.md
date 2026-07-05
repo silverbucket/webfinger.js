@@ -1,8 +1,8 @@
-**webfinger.js v3.0.4**
+**webfinger.js v3.0.5**
 
 ***
 
-# webfinger.js v3.0.4
+# webfinger.js v3.0.5
 
 ## Classes
 
@@ -43,7 +43,7 @@ console.log(result.idx.properties.name);
 
 > **lookup**(`address`): `Promise`\<[`WebFingerResult`](#webfingerresult)\>
 
-Defined in: [src/webfinger.ts:713](https://github.com/silverbucket/webfinger.js/blob/master/src/webfinger.ts#L713)
+Defined in: [src/webfinger.ts:708](https://github.com/silverbucket/webfinger.js/blob/master/src/webfinger.ts#L708)
 
 Performs a WebFinger lookup for the given address with comprehensive SSRF protection.
 
@@ -98,7 +98,7 @@ await webfinger.lookup('user@192.168.1.1');  // Direct access blocked
 
 > **lookupLink**(`address`, `rel`): `Promise`\<[`LinkObject`](#linkobject)\>
 
-Defined in: [src/webfinger.ts:785](https://github.com/silverbucket/webfinger.js/blob/master/src/webfinger.ts#L785)
+Defined in: [src/webfinger.ts:780](https://github.com/silverbucket/webfinger.js/blob/master/src/webfinger.ts#L780)
 
 Looks up a specific link relation for the given address.
 

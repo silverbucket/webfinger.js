@@ -203,7 +203,8 @@ export default class WebFinger {
      *
      * This prevents DNS-based SSRF attacks where public domains resolve to private
      * IP addresses (e.g., yoogle.com -> 127.0.0.1). Only performs DNS resolution
-     * in Node.js/Bun environments where the dns module is available.
+     * in Node.js (>= 20.16) and Bun environments where the dns module is available
+     * via process.getBuiltinModule; skipped elsewhere (browsers, older runtimes).
      *
      * @private
      * @param hostname - The hostname to resolve (without port)
