@@ -1,4 +1,4 @@
-// webfinger.js v3.0.4
+// webfinger.js v3.0.5
 // src/webfinger.ts
 /*!
  * webfinger.js
@@ -265,11 +265,11 @@ class WebFinger {
     } catch {
       throw new WebFingerError("invalid host format");
     }
-    const hostname2 = parsedHost.hostname;
-    const normalizedHost = explicitPort ? `${hostname2}:${explicitPort}` : parsedHost.host || hostname2;
+    const hostname = parsedHost.hostname;
+    const normalizedHost = explicitPort ? `${hostname}:${explicitPort}` : parsedHost.host || hostname;
     return {
       host: normalizedHost,
-      hostname: hostname2
+      hostname
     };
   }
   static async processJRD(URL2, JRDstring) {
@@ -326,31 +326,24 @@ class WebFinger {
     }
     const isNodeJS = typeof process !== "undefined" && process.versions?.node;
     if (isNodeJS) {
-      try {
-        const dnsImport = eval('import("dns")');
-        const dns = await dnsImport.then((m) => m.promises).catch(() => null);
-        if (dns) {
-          try {
-            const [ipv4Results, ipv6Results] = await Promise.allSettled([
-              dns.resolve4(hostname).catch(() => []),
-              dns.resolve6(hostname).catch(() => [])
-            ]);
-            const ipv4Addresses = ipv4Results.status === "fulfilled" ? ipv4Results.value : [];
-            const ipv6Addresses = ipv6Results.status === "fulfilled" ? ipv6Results.value : [];
-            for (const ip of [...ipv4Addresses, ...ipv6Addresses]) {
-              if (WebFinger.isPrivateAddress(ip)) {
-                throw new WebFingerError(`hostname ${hostname} resolves to private address ${ip}`);
-              }
-            }
-          } catch (error) {
-            if (error instanceof WebFingerError) {
-              throw error;
+      const dns = typeof process.getBuiltinModule === "function" ? process.getBuiltinModule("node:dns")?.promises : null;
+      if (dns) {
+        try {
+          const [ipv4Results, ipv6Results] = await Promise.allSettled([
+            dns.resolve4(hostname).catch(() => []),
+            dns.resolve6(hostname).catch(() => [])
+          ]);
+          const ipv4Addresses = ipv4Results.status === "fulfilled" ? ipv4Results.value : [];
+          const ipv6Addresses = ipv6Results.status === "fulfilled" ? ipv6Results.value : [];
+          for (const ip of [...ipv4Addresses, ...ipv6Addresses]) {
+            if (WebFinger.isPrivateAddress(ip)) {
+              throw new WebFingerError(`hostname ${hostname} resolves to private address ${ip}`);
             }
           }
-        }
-      } catch (outerError) {
-        if (outerError instanceof WebFingerError) {
-          throw outerError;
+        } catch (error) {
+          if (error instanceof WebFingerError) {
+            throw error;
+          }
         }
       }
     }
