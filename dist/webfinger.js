@@ -13,7 +13,7 @@
   }
 }(typeof self !== 'undefined' ? self : this, function () {
 'use strict';
-// webfinger.js v3.0.5
+// webfinger.js v3.0.6
 
 // src/webfinger.ts
 /*!
@@ -61,6 +61,36 @@ var LOCALHOST_REGEX = /^localhost(?:\.localdomain)?(?::\d+)?$/;
 var NUMERIC_PORT_REGEX = /^\d+$/;
 var HOSTNAME_REGEX = /^[a-zA-Z0-9.-]+$/;
 var LOCALHOST_127_REGEX = /^127\.(?:\d{1,3}\.){2}\d{1,3}$/;
+function parseIPv4Address(address) {
+  const match = address.match(IPV4_CAPTURE_REGEX);
+  return match ? match.slice(1).map(Number) : null;
+}
+function parseIPv6Address(address) {
+  let normalized = address.toLowerCase();
+  const embeddedIPv4 = normalized.substring(normalized.lastIndexOf(":") + 1);
+  const ipv4 = parseIPv4Address(embeddedIPv4);
+  if (ipv4) {
+    normalized = `${normalized.substring(0, normalized.lastIndexOf(":"))}:${(ipv4[0] << 8 | ipv4[1]).toString(16)}:${(ipv4[2] << 8 | ipv4[3]).toString(16)}`;
+  }
+  if (!/^[0-9a-f:]+$/.test(normalized) || normalized.indexOf("::") !== normalized.lastIndexOf("::")) {
+    return null;
+  }
+  const compressed = normalized.includes("::");
+  const [left = "", right = ""] = normalized.split("::");
+  const leftGroups = left ? left.split(":") : [];
+  const rightGroups = compressed && right ? right.split(":") : [];
+  const missingGroups = 8 - leftGroups.length - rightGroups.length;
+  if (!compressed && leftGroups.length !== 8 || compressed && missingGroups < 1) {
+    return null;
+  }
+  const groups = compressed ? [...leftGroups, ...Array(missingGroups).fill("0"), ...rightGroups] : leftGroups;
+  const parsed = groups.map((group) => Number.parseInt(group, 16));
+  return parsed.length === 8 && parsed.every((group) => group >= 0 && group <= 65535) ? parsed : null;
+}
+function isPrivateIPv4(octets) {
+  const [a, b] = octets;
+  return a === 0 || a === 10 || a === 127 || a === 172 && b >= 16 && b <= 31 || a === 192 && b === 168 || a === 169 && b === 254 || a >= 224 && a <= 239 || a >= 240;
+}
 
 class WebFingerError extends Error {
   status;
@@ -180,36 +210,24 @@ class WebFinger {
     if (cleanHost === "localhost" || cleanHost === "127.0.0.1" || cleanHost.match(LOCALHOST_127_REGEX) || cleanHost === "::1" || cleanHost === "localhost.localdomain") {
       return true;
     }
-    const ipv4Match = cleanHost.match(IPV4_CAPTURE_REGEX);
-    if (ipv4Match) {
-      const [, aStr, bStr, cStr, dStr] = ipv4Match;
-      const a = Number(aStr);
-      const b = Number(bStr);
-      const c = Number(cStr);
-      const d = Number(dStr);
-      if (isNaN(a) || isNaN(b) || isNaN(c) || isNaN(d)) {
-        return true;
-      }
-      if (a === 10)
-        return true;
-      if (a === 172 && b >= 16 && b <= 31)
-        return true;
-      if (a === 192 && b === 168)
-        return true;
-      if (a === 169 && b === 254)
-        return true;
-      if (a >= 224 && a <= 239)
-        return true;
-      if (a >= 240)
-        return true;
+    const ipv4 = parseIPv4Address(cleanHost);
+    if (ipv4) {
+      return isPrivateIPv4(ipv4);
     }
-    if (cleanHost.includes(":")) {
-      const colonCount = (cleanHost.match(/:/g) || []).length;
-      if (colonCount > 1 || colonCount === 1 && !cleanHost.match(/^[a-zA-Z0-9.-]+:\d+$/)) {
-        if (cleanHost.match(/^(fc|fd)[0-9a-f]{2}:/i) || cleanHost.match(/^fe80:/i) || cleanHost.match(/^ff[0-9a-f]{2}:/i)) {
-          return true;
-        }
+    const ipv6 = parseIPv6Address(cleanHost);
+    if (ipv6) {
+      const isMapped = ipv6.slice(0, 5).every((group) => group === 0) && ipv6[5] === 65535;
+      const isCompatible = ipv6.slice(0, 6).every((group) => group === 0);
+      if (isMapped || isCompatible) {
+        return isPrivateIPv4([
+          ipv6[6] >> 8,
+          ipv6[6] & 255,
+          ipv6[7] >> 8,
+          ipv6[7] & 255
+        ]);
       }
+      const firstGroup = ipv6[0];
+      return (firstGroup & 65024) === 64512 || (firstGroup & 65472) === 65152 || (firstGroup & 65280) === 65280;
     }
     return false;
   }
