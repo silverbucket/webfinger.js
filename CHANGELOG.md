@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## v3.0.6 - (2026-08-12)
+
+- Block IPv4-mapped IPv6 SSRF bypasses [advisory](https://github.com/silverbucket/webfinger.js/security/advisories/GHSA-fwvw-2r88-m4cv) reported by @arpitjain099, [commit fix](https://github.com/silverbucket/webfinger.js/commit/1b5497f7d9663895a458a15692a5189678dc05ea) 
+
+
 ## v3.0.5 - (2026-07-05)
 
 - Replace eval-based dns import with process.getBuiltinModule (fixes #173) (#174)

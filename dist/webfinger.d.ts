@@ -144,10 +144,11 @@ export default class WebFinger {
      * Comprehensive security check for private/internal addresses to prevent SSRF attacks.
      *
      * Blocks the following address ranges:
-     * - Localhost: localhost, 127.x.x.x, ::1, localhost.localdomain
+     * - Localhost/unspecified: localhost, 0.0.0.0/8, 127.x.x.x, ::, ::1, localhost.localdomain
      * - Private IPv4: 10.x.x.x, 172.16-31.x.x, 192.168.x.x
      * - Link-local: 169.254.x.x, fe80::/10
      * - Multicast: 224.x.x.x-239.x.x.x, ff00::/8
+     * - IPv4-mapped and IPv4-compatible IPv6 forms of blocked IPv4 addresses
      *
      * @private
      * @param host - The hostname or IP address to check (may include port)
