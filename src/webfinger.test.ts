@@ -164,6 +164,11 @@ describe('WebFinger', () => {
         await expect(secureWebfinger.lookup('test@127.1.1.1')).rejects.toThrow('private or internal addresses are not allowed');
       });
 
+      it('should block IPv4 current-network and unspecified addresses', async () => {
+        await expect(secureWebfinger.lookup('test@0.0.0.0')).rejects.toThrow('private or internal addresses are not allowed');
+        await expect(secureWebfinger.lookup('test@0.1.2.3')).rejects.toThrow('private or internal addresses are not allowed');
+      });
+
       it('should block link-local addresses (169.254.x.x)', async () => {
         await expect(secureWebfinger.lookup('test@169.254.169.254')).rejects.toThrow('private or internal addresses are not allowed');
       });
@@ -180,12 +185,31 @@ describe('WebFinger', () => {
 
       it('should block IPv6 localhost', async () => {
         await expect(secureWebfinger.lookup('test@[::1]')).rejects.toThrow('private or internal addresses are not allowed');
+        await expect(secureWebfinger.lookup('test@[0:0:0:0:0:0:0:1]')).rejects.toThrow('private or internal addresses are not allowed');
+        await expect(secureWebfinger.lookup('test@[::]')).rejects.toThrow('private or internal addresses are not allowed');
       });
 
       it('should block IPv6 private addresses', async () => {
         await expect(secureWebfinger.lookup('test@[fc00::1]')).rejects.toThrow('private or internal addresses are not allowed');
         await expect(secureWebfinger.lookup('test@[fd12:3456:789a::1]')).rejects.toThrow('private or internal addresses are not allowed');
         await expect(secureWebfinger.lookup('test@[fe80::1]')).rejects.toThrow('private or internal addresses are not allowed');
+        await expect(secureWebfinger.lookup('test@[febf::1]')).rejects.toThrow('private or internal addresses are not allowed');
+      });
+
+      it('should block mapped and compatible IPv6 forms of private IPv4 addresses', async () => {
+        const mappedAddresses = [
+          '[::ffff:127.0.0.1]',
+          '[::ffff:10.0.0.1]',
+          '[::ffff:192.168.1.1]',
+          '[::ffff:169.254.169.254]',
+          '[0:0:0:0:0:ffff:7f00:1]',
+          '[::127.0.0.1]'
+        ];
+
+        for (const address of mappedAddresses) {
+          await expect(secureWebfinger.lookup(`test@${address}`))
+            .rejects.toThrow('private or internal addresses are not allowed');
+        }
       });
 
       it('should have allow_private_addresses configuration option', () => {
