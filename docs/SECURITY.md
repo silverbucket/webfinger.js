@@ -51,7 +51,7 @@ In Node.js environments, the library performs DNS resolution to prevent attacks 
 
 **Note**: This protection only applies in Node.js and Bun environments. Browser environments rely on the browser's built-in protections against private network access.
 
-**Runtime requirements**: DNS resolution protection uses [`process.getBuiltinModule`](https://nodejs.org/api/process.html#processgetbuiltinmoduleid), available in Node.js >= 20.16 / 22.3 and Bun (see the `engines` field in package.json). On older Node.js versions this check is skipped and the library falls back to the address blocklist validation above — direct private IPs and hostnames are still blocked, but domains that *resolve* to private IPs are not.
+**Runtime requirements**: Node.js >= 22.12 or Bun is required (see the `engines` field in package.json). DNS resolution protection uses [`process.getBuiltinModule`](https://nodejs.org/docs/v22.12.0/api/process.html#processgetbuiltinmoduleid); on unsupported older Node.js versions this check is skipped and the library falls back to the address blocklist validation above — direct private IPs and hostnames are still blocked, but domains that *resolve* to private IPs are not.
 
 ### Redirect Protection
 

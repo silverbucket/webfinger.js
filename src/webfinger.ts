@@ -661,11 +661,11 @@ export default class WebFinger {
   /**
    * Resolves a hostname to IP addresses and validates they are not private addresses.
    *
-   * This prevents SSRF attacks where a name resolves to a private IP address
-   * (e.g., yoogle.com -> 127.0.0.1, or the standard hosts-file alias
+   * This prevents DNS-based SSRF attacks where a hostname resolves to a private
+   * IP address (e.g., yoogle.com -> 127.0.0.1, or the standard hosts-file alias
    * ip6-localhost -> ::1). Only performs resolution in Node.js (>= 20.16) and
    * Bun environments where the dns module is available via
-   * process.getBuiltinModule; skipped elsewhere (browsers, older runtimes).
+   * process.getBuiltinModule; skipped elsewhere (such as browsers).
    *
    * @private
    * @param hostname - The hostname to resolve (without port)
