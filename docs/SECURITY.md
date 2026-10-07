@@ -25,6 +25,7 @@ The following address ranges are blocked by default to prevent SSRF attacks:
 - `10.x.x.x` (Class A private)
 - `172.16.x.x` - `172.31.x.x` (Class B private)
 - `192.168.x.x` (Class C private)
+- `100.64.x.x` - `100.127.x.x` (shared address space / CGNAT, RFC 6598). This includes the Alibaba Cloud instance metadata address `100.100.100.200`
 
 #### Link-Local Addresses
 - `169.254.x.x` (IPv4 link-local)

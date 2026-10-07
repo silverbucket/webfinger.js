@@ -102,6 +102,7 @@ function isPrivateIPv4(octets: number[]): boolean {
     (a === 172 && b >= 16 && b <= 31) || // Private
     (a === 192 && b === 168) || // Private
     (a === 169 && b === 254) || // Link-local
+    (a === 100 && b >= 64 && b <= 127) || // Shared address space (RFC 6598)
     (a >= 224 && a <= 239) || // Multicast
     a >= 240; // Reserved
 }
@@ -366,6 +367,7 @@ export default class WebFinger {
    * Blocks the following address ranges:
    * - Localhost/unspecified: localhost, 0.0.0.0/8, 127.x.x.x, ::, ::1, localhost.localdomain
    * - Private IPv4: 10.x.x.x, 172.16-31.x.x, 192.168.x.x
+   * - Shared address space: 100.64.0.0/10 (CGNAT, Alibaba Cloud metadata)
    * - Link-local: 169.254.x.x, fe80::/10
    * - Multicast: 224.x.x.x-239.x.x.x, ff00::/8
    * - IPv4-mapped (`::ffff:0:0/96`), IPv4-compatible (`::/96`), and NAT64
