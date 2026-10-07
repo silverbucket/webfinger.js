@@ -34,6 +34,10 @@ The following address ranges are blocked by default to prevent SSRF attacks:
 - `224.x.x.x` - `239.x.x.x` (IPv4 multicast)
 - `ff00::/8` (IPv6 multicast)
 
+#### Embedded IPv4
+- IPv4-mapped (`::ffff:0:0/96`) and IPv4-compatible (`::/96`) forms of any blocked IPv4 address
+- NAT64 well-known prefix `64:ff9b::/96` (RFC 6052) when the embedded IPv4 address is blocked. On a NAT64 network this prefix is translated to that IPv4 address, so `64:ff9b::10.0.0.1` reaches `10.0.0.1`
+
 ### DNS Resolution Protection
 
 In Node.js environments, the library performs DNS resolution to prevent attacks using domains that resolve to private IP addresses:
