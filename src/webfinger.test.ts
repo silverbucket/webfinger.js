@@ -646,6 +646,7 @@ describe('WebFinger', () => {
         const originalProcess = global.process;
         const originalFetch = globalThis.fetch;
 
+        let fetchCalled = false;
         const requestedUrls: string[] = [];
         const mockDns = {
           resolve4: async () => {
@@ -664,6 +665,7 @@ describe('WebFinger', () => {
 
         global.process = createMockNodeProcess(mockDns) as MockProcess;
         globalThis.fetch = async () => {
+          fetchCalled = true;
           throw new Error('network should not be contacted');
         };
 
@@ -675,7 +677,8 @@ describe('WebFinger', () => {
           });
 
           await expect(wf.lookup('user@ip6-localhost'))
-            .rejects.toThrow('resolves to private address');
+            .rejects.toThrow('hostname ip6-localhost resolves to private address ::1');
+          expect(fetchCalled).toBe(false);
 
           globalThis.fetch = async (url: string | Request) => {
             requestedUrls.push(typeof url === 'string' ? url : url.url);
@@ -690,6 +693,39 @@ describe('WebFinger', () => {
           expect(requestedUrls).toEqual([
             'https://example.com/.well-known/webfinger?resource=acct:user@example.com'
           ]);
+        } finally {
+          global.process = originalProcess;
+          globalThis.fetch = originalFetch;
+        }
+      });
+
+      it('should block when the system resolver disagrees with public DNS', async () => {
+        const originalProcess = global.process;
+        const originalFetch = globalThis.fetch;
+        let fetchCalled = false;
+
+        const mockDns = {
+          resolve4: async () => ['8.8.8.8'],
+          resolve6: async () => [],
+          lookup: async () => [{ address: '127.0.0.1', family: 4 }]
+        };
+
+        global.process = createMockNodeProcess(mockDns) as MockProcess;
+        globalThis.fetch = async () => {
+          fetchCalled = true;
+          throw new Error('Network request should not be made');
+        };
+
+        try {
+          const webfinger = new WebFinger({
+            allow_private_addresses: false,
+            request_timeout: 1000,
+            uri_fallback: false
+          });
+
+          await expect(webfinger.lookup('user@internal.example'))
+            .rejects.toThrow('resolves to private address 127.0.0.1');
+          expect(fetchCalled).toBe(false);
         } finally {
           global.process = originalProcess;
           globalThis.fetch = originalFetch;
