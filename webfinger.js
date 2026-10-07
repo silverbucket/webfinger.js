@@ -13,7 +13,7 @@
   }
 }(typeof self !== 'undefined' ? self : this, function () {
 'use strict';
-// webfinger.js v3.0.6
+// webfinger.js v3.1.0
 
 // src/webfinger.ts
 /*!
@@ -267,11 +267,14 @@ class WebFinger {
       }
       return { host: url.host };
     }
-    const parts = cleaned.split("@");
+    const parts = cleaned.replace(/^acct:/i, "").split("@");
     if (parts.length !== 2 || !parts[1]) {
       throw new WebFingerError("invalid useraddress format");
     }
-    return { host: parts[1] };
+    return { host: parts[1], user: parts[0] };
+  }
+  static encodeResource(resource) {
+    return encodeURIComponent(resource).replace(/%3A/gi, ":").replace(/%40/g, "@").replace(/%2F/gi, "/");
   }
   async resolveAndValidateHost(rawHost) {
     const normalized = WebFinger.normalizeHost(rawHost);
@@ -386,19 +389,16 @@ class WebFinger {
     if (!address) {
       throw new WebFingerError("address is required");
     }
-    const { host: rawHost } = WebFinger.parseAddress(address);
+    const { host: rawHost, user } = WebFinger.parseAddress(address);
     const { host } = await this.resolveAndValidateHost(rawHost);
     let uri_index = 0;
     let protocol = "https";
     if (WebFinger.isLocalhost(host)) {
       protocol = "http";
     }
+    const resource = WebFinger.encodeResource(user === undefined ? address.replace(/ /g, "") : `acct:${user.normalize("NFC")}@${host}`);
     const __buildURL = () => {
-      let uri = "";
-      if (!address.split("://")[1]) {
-        uri = "acct:";
-      }
-      return protocol + "://" + host + "/.well-known/" + URIS[uri_index] + "?resource=" + uri + address;
+      return protocol + "://" + host + "/.well-known/" + URIS[uri_index] + "?resource=" + resource;
     };
     const __fallbackChecks = async (err) => {
       if (this.config.uri_fallback && uri_index !== URIS.length - 1) {
