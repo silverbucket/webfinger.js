@@ -25,6 +25,7 @@ The following address ranges are blocked by default to prevent SSRF attacks:
 - `10.x.x.x` (Class A private)
 - `172.16.x.x` - `172.31.x.x` (Class B private)
 - `192.168.x.x` (Class C private)
+- `100.64.x.x` - `100.127.x.x` (shared address space / CGNAT, RFC 6598). This includes the Alibaba Cloud instance metadata address `100.100.100.200`
 
 #### Link-Local Addresses
 - `169.254.x.x` (IPv4 link-local)
@@ -50,7 +51,7 @@ In Node.js environments, the library performs DNS resolution to prevent attacks 
 
 **Note**: This protection only applies in Node.js and Bun environments. Browser environments rely on the browser's built-in protections against private network access.
 
-**Runtime requirements**: Node.js >= 22.12 or Bun is required (see the `engines` field in package.json). DNS resolution protection uses [`process.getBuiltinModule`](https://nodejs.org/api/process.html#processgetbuiltinmoduleid); on unsupported older Node.js versions this check is skipped and the library falls back to the address blocklist validation above — direct private IPs and hostnames are still blocked, but domains that *resolve* to private IPs are not.
+**Runtime requirements**: Node.js >= 22.12 or Bun is required (see the `engines` field in package.json). DNS resolution protection uses [`process.getBuiltinModule`](https://nodejs.org/docs/v22.12.0/api/process.html#processgetbuiltinmoduleid); on unsupported older Node.js versions this check is skipped and the library falls back to the address blocklist validation above — direct private IPs and hostnames are still blocked, but domains that *resolve* to private IPs are not.
 
 ### Redirect Protection
 

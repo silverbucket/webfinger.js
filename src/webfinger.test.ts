@@ -173,6 +173,67 @@ describe('WebFinger', () => {
         await expect(secureWebfinger.lookup('test@169.254.169.254')).rejects.toThrow('private or internal addresses are not allowed');
       });
 
+      it('should block shared address space before network access (100.64.0.0/10)', async () => {
+        const originalFetch = globalThis.fetch;
+        let fetchCalled = false;
+
+        globalThis.fetch = async () => {
+          fetchCalled = true;
+          throw new Error('Network request should not be made for blocked private hosts');
+        };
+
+        try {
+          const blocked = [
+            'test@100.64.0.1',
+            'test@100.100.100.200',
+            'test@100.127.255.254',
+            'test@[::ffff:100.100.100.200]',
+            'https://100.100.100.200/latest/meta-data/'
+          ];
+
+          for (const address of blocked) {
+            await expect(secureWebfinger.lookup(address))
+              .rejects.toThrow('private or internal addresses are not allowed');
+          }
+
+          expect(fetchCalled).toBe(false);
+
+          globalThis.fetch = async () => new Response(null, {
+            status: 302,
+            headers: { location: 'http://100.100.100.200/latest/meta-data/ram/security-credentials/' }
+          });
+
+          await expect(secureWebfinger.lookup('test@example.com'))
+            .rejects.toThrow('redirect to private or internal address blocked');
+        } finally {
+          globalThis.fetch = originalFetch;
+        }
+      });
+
+      it('should allow addresses outside shared address space (100.64.0.0/10)', async () => {
+        const originalFetch = globalThis.fetch;
+        const requestedUrls: string[] = [];
+
+        globalThis.fetch = async (url: string | Request) => {
+          requestedUrls.push(typeof url === 'string' ? url : url.url);
+          return new Response(JSON.stringify({ subject: 'acct:test', links: [] }), {
+            status: 200,
+            headers: { 'content-type': 'application/jrd+json' }
+          });
+        };
+
+        try {
+          await secureWebfinger.lookup('test@100.63.255.255');
+          await secureWebfinger.lookup('test@100.128.0.1');
+          expect(requestedUrls).toEqual([
+            'https://100.63.255.255/.well-known/webfinger?resource=acct:test@100.63.255.255',
+            'https://100.128.0.1/.well-known/webfinger?resource=acct:test@100.128.0.1'
+          ]);
+        } finally {
+          globalThis.fetch = originalFetch;
+        }
+      });
+
       it('should block multicast addresses (224-239.x.x.x)', async () => {
         await expect(secureWebfinger.lookup('test@224.0.0.1')).rejects.toThrow('private or internal addresses are not allowed');
         await expect(secureWebfinger.lookup('test@239.255.255.255')).rejects.toThrow('private or internal addresses are not allowed');
