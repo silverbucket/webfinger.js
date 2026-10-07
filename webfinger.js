@@ -218,7 +218,8 @@ class WebFinger {
     if (ipv6) {
       const isMapped = ipv6.slice(0, 5).every((group) => group === 0) && ipv6[5] === 65535;
       const isCompatible = ipv6.slice(0, 6).every((group) => group === 0);
-      if (isMapped || isCompatible) {
+      const isWellKnownNat64 = ipv6[0] === 100 && ipv6[1] === 65435 && ipv6.slice(2, 6).every((group) => group === 0);
+      if (isMapped || isCompatible || isWellKnownNat64) {
         return isPrivateIPv4([
           ipv6[6] >> 8,
           ipv6[6] & 255,
@@ -366,13 +367,19 @@ class WebFinger {
       const dns = typeof process.getBuiltinModule === "function" ? process.getBuiltinModule("node:dns")?.promises : null;
       if (dns) {
         try {
-          const [ipv4Results, ipv6Results] = await Promise.allSettled([
+          const lookups = [
             dns.resolve4(hostname).catch(() => []),
             dns.resolve6(hostname).catch(() => [])
-          ]);
-          const ipv4Addresses = ipv4Results.status === "fulfilled" ? ipv4Results.value : [];
-          const ipv6Addresses = ipv6Results.status === "fulfilled" ? ipv6Results.value : [];
-          for (const ip of [...ipv4Addresses, ...ipv6Addresses]) {
+          ];
+          if (typeof dns.lookup === "function") {
+            lookups.push(Promise.resolve().then(() => dns.lookup(hostname, { all: true })).then((records) => {
+              const list = Array.isArray(records) ? records : [records];
+              return list.map((record) => record?.address).filter((address) => typeof address === "string");
+            }).catch(() => []));
+          }
+          const settled = await Promise.allSettled(lookups);
+          const addresses = settled.flatMap((result) => result.status === "fulfilled" ? result.value : []);
+          for (const ip of addresses) {
             if (WebFinger.isPrivateAddress(ip)) {
               throw new WebFingerError(`hostname ${hostname} resolves to private address ${ip}`);
             }
