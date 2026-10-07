@@ -662,9 +662,11 @@ export default class WebFinger {
    * Resolves a hostname to IP addresses and validates they are not private addresses.
    *
    * This prevents DNS-based SSRF attacks where public domains resolve to private
-   * IP addresses (e.g., yoogle.com -> 127.0.0.1). Only performs DNS resolution
-   * in Node.js (>= 20.16) and Bun environments where the dns module is available
-   * via process.getBuiltinModule; skipped elsewhere (browsers, older runtimes).
+   * IP addresses (e.g., yoogle.com -> 127.0.0.1). Authoritative A/AAAA lookups
+   * do not consult the system resolver that `fetch` uses (`/etc/hosts`, NSS),
+   * so those results are checked as well. Only runs in Node.js (>= 20.16) and
+   * Bun, where the dns module is available via process.getBuiltinModule;
+   * skipped elsewhere (browsers, older runtimes).
    *
    * @private
    * @param hostname - The hostname to resolve (without port)
@@ -695,7 +697,8 @@ export default class WebFinger {
 
       if (dns) {
         try {
-          // Resolve both A and AAAA records
+          // Resolve both A and AAAA records. These queries hit DNS servers
+          // directly and skip the hosts file / NSS path that fetch uses.
           const [ipv4Results, ipv6Results] = await Promise.allSettled([
             dns.resolve4(hostname).catch(() => []),
             dns.resolve6(hostname).catch(() => [])
@@ -704,8 +707,29 @@ export default class WebFinger {
           const ipv4Addresses = ipv4Results.status === 'fulfilled' ? ipv4Results.value : [];
           const ipv6Addresses = ipv6Results.status === 'fulfilled' ? ipv6Results.value : [];
 
+          // fetch() connects via getaddrinfo (hosts file, then DNS). A name
+          // that is absent from DNS but present in /etc/hosts, including
+          // stock entries such as ip6-localhost -> ::1, would otherwise
+          // pass the resolve4/resolve6 checks and still reach a private IP.
+          const systemAddresses: string[] = [];
+          if (typeof dns.lookup === 'function') {
+            try {
+              const lookedUp = await dns.lookup(hostname, { all: true });
+              const entries = Array.isArray(lookedUp) ? lookedUp : [lookedUp];
+              for (const entry of entries) {
+                const address = typeof entry === 'string' ? entry : entry?.address;
+                if (address) {
+                  systemAddresses.push(address);
+                }
+              }
+            } catch {
+              // System resolver failed. fetch uses that same resolver, so
+              // this failure does not reveal a destination fetch could reach.
+            }
+          }
+
           // Check all resolved IP addresses
-          for (const ip of [...ipv4Addresses, ...ipv6Addresses]) {
+          for (const ip of [...ipv4Addresses, ...ipv6Addresses, ...systemAddresses]) {
             if (WebFinger.isPrivateAddress(ip)) {
               throw new WebFingerError(`hostname ${hostname} resolves to private address ${ip}`);
             }
