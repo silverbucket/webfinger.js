@@ -39,6 +39,7 @@ The following address ranges are blocked by default to prevent SSRF attacks:
 In Node.js environments, the library performs DNS resolution to prevent attacks using domains that resolve to private IP addresses:
 
 - **Domain resolution**: All domain names are resolved to IP addresses before making requests
+- **System resolver**: `dns.lookup` (getaddrinfo) is checked in addition to DNS A/AAAA queries, so hosts-file and NSS entries are judged the same way `fetch` will connect — including names that exist only in `/etc/hosts` (such as `ip6-localhost` → `::1`) and names where the hosts file overrides a public DNS answer
 - **Private IP detection**: Resolved IPs are checked against the private address blacklist
 - **Attack prevention**: Blocks requests to public domains like `localtest.me` that resolve to `127.0.0.1`
 - **Browser compatibility**: DNS resolution is skipped in browser environments where it's not available
@@ -50,7 +51,7 @@ In Node.js environments, the library performs DNS resolution to prevent attacks 
 
 **Note**: This protection only applies in Node.js and Bun environments. Browser environments rely on the browser's built-in protections against private network access.
 
-**Runtime requirements**: Node.js >= 22.12 or Bun is required (see the `engines` field in package.json). DNS resolution protection uses [`process.getBuiltinModule`](https://nodejs.org/api/process.html#processgetbuiltinmoduleid); on unsupported older Node.js versions this check is skipped and the library falls back to the address blocklist validation above — direct private IPs and hostnames are still blocked, but domains that *resolve* to private IPs are not.
+**Runtime requirements**: Node.js >= 22.12 or Bun is required (see the `engines` field in package.json). DNS resolution protection uses [`process.getBuiltinModule`](https://nodejs.org/docs/v22.12.0/api/process.html#processgetbuiltinmoduleid); on unsupported older Node.js versions this check is skipped and the library falls back to the address blocklist validation above — direct private IPs and hostnames are still blocked, but domains that *resolve* to private IPs are not.
 
 ### Redirect Protection
 
