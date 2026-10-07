@@ -511,8 +511,9 @@ export default class WebFinger {
    *
    * Non-ASCII characters (internationalized userparts and domains) are encoded
    * as UTF-8 octets, as are characters that would otherwise break the query
-   * (`&`, `#`, `?`, `+`, `=`). The URI delimiters `:`, `@` and `/` are left
-   * literal so plain ASCII resources are unchanged and remain human-readable.
+   * (`&`, `#`, `?`, `+`, `=`, `%`). The URI delimiters `:`, `@` and `/` are
+   * left literal, so a typical alphanumeric resource such as
+   * `acct:user@example.com` is unchanged and remains human-readable.
    *
    * @private
    * @param resource - Resource URI (e.g. `acct:user@host` or an `https://` URL)
