@@ -148,7 +148,8 @@ export default class WebFinger {
      * - Private IPv4: 10.x.x.x, 172.16-31.x.x, 192.168.x.x
      * - Link-local: 169.254.x.x, fe80::/10
      * - Multicast: 224.x.x.x-239.x.x.x, ff00::/8
-     * - IPv4-mapped and IPv4-compatible IPv6 forms of blocked IPv4 addresses
+     * - IPv4-mapped (`::ffff:0:0/96`), IPv4-compatible (`::/96`), and NAT64
+     *   well-known prefix (`64:ff9b::/96`) forms of blocked IPv4 addresses
      *
      * @private
      * @param host - The hostname or IP address to check (may include port)
@@ -168,6 +169,20 @@ export default class WebFinger {
      * @throws {WebFingerError} When the address is malformed or missing a host
      */
     private static parseAddress;
+    /**
+     * Percent-encodes a WebFinger resource for use as a query parameter value.
+     *
+     * Non-ASCII characters (internationalized userparts and domains) are encoded
+     * as UTF-8 octets, as are characters that would otherwise break the query
+     * (`&`, `#`, `?`, `+`, `=`, `%`). The URI delimiters `:`, `@` and `/` are
+     * left literal, so a typical alphanumeric resource such as
+     * `acct:user@example.com` is unchanged and remains human-readable.
+     *
+     * @private
+     * @param resource - Resource URI (e.g. `acct:user@host` or an `https://` URL)
+     * @returns Percent-encoded resource suitable for `?resource=`
+     */
+    private static encodeResource;
     /**
      * Canonical host validation pipeline shared by the initial lookup and every
      * redirect hop. Applying the same checks in the same order here ensures there
@@ -202,10 +217,14 @@ export default class WebFinger {
     /**
      * Resolves a hostname to IP addresses and validates they are not private addresses.
      *
-     * This prevents DNS-based SSRF attacks where public domains resolve to private
-     * IP addresses (e.g., yoogle.com -> 127.0.0.1). Only performs DNS resolution
-     * in supported Node.js and Bun environments where the dns module is available
-     * via process.getBuiltinModule; skipped elsewhere (such as browsers).
+     * This prevents DNS-based SSRF attacks where a hostname resolves to a private
+     * IP address (e.g., yoogle.com -> 127.0.0.1, the standard hosts-file alias
+     * ip6-localhost -> ::1, or a hosts-file override of a public DNS answer).
+     * Authoritative A/AAAA lookups do not consult the system resolver that
+     * `fetch` uses (`/etc/hosts`, NSS), so `dns.lookup` results are checked as
+     * well. Only performs resolution in Node.js (>= 20.16) and
+     * Bun environments where the dns module is available via
+     * process.getBuiltinModule; skipped elsewhere (such as browsers).
      *
      * @private
      * @param hostname - The hostname to resolve (without port)
@@ -224,7 +243,7 @@ export default class WebFinger {
      * - Follows ActivityPub security guidelines
      * - Limits redirect chains to prevent redirect loops
      *
-     * @param address - Email-like address (user@domain.com) or full URI to look up
+     * @param address - Email-like address (user@domain.com or acct:user@domain.com) or full URI to look up
      * @returns Promise resolving to WebFinger result with indexed links and properties
      * @throws {WebFingerError} When lookup fails, address is invalid, or SSRF protection blocks the request
      *
@@ -253,7 +272,7 @@ export default class WebFinger {
     /**
      * Looks up a specific link relation for the given address.
      *
-     * @param address - Email-like address (user@domain.com) or full URI
+     * @param address - Email-like address (user@domain.com or acct:user@domain.com) or full URI
      * @param rel - Link relation type (e.g., 'avatar', 'blog', 'remotestorage')
      * @returns Promise resolving to the first matching link object
      * @throws {WebFingerError} When lookup fails

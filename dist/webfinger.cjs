@@ -13,7 +13,7 @@
   }
 }(typeof self !== 'undefined' ? self : this, function () {
 'use strict';
-// webfinger.js v3.0.6
+// webfinger.js v3.1.0
 
 // src/webfinger.ts
 /*!
@@ -218,7 +218,8 @@ class WebFinger {
     if (ipv6) {
       const isMapped = ipv6.slice(0, 5).every((group) => group === 0) && ipv6[5] === 65535;
       const isCompatible = ipv6.slice(0, 6).every((group) => group === 0);
-      if (isMapped || isCompatible) {
+      const isWellKnownNat64 = ipv6[0] === 100 && ipv6[1] === 65435 && ipv6.slice(2, 6).every((group) => group === 0);
+      if (isMapped || isCompatible || isWellKnownNat64) {
         return isPrivateIPv4([
           ipv6[6] >> 8,
           ipv6[6] & 255,
@@ -267,11 +268,14 @@ class WebFinger {
       }
       return { host: url.host };
     }
-    const parts = cleaned.split("@");
+    const parts = cleaned.replace(/^acct:/i, "").split("@");
     if (parts.length !== 2 || !parts[1]) {
       throw new WebFingerError("invalid useraddress format");
     }
-    return { host: parts[1] };
+    return { host: parts[1], user: parts[0] };
+  }
+  static encodeResource(resource) {
+    return encodeURIComponent(resource).replace(/%3A/gi, ":").replace(/%40/g, "@").replace(/%2F/gi, "/");
   }
   async resolveAndValidateHost(rawHost) {
     const normalized = WebFinger.normalizeHost(rawHost);
@@ -363,13 +367,19 @@ class WebFinger {
       const dns = typeof process.getBuiltinModule === "function" ? process.getBuiltinModule("node:dns")?.promises : null;
       if (dns) {
         try {
-          const [ipv4Results, ipv6Results] = await Promise.allSettled([
+          const lookups = [
             dns.resolve4(hostname).catch(() => []),
             dns.resolve6(hostname).catch(() => [])
-          ]);
-          const ipv4Addresses = ipv4Results.status === "fulfilled" ? ipv4Results.value : [];
-          const ipv6Addresses = ipv6Results.status === "fulfilled" ? ipv6Results.value : [];
-          for (const ip of [...ipv4Addresses, ...ipv6Addresses]) {
+          ];
+          if (typeof dns.lookup === "function") {
+            lookups.push(Promise.resolve().then(() => dns.lookup(hostname, { all: true })).then((records) => {
+              const list = Array.isArray(records) ? records : [records];
+              return list.map((record) => record?.address).filter((address) => typeof address === "string");
+            }).catch(() => []));
+          }
+          const settled = await Promise.allSettled(lookups);
+          const addresses = settled.flatMap((result) => result.status === "fulfilled" ? result.value : []);
+          for (const ip of addresses) {
             if (WebFinger.isPrivateAddress(ip)) {
               throw new WebFingerError(`hostname ${hostname} resolves to private address ${ip}`);
             }
@@ -386,19 +396,16 @@ class WebFinger {
     if (!address) {
       throw new WebFingerError("address is required");
     }
-    const { host: rawHost } = WebFinger.parseAddress(address);
+    const { host: rawHost, user } = WebFinger.parseAddress(address);
     const { host } = await this.resolveAndValidateHost(rawHost);
     let uri_index = 0;
     let protocol = "https";
     if (WebFinger.isLocalhost(host)) {
       protocol = "http";
     }
+    const resource = WebFinger.encodeResource(user === undefined ? address.replace(/ /g, "") : `acct:${user.normalize("NFC")}@${host}`);
     const __buildURL = () => {
-      let uri = "";
-      if (!address.split("://")[1]) {
-        uri = "acct:";
-      }
-      return protocol + "://" + host + "/.well-known/" + URIS[uri_index] + "?resource=" + uri + address;
+      return protocol + "://" + host + "/.well-known/" + URIS[uri_index] + "?resource=" + resource;
     };
     const __fallbackChecks = async (err) => {
       if (this.config.uri_fallback && uri_index !== URIS.length - 1) {

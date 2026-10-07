@@ -1,8 +1,8 @@
-**webfinger.js v3.0.6**
+**webfinger.js v3.1.0**
 
 ***
 
-# webfinger.js v3.0.6
+# webfinger.js v3.1.0
 
 ## Classes
 
@@ -43,7 +43,7 @@ console.log(result.idx.properties.name);
 
 > **lookup**(`address`): `Promise`\<[`WebFingerResult`](#webfingerresult)\>
 
-Defined in: [src/webfinger.ts:739](https://github.com/silverbucket/webfinger.js/blob/master/src/webfinger.ts#L739)
+Defined in: [src/webfinger.ts:789](https://github.com/silverbucket/webfinger.js/blob/master/src/webfinger.ts#L789)
 
 Performs a WebFinger lookup for the given address with comprehensive SSRF protection.
 
@@ -61,7 +61,7 @@ This method includes comprehensive security measures:
 
 `string`
 
-Email-like address (user@domain.com) or full URI to look up
+Email-like address (user@domain.com or acct:user@domain.com) or full URI to look up
 
 ###### Returns
 
@@ -85,6 +85,8 @@ try {
 }
 ```
 
+**Security - Blocked addresses and redirects**
+
 ```typescript
 // These will throw WebFingerError due to SSRF protection:
 await webfinger.lookup('user@localhost');     // Direct access blocked
@@ -98,7 +100,7 @@ await webfinger.lookup('user@192.168.1.1');  // Direct access blocked
 
 > **lookupLink**(`address`, `rel`): `Promise`\<[`LinkObject`](#linkobject)\>
 
-Defined in: [src/webfinger.ts:811](https://github.com/silverbucket/webfinger.js/blob/master/src/webfinger.ts#L811)
+Defined in: [src/webfinger.ts:865](https://github.com/silverbucket/webfinger.js/blob/master/src/webfinger.ts#L865)
 
 Looks up a specific link relation for the given address.
 
@@ -108,7 +110,7 @@ Looks up a specific link relation for the given address.
 
 `string`
 
-Email-like address (user@domain.com) or full URI
+Email-like address (user@domain.com or acct:user@domain.com) or full URI
 
 ###### rel
 
