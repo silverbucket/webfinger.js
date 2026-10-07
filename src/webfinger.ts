@@ -731,7 +731,7 @@ export default class WebFinger {
    * - Follows ActivityPub security guidelines
    * - Limits redirect chains to prevent redirect loops
    *
-   * @param address - Email-like address (user@domain.com) or full URI to look up
+   * @param address - Email-like address (user@domain.com or acct:user@domain.com) or full URI to look up
    * @returns Promise resolving to WebFinger result with indexed links and properties
    * @throws {WebFingerError} When lookup fails, address is invalid, or SSRF protection blocks the request
    *
@@ -816,7 +816,7 @@ export default class WebFinger {
   /**
    * Looks up a specific link relation for the given address.
    *
-   * @param address - Email-like address (user@domain.com) or full URI
+   * @param address - Email-like address (user@domain.com or acct:user@domain.com) or full URI
    * @param rel - Link relation type (e.g., 'avatar', 'blog', 'remotestorage')
    * @returns Promise resolving to the first matching link object
    * @throws {WebFingerError} When lookup fails
