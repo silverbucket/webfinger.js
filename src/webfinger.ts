@@ -661,10 +661,11 @@ export default class WebFinger {
   /**
    * Resolves a hostname to IP addresses and validates they are not private addresses.
    *
-   * This prevents DNS-based SSRF attacks where public domains resolve to private
-   * IP addresses (e.g., yoogle.com -> 127.0.0.1). Only performs DNS resolution
-   * in Node.js (>= 20.16) and Bun environments where the dns module is available
-   * via process.getBuiltinModule; skipped elsewhere (browsers, older runtimes).
+   * This prevents SSRF attacks where a name resolves to a private IP address
+   * (e.g., yoogle.com -> 127.0.0.1, or the standard hosts-file alias
+   * ip6-localhost -> ::1). Only performs resolution in Node.js (>= 20.16) and
+   * Bun environments where the dns module is available via
+   * process.getBuiltinModule; skipped elsewhere (browsers, older runtimes).
    *
    * @private
    * @param hostname - The hostname to resolve (without port)
@@ -695,17 +696,35 @@ export default class WebFinger {
 
       if (dns) {
         try {
-          // Resolve both A and AAAA records
-          const [ipv4Results, ipv6Results] = await Promise.allSettled([
+          // resolve4/resolve6 speak DNS only and miss /etc/hosts. fetch()
+          // connects through getaddrinfo, which does honor the hosts file, so
+          // a name like ip6-localhost (::1) would otherwise pass this check
+          // and then connect to loopback. dns.lookup uses that same resolver.
+          const lookups: Array<Promise<string[]>> = [
             dns.resolve4(hostname).catch(() => []),
             dns.resolve6(hostname).catch(() => [])
-          ]);
+          ];
 
-          const ipv4Addresses = ipv4Results.status === 'fulfilled' ? ipv4Results.value : [];
-          const ipv6Addresses = ipv6Results.status === 'fulfilled' ? ipv6Results.value : [];
+          if (typeof dns.lookup === 'function') {
+            lookups.push(
+              Promise.resolve()
+                .then(() => dns.lookup(hostname, { all: true }))
+                .then((records: Array<{ address?: string }> | { address?: string }) => {
+                  const list = Array.isArray(records) ? records : [records];
+                  return list
+                    .map((record) => record?.address)
+                    .filter((address): address is string => typeof address === 'string');
+                })
+                .catch(() => [])
+            );
+          }
 
-          // Check all resolved IP addresses
-          for (const ip of [...ipv4Addresses, ...ipv6Addresses]) {
+          const settled = await Promise.allSettled(lookups);
+          const addresses = settled.flatMap((result) =>
+            result.status === 'fulfilled' ? result.value : []
+          );
+
+          for (const ip of addresses) {
             if (WebFinger.isPrivateAddress(ip)) {
               throw new WebFingerError(`hostname ${hostname} resolves to private address ${ip}`);
             }

@@ -39,6 +39,7 @@ The following address ranges are blocked by default to prevent SSRF attacks:
 In Node.js environments, the library performs DNS resolution to prevent attacks using domains that resolve to private IP addresses:
 
 - **Domain resolution**: All domain names are resolved to IP addresses before making requests
+- **System resolver**: `dns.lookup` is checked in addition to DNS A/AAAA queries, so names that exist only in the hosts file (such as `ip6-localhost` → `::1`) are judged by the same addresses the HTTP client would connect to
 - **Private IP detection**: Resolved IPs are checked against the private address blacklist
 - **Attack prevention**: Blocks requests to public domains like `localtest.me` that resolve to `127.0.0.1`
 - **Browser compatibility**: DNS resolution is skipped in browser environments where it's not available

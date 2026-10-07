@@ -642,6 +642,60 @@ describe('WebFinger', () => {
         }
       });
 
+      it('should block hosts-file names that DNS record queries miss', async () => {
+        const originalProcess = global.process;
+        const originalFetch = globalThis.fetch;
+
+        const requestedUrls: string[] = [];
+        const mockDns = {
+          resolve4: async () => {
+            throw new Error('ENOTFOUND');
+          },
+          resolve6: async () => {
+            throw new Error('ENOTFOUND');
+          },
+          lookup: async (hostname: string) => {
+            if (hostname === 'ip6-localhost') {
+              return [{ address: '::1', family: 6 }];
+            }
+            return [{ address: '8.8.8.8', family: 4 }];
+          }
+        };
+
+        global.process = createMockNodeProcess(mockDns) as MockProcess;
+        globalThis.fetch = async () => {
+          throw new Error('network should not be contacted');
+        };
+
+        try {
+          const wf = new WebFinger({
+            allow_private_addresses: false,
+            request_timeout: 1000,
+            uri_fallback: false
+          });
+
+          await expect(wf.lookup('user@ip6-localhost'))
+            .rejects.toThrow('resolves to private address');
+
+          globalThis.fetch = async (url: string | Request) => {
+            requestedUrls.push(typeof url === 'string' ? url : url.url);
+            return new Response(null, {
+              status: 302,
+              headers: { location: 'https://ip6-localhost:8443/secret' }
+            });
+          };
+
+          await expect(wf.lookup('user@example.com'))
+            .rejects.toThrow('redirect to private or internal address blocked');
+          expect(requestedUrls).toEqual([
+            'https://example.com/.well-known/webfinger?resource=acct:user@example.com'
+          ]);
+        } finally {
+          global.process = originalProcess;
+          globalThis.fetch = originalFetch;
+        }
+      });
+
       it('should allow domains that resolve to public IPs', async () => {
         const originalProcess = global.process;
         const originalFetch = globalThis.fetch;
