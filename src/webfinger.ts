@@ -664,9 +664,9 @@ export default class WebFinger {
    * This prevents DNS-based SSRF attacks where public domains resolve to private
    * IP addresses (e.g., yoogle.com -> 127.0.0.1). Authoritative A/AAAA lookups
    * do not consult the system resolver that `fetch` uses (`/etc/hosts`, NSS),
-   * so those results are checked as well. Only runs in Node.js (>= 20.16) and
-   * Bun, where the dns module is available via process.getBuiltinModule;
-   * skipped elsewhere (browsers, older runtimes).
+   * so those results are checked as well. Only performs DNS resolution
+   * in supported Node.js and Bun environments where the dns module is available
+   * via process.getBuiltinModule; skipped elsewhere (such as browsers).
    *
    * @private
    * @param hostname - The hostname to resolve (without port)
