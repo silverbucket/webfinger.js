@@ -106,6 +106,29 @@ function isPrivateIPv4(octets: number[]): boolean {
     a >= 240; // Reserved
 }
 
+/**
+ * IPv4 address embedded in the RFC 8215 local-use NAT64 prefix
+ * `64:ff9b:1::/48`.
+ *
+ * A /48 prefix uses the RFC 6052 §2.2 layout: the first 16 bits of the
+ * IPv4 address, the reserved "u" octet at bits 64–71, then the remaining
+ * 16 bits. Translators ignore a non-zero suffix (RFC 6052 §2.2), so the
+ * suffix is not consulted here. Returns null when `groups` is outside
+ * that prefix.
+ */
+function embeddedIPv4FromLocalNat64(groups: number[]): number[] | null {
+  if (groups[0] !== 0x64 || groups[1] !== 0xff9b || groups[2] !== 0x0001) {
+    return null;
+  }
+
+  return [
+    groups[3] >> 8,
+    groups[3] & 0xff,
+    groups[4] & 0xff,
+    groups[5] >> 8
+  ];
+}
+
 
 /**
  * Configuration options for WebFinger client
@@ -368,8 +391,9 @@ export default class WebFinger {
    * - Private IPv4: 10.x.x.x, 172.16-31.x.x, 192.168.x.x
    * - Link-local: 169.254.x.x, fe80::/10
    * - Multicast: 224.x.x.x-239.x.x.x, ff00::/8
-   * - IPv4-mapped (`::ffff:0:0/96`), IPv4-compatible (`::/96`), and NAT64
-   *   well-known prefix (`64:ff9b::/96`) forms of blocked IPv4 addresses
+   * - IPv4-mapped (`::ffff:0:0/96`), IPv4-compatible (`::/96`), NAT64
+   *   well-known prefix (`64:ff9b::/96`), and local-use NAT64 prefix
+   *   (`64:ff9b:1::/48`) forms of blocked IPv4 addresses
    *
    * @private
    * @param host - The hostname or IP address to check (may include port)
@@ -442,6 +466,14 @@ export default class WebFinger {
           ipv6[7] >> 8,
           ipv6[7] & 0xff
         ]);
+      }
+
+      // RFC 8215 local-use prefix 64:ff9b:1::/48. Organizations use this
+      // when the well-known /96 prefix is already taken. The IPv4 address
+      // is not in the last 32 bits (RFC 6052 §2.2, prefix length 48).
+      const localNat64 = embeddedIPv4FromLocalNat64(ipv6);
+      if (localNat64) {
+        return isPrivateIPv4(localNat64);
       }
 
       const firstGroup = ipv6[0];

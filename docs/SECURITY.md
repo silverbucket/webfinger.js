@@ -37,6 +37,7 @@ The following address ranges are blocked by default to prevent SSRF attacks:
 #### Embedded IPv4
 - IPv4-mapped (`::ffff:0:0/96`) and IPv4-compatible (`::/96`) forms of any blocked IPv4 address
 - NAT64 well-known prefix `64:ff9b::/96` (RFC 6052) when the embedded IPv4 address is blocked. On a NAT64 network this prefix is translated to that IPv4 address, so `64:ff9b::10.0.0.1` reaches `10.0.0.1`
+- NAT64 local-use prefix `64:ff9b:1::/48` (RFC 8215) when the embedded IPv4 address is blocked. The IPv4 address is laid out per RFC 6052 for a /48 prefix (not in the last 32 bits), so `64:ff9b:1:a00:0:100::` reaches `10.0.0.1`
 
 ### DNS Resolution Protection
 
