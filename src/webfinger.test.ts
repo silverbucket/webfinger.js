@@ -332,6 +332,92 @@ describe('WebFinger', () => {
         }
       });
 
+      describe('internationalized handles', () => {
+        function captureRequests() {
+          const requestedUrls: string[] = [];
+          globalThis.fetch = async (url: string | Request) => {
+            requestedUrls.push(typeof url === 'string' ? url : url.url);
+            return new Response(JSON.stringify({ subject: 'acct:x', links: [] }), {
+              status: 200,
+              headers: { 'content-type': 'application/jrd+json' }
+            });
+          };
+          return requestedUrls;
+        }
+
+        const permissiveWf = () => new WebFinger({
+          allow_private_addresses: true,
+          request_timeout: 1000,
+          uri_fallback: false
+        });
+
+        it('should send an A-label host and percent-encoded userpart for non-ASCII handles', async () => {
+          const originalFetch = globalThis.fetch;
+          const requestedUrls = captureRequests();
+          try {
+            await permissiveWf().lookup('jürgen@müller.example');
+            expect(requestedUrls).toEqual([
+              'https://xn--mller-kva.example/.well-known/webfinger?resource=acct:j%C3%BCrgen@xn--mller-kva.example'
+            ]);
+          } finally {
+            globalThis.fetch = originalFetch;
+          }
+        });
+
+        it('should handle non-Latin scripts in both userpart and domain', async () => {
+          const originalFetch = globalThis.fetch;
+          const requestedUrls = captureRequests();
+          try {
+            await permissiveWf().lookup('玛丽@例子.测试');
+            expect(requestedUrls).toEqual([
+              'https://xn--fsqu00a.xn--0zwm56d/.well-known/webfinger?resource=acct:%E7%8E%9B%E4%B8%BD@xn--fsqu00a.xn--0zwm56d'
+            ]);
+          } finally {
+            globalThis.fetch = originalFetch;
+          }
+        });
+
+        it('should NFC-normalize the userpart', async () => {
+          const originalFetch = globalThis.fetch;
+          const requestedUrls = captureRequests();
+          try {
+            // 'u' + combining diaeresis (NFD) should be sent as precomposed 'ü' (NFC)
+            await permissiveWf().lookup('ju\u0308rgen@example.com');
+            expect(requestedUrls).toEqual([
+              'https://example.com/.well-known/webfinger?resource=acct:j%C3%BCrgen@example.com'
+            ]);
+          } finally {
+            globalThis.fetch = originalFetch;
+          }
+        });
+
+        it('should not double the scheme for acct:-prefixed addresses', async () => {
+          const originalFetch = globalThis.fetch;
+          const requestedUrls = captureRequests();
+          try {
+            await permissiveWf().lookup('acct:jürgen@müller.example');
+            expect(requestedUrls).toEqual([
+              'https://xn--mller-kva.example/.well-known/webfinger?resource=acct:j%C3%BCrgen@xn--mller-kva.example'
+            ]);
+          } finally {
+            globalThis.fetch = originalFetch;
+          }
+        });
+
+        it('should percent-encode non-ASCII characters in URI-form resources', async () => {
+          const originalFetch = globalThis.fetch;
+          const requestedUrls = captureRequests();
+          try {
+            await permissiveWf().lookup('https://müller.example/@jürgen');
+            expect(requestedUrls).toEqual([
+              'https://xn--mller-kva.example/.well-known/webfinger?resource=https://m%C3%BCller.example/@j%C3%BCrgen'
+            ]);
+          } finally {
+            globalThis.fetch = originalFetch;
+          }
+        });
+      });
+
       it('should block redirects to non-canonical loopback spellings', async () => {
         const originalFetch = globalThis.fetch;
 

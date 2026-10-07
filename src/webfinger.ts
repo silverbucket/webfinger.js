@@ -481,7 +481,7 @@ export default class WebFinger {
    * @returns Raw host as it would appear in a URL authority
    * @throws {WebFingerError} When the address is malformed or missing a host
    */
-  private static parseAddress(address: string): { host: string } {
+  private static parseAddress(address: string): { host: string, user?: string } {
     const cleaned = address.replace(/ /g, '');
     if (cleaned.includes('://')) {
       let url: URL;
@@ -496,13 +496,33 @@ export default class WebFinger {
       return { host: url.host };
     }
 
-    // Useraddress form: require exactly one '@' with a non-empty host segment,
-    // matching prior behaviour (multi-'@' inputs are rejected).
-    const parts = cleaned.split('@');
+    // Useraddress form (optionally prefixed with the acct: scheme): require
+    // exactly one '@' with a non-empty host segment, matching prior behaviour
+    // (multi-'@' inputs are rejected).
+    const parts = cleaned.replace(/^acct:/i, '').split('@');
     if (parts.length !== 2 || !parts[1]) {
       throw new WebFingerError('invalid useraddress format');
     }
-    return { host: parts[1] };
+    return { host: parts[1], user: parts[0] };
+  };
+
+  /**
+   * Percent-encodes a WebFinger resource for use as a query parameter value.
+   *
+   * Non-ASCII characters (internationalized userparts and domains) are encoded
+   * as UTF-8 octets, as are characters that would otherwise break the query
+   * (`&`, `#`, `?`, `+`, `=`). The URI delimiters `:`, `@` and `/` are left
+   * literal so plain ASCII resources are unchanged and remain human-readable.
+   *
+   * @private
+   * @param resource - Resource URI (e.g. `acct:user@host` or an `https://` URL)
+   * @returns Percent-encoded resource suitable for `?resource=`
+   */
+  private static encodeResource(resource: string): string {
+    return encodeURIComponent(resource)
+      .replace(/%3A/gi, ':')
+      .replace(/%40/g, '@')
+      .replace(/%2F/gi, '/');
   };
 
   /**
@@ -741,7 +761,7 @@ export default class WebFinger {
       throw new WebFingerError('address is required');
     }
 
-    const { host: rawHost } = WebFinger.parseAddress(address);
+    const { host: rawHost, user } = WebFinger.parseAddress(address);
     const { host } = await this.resolveAndValidateHost(rawHost);
 
     let uri_index = 0;      // track which URIS we've tried already
@@ -751,14 +771,18 @@ export default class WebFinger {
       protocol = 'http';
     }
 
+    // Build the resource once. For useraddresses the host is the validated,
+    // lowercased A-label (punycode) form and the userpart is NFC-normalized,
+    // so internationalized handles (e.g. jürgen@müller.example) produce a
+    // resource the server can match. The result is percent-encoded so
+    // non-ASCII characters travel as UTF-8 octets per RFC 7033 §4.1.
+    const resource = WebFinger.encodeResource(
+      user === undefined ? address.replace(/ /g, '') : `acct:${user.normalize('NFC')}@${host}`
+    );
+
     const __buildURL = () => {
-      let uri = '';
-      if (!address.split('://')[1]) {
-        // the URI has not been defined, default to acct
-        uri = 'acct:';
-      }
       return protocol + '://' + host + '/.well-known/' +
-          URIS[uri_index] + '?resource=' + uri + address;
+          URIS[uri_index] + '?resource=' + resource;
     }
 
     // control flow for failures, what to do in various cases, etc.
