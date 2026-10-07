@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## v3.1.0 - (2026-10-07)
+
+- fix: block NAT64 embeddings of private IPv4 addresses (#186)
+- fix: block hosts-file loopback aliases missed by DNS resolution (#184)
+- ci: make prepare-release resilient to stale release branches (#185)
+- chore: update dependencies (#182)
+- Support internationalized WebFinger handles (fixes #179) (#181)
+
+
 ## v3.0.6 - (2026-08-12)
 
 - Block IPv4-mapped IPv6 SSRF bypasses [advisory](https://github.com/silverbucket/webfinger.js/security/advisories/GHSA-fwvw-2r88-m4cv) reported by @arpitjain099, [commit fix](https://github.com/silverbucket/webfinger.js/commit/1b5497f7d9663895a458a15692a5189678dc05ea) 
