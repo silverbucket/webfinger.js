@@ -499,6 +499,95 @@ describe('WebFinger', () => {
         }
       });
 
+      it('should block local-use NAT64 embeddings of private IPv4 addresses', async () => {
+        const originalFetch = globalThis.fetch;
+        let fetchCalled = false;
+
+        globalThis.fetch = async () => {
+          fetchCalled = true;
+          throw new Error('Network request should not be made for blocked private hosts');
+        };
+
+        try {
+          const secureWebfinger = new WebFinger({
+            allow_private_addresses: false,
+            request_timeout: 1000,
+            uri_fallback: false
+          });
+
+          // RFC 6052 §2.2 /48 layout under the RFC 8215 prefix 64:ff9b:1::/48.
+          // 10.0.0.1 → 64:ff9b:1:a00:0:100::
+          // 127.0.0.1 → 64:ff9b:1:7f00:0:100::
+          // 192.168.0.1 → 64:ff9b:1:c0a8:0:100::
+          // 172.16.5.1 → 64:ff9b:1:ac10:5:100::
+          // 169.254.169.254 → 64:ff9b:1:a9fe:a9:fe00::
+          // A non-zero suffix is still translated (RFC 6052 §2.2).
+          const attackVectors = [
+            'test@[64:ff9b:1:a00:0:100::]',
+            'test@[64:ff9b:1:a00:0:100::]:8080',
+            'test@[64:ff9b:1:7f00:0:100::]',
+            'test@[64:ff9b:1:c0a8:0:100::]',
+            'test@[64:ff9b:1:ac10:5:100::]',
+            'test@[64:ff9b:1:a9fe:a9:fe00::]',
+            'test@[64:ff9b:1:a9fe:a9:fe00::1]',
+            'http://[64:ff9b:1:a9fe:a9:fe00::]/latest/meta-data/'
+          ];
+
+          for (const maliciousAddress of attackVectors) {
+            await expect(secureWebfinger.lookup(maliciousAddress))
+              .rejects.toThrow('private or internal addresses are not allowed');
+          }
+
+          const requestedUrls: string[] = [];
+          globalThis.fetch = async (url: string | Request) => {
+            requestedUrls.push(typeof url === 'string' ? url : url.url);
+            return new Response(null, {
+              status: 302,
+              headers: { location: 'http://[64:ff9b:1:a9fe:a9:fe00::]/latest/meta-data/' }
+            });
+          };
+
+          await expect(secureWebfinger.lookup('test@example.com'))
+            .rejects.toThrow('redirect to private or internal address blocked');
+          expect(requestedUrls).toEqual([
+            'https://example.com/.well-known/webfinger?resource=acct:test@example.com'
+          ]);
+
+          expect(fetchCalled).toBe(false);
+        } finally {
+          globalThis.fetch = originalFetch;
+        }
+      });
+
+      it('should allow local-use NAT64 embeddings of public IPv4 addresses', async () => {
+        const originalFetch = globalThis.fetch;
+        const requestedUrls: string[] = [];
+
+        globalThis.fetch = async (url: string | Request) => {
+          requestedUrls.push(typeof url === 'string' ? url : url.url);
+          return new Response(JSON.stringify({ subject: 'acct:test', links: [] }), {
+            status: 200,
+            headers: { 'content-type': 'application/jrd+json' }
+          });
+        };
+
+        try {
+          const secureWebfinger = new WebFinger({
+            allow_private_addresses: false,
+            request_timeout: 1000,
+            uri_fallback: false
+          });
+
+          // 8.8.8.8 under 64:ff9b:1::/48
+          await secureWebfinger.lookup('test@[64:ff9b:1:808:8:800::]');
+          expect(requestedUrls).toEqual([
+            'https://[64:ff9b:1:808:8:800::]/.well-known/webfinger?resource=acct:test@%5B64:ff9b:1:808:8:800::%5D'
+          ]);
+        } finally {
+          globalThis.fetch = originalFetch;
+        }
+      });
+
       it('should block redirects to non-canonical loopback spellings', async () => {
         const originalFetch = globalThis.fetch;
 
