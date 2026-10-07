@@ -368,7 +368,8 @@ export default class WebFinger {
    * - Private IPv4: 10.x.x.x, 172.16-31.x.x, 192.168.x.x
    * - Link-local: 169.254.x.x, fe80::/10
    * - Multicast: 224.x.x.x-239.x.x.x, ff00::/8
-   * - IPv4-mapped and IPv4-compatible IPv6 forms of blocked IPv4 addresses
+   * - IPv4-mapped (`::ffff:0:0/96`), IPv4-compatible (`::/96`), and NAT64
+   *   well-known prefix (`64:ff9b::/96`) forms of blocked IPv4 addresses
    *
    * @private
    * @param host - The hostname or IP address to check (may include port)
@@ -427,8 +428,14 @@ export default class WebFinger {
     if (ipv6) {
       const isMapped = ipv6.slice(0, 5).every(group => group === 0) && ipv6[5] === 0xffff;
       const isCompatible = ipv6.slice(0, 6).every(group => group === 0);
+      // RFC 6052 well-known NAT64 prefix. The last 32 bits are an IPv4
+      // address, and a NAT64 translator delivers the connection there —
+      // the same SSRF path IPv4-mapped addresses already close.
+      const isWellKnownNat64 = ipv6[0] === 0x64 &&
+        ipv6[1] === 0xff9b &&
+        ipv6.slice(2, 6).every(group => group === 0);
 
-      if (isMapped || isCompatible) {
+      if (isMapped || isCompatible || isWellKnownNat64) {
         return isPrivateIPv4([
           ipv6[6] >> 8,
           ipv6[6] & 0xff,

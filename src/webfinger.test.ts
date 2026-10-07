@@ -418,6 +418,87 @@ describe('WebFinger', () => {
         });
       });
 
+      it('should block NAT64 embeddings of private IPv4 addresses', async () => {
+        const originalFetch = globalThis.fetch;
+        let fetchCalled = false;
+
+        globalThis.fetch = async () => {
+          fetchCalled = true;
+          throw new Error('Network request should not be made for blocked private hosts');
+        };
+
+        try {
+          const secureWebfinger = new WebFinger({
+            allow_private_addresses: false,
+            request_timeout: 1000,
+            uri_fallback: false
+          });
+
+          const attackVectors = [
+            'test@[64:ff9b::127.0.0.1]',
+            'test@[64:ff9b::7f00:1]',
+            'test@[64:ff9b::10.0.0.1]',
+            'test@[64:ff9b::10.0.0.1]:8080',
+            'test@[64:ff9b::192.168.0.1]',
+            'test@[64:ff9b::172.16.5.1]',
+            'test@[64:ff9b::169.254.169.254]',
+            'http://[64:ff9b::10.1.2.3]/admin'
+          ];
+
+          for (const maliciousAddress of attackVectors) {
+            await expect(secureWebfinger.lookup(maliciousAddress))
+              .rejects.toThrow('private or internal addresses are not allowed');
+          }
+
+          const requestedUrls: string[] = [];
+          globalThis.fetch = async (url: string | Request) => {
+            requestedUrls.push(typeof url === 'string' ? url : url.url);
+            return new Response(null, {
+              status: 302,
+              headers: { location: 'http://[64:ff9b::169.254.169.254]/latest/meta-data/' }
+            });
+          };
+
+          await expect(secureWebfinger.lookup('test@example.com'))
+            .rejects.toThrow('redirect to private or internal address blocked');
+          expect(requestedUrls).toEqual([
+            'https://example.com/.well-known/webfinger?resource=acct:test@example.com'
+          ]);
+
+          expect(fetchCalled).toBe(false);
+        } finally {
+          globalThis.fetch = originalFetch;
+        }
+      });
+
+      it('should allow NAT64 embeddings of public IPv4 addresses', async () => {
+        const originalFetch = globalThis.fetch;
+        const requestedUrls: string[] = [];
+
+        globalThis.fetch = async (url: string | Request) => {
+          requestedUrls.push(typeof url === 'string' ? url : url.url);
+          return new Response(JSON.stringify({ subject: 'acct:test', links: [] }), {
+            status: 200,
+            headers: { 'content-type': 'application/jrd+json' }
+          });
+        };
+
+        try {
+          const secureWebfinger = new WebFinger({
+            allow_private_addresses: false,
+            request_timeout: 1000,
+            uri_fallback: false
+          });
+
+          await secureWebfinger.lookup('test@[64:ff9b::8.8.8.8]');
+          expect(requestedUrls).toEqual([
+            'https://[64:ff9b::808:808]/.well-known/webfinger?resource=acct:test@%5B64:ff9b::808:808%5D'
+          ]);
+        } finally {
+          globalThis.fetch = originalFetch;
+        }
+      });
+
       it('should block redirects to non-canonical loopback spellings', async () => {
         const originalFetch = globalThis.fetch;
 
