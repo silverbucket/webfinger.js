@@ -124,7 +124,10 @@ jobs:
           git checkout -b "$RELEASE_BRANCH"
           git add package.json dist/ demo/ docs/ CHANGELOG.md
           git commit -m "chore: bump version to $NEW_VERSION"
-          git push origin "$RELEASE_BRANCH"
+          # Force-push: a previous run that was cancelled or failed mid-way may
+          # have left a stale release branch behind. Nothing merges from this
+          # branch except via the release PR, so overwriting it is safe.
+          git push --force origin "$RELEASE_BRANCH"
           echo "RELEASE_BRANCH=$RELEASE_BRANCH" >> $GITHUB_ENV
 
       - name: Double check documentation links
@@ -193,10 +196,10 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Cleanup on failure
-        if: failure()
+      - name: Cleanup on failure or cancellation
+        if: failure() || cancelled()
         run: |
-          echo "Release failed - cleaning up..."
+          echo "Release failed or was cancelled - cleaning up..."
           
           # Delete release branch if it exists
           git push origin --delete "${{ env.RELEASE_BRANCH }}" || true
