@@ -120,6 +120,15 @@ jobs:
             fi
           }
 
+      - name: Publish to npm
+        if: steps.npm_check.outputs.already_published == 'false'
+        id: npm_publish
+        run: npm publish --provenance
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      # Tag and release only AFTER the package is on npm. If publish fails,
+      # nothing public is created and the job can simply be re-run.
       - name: Configure Git
         run: |
           git config --local user.email "action@github.com"
@@ -147,13 +156,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Publish to npm
-        if: steps.npm_check.outputs.already_published == 'false'
-        id: npm_publish
-        run: npm publish --provenance
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-
       - name: Add already published summary
         if: steps.npm_check.outputs.already_published == 'true'
         run: |
@@ -177,41 +179,37 @@ jobs:
       - name: Alert on NPM publish failure
         if: failure() && steps.npm_publish.conclusion == 'failure'
         run: |
+          VERSION="v${PKG_VERSION}"
+          RUN_URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
           echo "## 🚨 NPM Publish Failed" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY  
-          echo "✅ **Git tag created**: v${{ steps.version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
-          echo "✅ **GitHub release created**: https://github.com/silverbucket/webfinger.js/releases/tag/v${{ steps.version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
-          echo "❌ **NPM publish failed**" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Manual Fix**: Run \`npm publish\` locally to complete the release." >> $GITHUB_STEP_SUMMARY
+          echo "❌ **npm publish failed** for $VERSION" >> $GITHUB_STEP_SUMMARY
+          echo "⏸️ **No git tag or GitHub release was created** (they are only created after a successful publish)" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Steps:**" >> $GITHUB_STEP_SUMMARY
-          echo "1. Check NPM authentication and network" >> $GITHUB_STEP_SUMMARY
-          echo "2. Run \`npm publish\` from the project directory" >> $GITHUB_STEP_SUMMARY
-          echo "3. Verify publication at https://www.npmjs.com/package/webfinger.js" >> $GITHUB_STEP_SUMMARY
-          
-          # Create GitHub issue for tracking
-          VERSION="v${{ steps.version.outputs.version }}"
-          RELEASE_URL="https://github.com/silverbucket/webfinger.js/releases/tag/$VERSION"
+          echo "**To recover:**" >> $GITHUB_STEP_SUMMARY
+          echo "1. Check the \`Publish to npm\` step log. An \`E404 ... PUT\` or \`E403\` error means the \`NPM_TOKEN\` secret is expired, revoked, or lacks publish rights." >> $GITHUB_STEP_SUMMARY
+          echo "2. Fix the token (or configure npm Trusted Publishing for this workflow) in repository secrets." >> $GITHUB_STEP_SUMMARY
+          echo "3. Re-run the failed job: \`gh run rerun ${GITHUB_RUN_ID} --failed\`. The rerun publishes, then tags and creates the release." >> $GITHUB_STEP_SUMMARY
+
           gh issue create --title "NPM Publish Failed for $VERSION" \
             --body "$(cat <<ISSUE_BODY
-          The automated release process completed successfully except for NPM publishing.
+          The release PR was merged but \`npm publish\` failed, so the release is **not** complete.
 
           **Status:**
-          - Git tag created: $VERSION
-          - GitHub release created: $RELEASE_URL
-          - NPM publish failed
+          - npm publish: failed ($RUN_URL)
+          - Git tag $VERSION: not created
+          - GitHub release $VERSION: not created
 
-          **Manual Fix Required:**
-          Run \`npm publish\` locally after checking authentication and network connectivity.
+          **To recover:**
+          1. Check the \`Publish to npm\` step log. An \`E404 ... PUT\` or \`E403\` error means the \`NPM_TOKEN\` secret is expired, revoked, or lacks publish rights (npm granular tokens expire after 90 days by default).
+          2. Fix the token, or configure npm Trusted Publishing for this workflow so no token is needed.
+          3. Re-run the failed job: \`gh run rerun ${GITHUB_RUN_ID} --failed\`. The rerun publishes to npm, then creates the tag and GitHub release.
 
-          **Verification:**
-          Check https://www.npmjs.com/package/webfinger.js to confirm publication.
-
-          This issue can be closed once NPM publish is completed manually.
+          Close this issue once https://www.npmjs.com/package/webfinger.js shows $VERSION.
           ISSUE_BODY
           )" \
             --label "bug"
         env:
+          PKG_VERSION: ${{ steps.version.outputs.version }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
