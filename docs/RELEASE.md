@@ -62,7 +62,7 @@ After merge, verify:
 1. **NPM Token**: Add `NPM_TOKEN` secret in the webfinger.js repository settings (Settings→Secrets and variables→Actions)
    - Get a granular access token from npmjs.com (Profile→Access Tokens) with read/write on `webfinger.js`
    - **Granular tokens expire (90 days by default).** Set the longest expiry you are comfortable with and note the date; an expired token makes `npm publish` fail with `E404 ... PUT https://registry.npmjs.org/webfinger.js`
-   - Alternative: configure [npm Trusted Publishing](https://docs.npmjs.com/trusted-publishers) for `publish-on-merge.yml`; the workflow already requests `id-token: write` and publishes with `--provenance`, so no long-lived token is required
+   - Alternative: configure [npm Trusted Publishing](https://docs.npmjs.com/trusted-publishers) for `publish-on-merge.yml` so no long-lived token is required. The workflow already requests `id-token: write` and publishes with `--provenance`. Before removing `NPM_TOKEN`, also edit the workflow: drop the `NODE_AUTH_TOKEN` env from the **Publish to npm** step (an empty token in `.npmrc` can override OIDC) and bump `actions/setup-node` to v7 or newer, which no longer writes a placeholder token when `registry-url` is set
 
 2. **Done!** `GITHUB_TOKEN` is provided automatically.
 
@@ -78,7 +78,7 @@ After merging the release PR and NPM publish completes, check:
 
 **Release fails?**
 - Check the Actions log for the specific error
-- `E404`/`E403` on `PUT https://registry.npmjs.org/webfinger.js` means `NPM_TOKEN` is expired, revoked, or lacks publish rights. Rotate it, then `gh run rerun <run-id> --failed`
+- `E404`/`E403` on `PUT https://registry.npmjs.org/webfinger.js` is almost always an auth problem: `NPM_TOKEN` expired, revoked, or lacking publish rights. If using Trusted Publishing instead, check the publisher config on npmjs.com matches the repo and workflow filename, and that the runner's npm is 11.5.1 or newer. Fix the cause, then `gh run rerun <run-id> --failed`
 - Verify no uncommitted changes
 
 **Demo not updating?**

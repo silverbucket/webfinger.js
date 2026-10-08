@@ -179,8 +179,8 @@ jobs:
       - name: Alert on NPM publish failure
         if: failure() && steps.npm_publish.conclusion == 'failure'
         run: |
-          VERSION="v${{ steps.version.outputs.version }}"
-          RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          VERSION="v${PKG_VERSION}"
+          RUN_URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
           echo "## 🚨 NPM Publish Failed" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "❌ **npm publish failed** for $VERSION" >> $GITHUB_STEP_SUMMARY
@@ -189,7 +189,7 @@ jobs:
           echo "**To recover:**" >> $GITHUB_STEP_SUMMARY
           echo "1. Check the \`Publish to npm\` step log. An \`E404 ... PUT\` or \`E403\` error means the \`NPM_TOKEN\` secret is expired, revoked, or lacks publish rights." >> $GITHUB_STEP_SUMMARY
           echo "2. Fix the token (or configure npm Trusted Publishing for this workflow) in repository secrets." >> $GITHUB_STEP_SUMMARY
-          echo "3. Re-run the failed job: \`gh run rerun ${{ github.run_id }} --failed\`. The rerun publishes, then tags and creates the release." >> $GITHUB_STEP_SUMMARY
+          echo "3. Re-run the failed job: \`gh run rerun ${GITHUB_RUN_ID} --failed\`. The rerun publishes, then tags and creates the release." >> $GITHUB_STEP_SUMMARY
 
           gh issue create --title "NPM Publish Failed for $VERSION" \
             --body "$(cat <<ISSUE_BODY
@@ -203,12 +203,13 @@ jobs:
           **To recover:**
           1. Check the \`Publish to npm\` step log. An \`E404 ... PUT\` or \`E403\` error means the \`NPM_TOKEN\` secret is expired, revoked, or lacks publish rights (npm granular tokens expire after 90 days by default).
           2. Fix the token, or configure npm Trusted Publishing for this workflow so no token is needed.
-          3. Re-run the failed job: \`gh run rerun ${{ github.run_id }} --failed\`. The rerun publishes to npm, then creates the tag and GitHub release.
+          3. Re-run the failed job: \`gh run rerun ${GITHUB_RUN_ID} --failed\`. The rerun publishes to npm, then creates the tag and GitHub release.
 
           Close this issue once https://www.npmjs.com/package/webfinger.js shows $VERSION.
           ISSUE_BODY
           )" \
             --label "bug"
         env:
+          PKG_VERSION: ${{ steps.version.outputs.version }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
