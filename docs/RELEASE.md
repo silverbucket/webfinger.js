@@ -43,8 +43,8 @@ When you merge the release PR, in this order:
 4. ✅ **Demo page is updated** with new version
 
 If the npm publish fails, no tag or GitHub release is created. A tracking issue is
-opened automatically. Fix the cause (usually an expired `NPM_TOKEN`) and re-run the
-failed job; the rerun publishes, then tags and releases.
+opened automatically. Fix the cause (usually the npm Trusted Publisher configuration)
+and re-run the failed job; the rerun publishes, then tags and releases.
 
 ### 5. Verification
 
@@ -59,10 +59,13 @@ After merge, verify:
 
 **First-time setup only:**
 
-1. **NPM Token**: Add `NPM_TOKEN` secret in the webfinger.js repository settings (Settings→Secrets and variables→Actions)
-   - Get a granular access token from npmjs.com (Profile→Access Tokens) with read/write on `webfinger.js`
-   - **Granular tokens expire (90 days by default).** Set the longest expiry you are comfortable with and note the date; an expired token makes `npm publish` fail with `E404 ... PUT https://registry.npmjs.org/webfinger.js`
-   - Alternative: configure [npm Trusted Publishing](https://docs.npmjs.com/trusted-publishers) for `publish-on-merge.yml` so no long-lived token is required. The workflow already requests `id-token: write` and publishes with `--provenance`. Before removing `NPM_TOKEN`, also edit the workflow: drop the `NODE_AUTH_TOKEN` env from the **Publish to npm** step (an empty token in `.npmrc` can override OIDC) and bump `actions/setup-node` to v7 or newer, which no longer writes a placeholder token when `registry-url` is set
+1. **npm Trusted Publishing**: publishing uses [npm Trusted Publishing](https://docs.npmjs.com/trusted-publishers) (OIDC), so no long-lived npm token is stored in the repository. Register the publisher once on npmjs.com: open the `webfinger.js` package → Settings → Trusted Publisher → GitHub Actions, and enter:
+   - Organization or user: `silverbucket`
+   - Repository: `webfinger.js`
+   - Workflow filename: `publish-on-merge.yml`
+   - Environment: leave blank
+
+   The workflow requests `id-token: write`, upgrades npm to 11.5.1 or newer, and publishes with `--provenance`. npm is [phasing out 2FA-bypass tokens](https://github.blog/changelog/2026-07-08-npm-install-time-security-and-gat-bypass2fa-deprecation/) for direct publishing (January 2027), so a token-based setup would stop working anyway. If an `NPM_TOKEN` or `NODE_AUTH_TOKEN` secret still exists in the repository, delete it.
 
 2. **Done!** `GITHUB_TOKEN` is provided automatically.
 
@@ -78,7 +81,8 @@ After merging the release PR and NPM publish completes, check:
 
 **Release fails?**
 - Check the Actions log for the specific error
-- `E404`/`E403` on `PUT https://registry.npmjs.org/webfinger.js` is almost always an auth problem: `NPM_TOKEN` expired, revoked, or lacking publish rights. If using Trusted Publishing instead, check the publisher config on npmjs.com matches the repo and workflow filename, and that the runner's npm is 11.5.1 or newer. Fix the cause, then `gh run rerun <run-id> --failed`
+- `E404`/`E403`/`ENEEDAUTH` on `PUT https://registry.npmjs.org/webfinger.js` is almost always an auth problem: the Trusted Publisher on npmjs.com is missing or does not match the repo (`silverbucket/webfinger.js`) and workflow filename (`publish-on-merge.yml`), or the runner's npm is older than 11.5.1. `EOTP` means a token (not OIDC) was used and the account requires 2FA; remove any leftover `NPM_TOKEN`/`NODE_AUTH_TOKEN` secrets. Fix the cause, then `gh run rerun <run-id> --failed`
+- Trusted Publishing only works for the workflow file on the default branch, so a workflow change must be merged to `master` before it takes effect
 - Verify no uncommitted changes
 
 **Demo not updating?**

@@ -35,11 +35,21 @@ jobs:
       - name: Build project
         run: bun run build
 
+      # Publishing uses npm Trusted Publishing (OIDC): the job's id-token
+      # permission is exchanged for a short-lived publish credential, so no
+      # NPM_TOKEN secret is needed. setup-node v7+ no longer writes a
+      # placeholder auth token to .npmrc when registry-url is set, which
+      # would otherwise override OIDC.
       - name: Setup Node.js for npm publish
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: 'lts/*'
           registry-url: 'https://registry.npmjs.org'
+
+      - name: Ensure npm supports Trusted Publishing (>= 11.5.1)
+        run: |
+          npm install -g npm@latest
+          npm --version
 
       - name: Get version from package.json
         id: version
@@ -124,8 +134,6 @@ jobs:
         if: steps.npm_check.outputs.already_published == 'false'
         id: npm_publish
         run: npm publish --provenance
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       # Tag and release only AFTER the package is on npm. If publish fails,
       # nothing public is created and the job can simply be re-run.
@@ -187,8 +195,8 @@ jobs:
           echo "⏸️ **No git tag or GitHub release was created** (they are only created after a successful publish)" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**To recover:**" >> $GITHUB_STEP_SUMMARY
-          echo "1. Check the \`Publish to npm\` step log. An \`E404 ... PUT\` or \`E403\` error means the \`NPM_TOKEN\` secret is expired, revoked, or lacks publish rights." >> $GITHUB_STEP_SUMMARY
-          echo "2. Fix the token (or configure npm Trusted Publishing for this workflow) in repository secrets." >> $GITHUB_STEP_SUMMARY
+          echo "1. Check the \`Publish to npm\` step log. An \`E404 ... PUT\`, \`E403\` or \`ENEEDAUTH\` error means the npm Trusted Publisher for this repo/workflow is missing or misconfigured on npmjs.com, or the runner's npm is older than 11.5.1." >> $GITHUB_STEP_SUMMARY
+          echo "2. On npmjs.com open webfinger.js → Settings → Trusted Publisher and confirm: owner \`silverbucket\`, repository \`webfinger.js\`, workflow \`publish-on-merge.yml\`, no environment." >> $GITHUB_STEP_SUMMARY
           echo "3. Re-run the failed job: \`gh run rerun ${GITHUB_RUN_ID} --failed\`. The rerun publishes, then tags and creates the release." >> $GITHUB_STEP_SUMMARY
 
           gh issue create --title "NPM Publish Failed for $VERSION" \
@@ -201,8 +209,8 @@ jobs:
           - GitHub release $VERSION: not created
 
           **To recover:**
-          1. Check the \`Publish to npm\` step log. An \`E404 ... PUT\` or \`E403\` error means the \`NPM_TOKEN\` secret is expired, revoked, or lacks publish rights (npm granular tokens expire after 90 days by default).
-          2. Fix the token, or configure npm Trusted Publishing for this workflow so no token is needed.
+          1. Check the \`Publish to npm\` step log. An \`E404 ... PUT\`, \`E403\` or \`ENEEDAUTH\` error means the npm Trusted Publisher for this repo/workflow is missing or misconfigured on npmjs.com, or the runner's npm is older than 11.5.1.
+          2. On npmjs.com open webfinger.js → Settings → Trusted Publisher and confirm: owner \`silverbucket\`, repository \`webfinger.js\`, workflow \`publish-on-merge.yml\`, no environment.
           3. Re-run the failed job: \`gh run rerun ${GITHUB_RUN_ID} --failed\`. The rerun publishes to npm, then creates the tag and GitHub release.
 
           Close this issue once https://www.npmjs.com/package/webfinger.js shows $VERSION.
